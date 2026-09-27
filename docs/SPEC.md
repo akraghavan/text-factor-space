@@ -79,6 +79,8 @@ US-incorporated operating common stock on NYSE, NYSE American or Nasdaq, as of e
 `ShareType = NS`, `SecurityType = EQTY`, `SecuritySubType = COM`, `USIncFlg = Y`, **`IssuerType ∈ {ACOR, CORP}`**, `PrimaryExch ∈ {N, A, Q}`, `ConditionalType ∈ {RW, NW}`.
 This reproduces legacy `SHRCD ∈ {10, 11}` (CRSP share-code crosswalk; Tidy Finance). **v0 omitted IssuerType and so included REITs (legacy code 18).** `TradingStatusFlg` is applied at formation only, so a delisting month's return is kept. Market cap = `MthCap × 1000`.
 
+**Shell companies excluded (D8, 27 Sep).** A firm-year is dropped when its 10-K is a blank-check (SPAC) filing: historical SIC ∈ {6770, 6799} and the first ~2,000 words of Item 1 contain "blank check", "business combination" or "trust account". The flag is set per filing, so a SPAC that completes its merger re-enters with its first operating 10-K. The reason is economic and was fixed before any return-based test was run: a SPAC has no operating business, its Item 1 is boilerplate shared with other SPACs (a text cluster with no economic content), and its shares trade near the trust value, so its returns are close to a T-bill's. 468 were in the June 2022 universe. The count of true operating firms in SIC 6799 caught by the text rule is reported.
+
 ### Delisting returns
 
 CIZ `MthRet` "will include delisting returns if appropriate". Where `MthDelFlg ∈ {M, G}` (missing, or more than 10 days from delisting) the delisting return is excluded; impute δ = −30% (NYSE/AMEX) or −55% (Nasdaq, Shumway & Warther 1999) for performance-related delistings, with sensitivity δ ∈ {0, −30%, −100%}, and report counts. In daily data the delisting return sits on the trading day after the last trade.
@@ -108,7 +110,7 @@ SEC Release 33-10825 (effective 9 Nov 2020) made Item 101 principles-based and a
 |---|---|---|---|
 | P0 WRDS to parquet | `src/convert_wrds.py` | `crsp_msf`, `crsp_dsf_*`, `ccm_funda` parquet | Row counts match `docs/WRDS_QUERIES.md` |
 | P1 Filing index | `src/build_filing_index.py` | 61,589 10-K/10-KT (parses `recent` and overflow files) | Check: JPM, BAC, GS, C have one 10-K per year 2012–2026 |
-| P2 Item 1 extraction | `src/scrape_item1.py`, `src/item1.py`, `src/rescue_item1.py` (P2b) | Item 1 text shards | ≤8 req/s. v1 left 3.7% with 0 words (concentrated in SIC 29/10/13/49: "Items 1 and 2" headings); 0/60 sampled failures incorporate Item 1 from EX-13. The v2 fallback recovers 1,836 of 2,254; 99.2% of 61,589 filings now > 300 words |
+| P2 Item 1 extraction | `src/scrape_item1.py`, `src/item1.py`, `src/rescue_item1.py` (P2b) | Item 1 text shards | ≤8 req/s. v1 left 3.7% with 0 words (concentrated in SIC 29/10/13/49: "Items 1 and 2" headings); 0/60 sampled failures incorporate Item 1 from EX-13. The v2 fallback recovers 1,836 of 2,254; 99.2% of 61,589 filings now > 300 words. **D10 (27 Sep):** one re-download of all 61,589 primary documents with the raw HTML stored gzip-compressed (`data/raw/edgar_html/`), v1 and v2 run on each, the canonical span chosen by a structural rule validated on ~100 hand-checked v1/v2 disagreements; the text layer is then frozen |
 | P3 Links | `src/build_links.py` | 54,254 firm-years (v0: 56,495) | Re-run with the corrected universe (27 Sep) |
 | P4 Panels | `src/build_panel.py` | monthly, daily, FF | Re-run with IssuerType/ConditionalType filters (27 Sep) |
 | P5 Embeddings | `src/embed_item1.py` | 384-d unit vectors | First 2 × 500 tokens; firm names anonymised in a later pass (see A) |
@@ -125,7 +127,7 @@ For each formation date, a similarity $s_{ij}$ for every pair of firms and a pee
 ### Networks
 
 1. **HP TNIC-3 (benchmark).** Drop self-pairs; map gvkey → PERMNO with links valid at formation; `score` is $s_{ij} - \tau$. Year = fiscal-year-end year, unlagged in the file: use year $Y$ from July $Y{+}1$ to June $Y{+}2$. Available through formation June 2025.
-2. **Bag-of-words (our HP replication).** Binary word-presence vector $b_i$, unit-normalised $v_i = b_i/\lVert b_i\rVert$, similarity $s_{ij} = v_i^\top v_j$. Vocabulary: alphabetic tokens, stop words and geographic terms removed, words in more than 25% of documents dropped; a **nouns and proper nouns** variant (proper noun = capitalised at least 90% of the time, the HP rule). HP found "uniform weights outperform TF-IDF weights". Optional HP refinements: subtract the median similarity of the pair's firms; purge vertical pairs (>1% input share in BEA Use tables).
+2. **Bag-of-words (our HP replication).** Binary word-presence vector $b_i$, unit-normalised $v_i = b_i/\lVert b_i\rVert$, similarity $s_{ij} = v_i^\top v_j$. Vocabulary: alphabetic tokens, stop words and geographic terms removed, words in more than 25% of documents dropped; a **nouns and proper nouns** variant (proper noun = capitalised at least 90% of the time, the HP rule). HP found "uniform weights outperform TF-IDF weights". **Length correction (D9, 27 Sep).** Binary cosine rises mechanically with document length. If firm $i$ uses $n_i$ of $V$ vocabulary words roughly at random, $\mathbb E\,|b_i \wedge b_j| \approx n_i n_j / V$, so $\mathbb E\, s_{ij} \approx \sqrt{n_i n_j}/V$ (observed: the correlation of log Item 1 length with a firm's mean similarity is +0.94 for BoW, −0.23 for the dense embedding). Peers are therefore chosen on a degree-corrected similarity. With $m_i$ firm $i$'s median similarity in the formation cross-section, $m_i \propto \sqrt{n_i}$ under that null, so the matching correction is multiplicative, $\tilde s_{ij} = s_{ij}/(m_i m_j)$; the additive form $s_{ij} - \tfrac12(m_i + m_j)$ is computed alongside. The version is chosen on Element A diagnostics only (length correlation removed; same-SIC-3 AUC and TNIC-3 agreement kept) before any return-based test is run. Raw BoW stays as a robustness network, and length terms stay in C. Optional: purge vertical pairs (>1% input share in BEA Use tables).
 3. **Dense (bge-small-en-v1.5, 384-d).** Average chunk embeddings, centre each cross-section and renormalise:
 $$ \tilde e_i = \frac{e_i - \bar e}{\lVert e_i - \bar e\rVert}, \qquad s^{D}_{ij} = \tilde e_i^\top \tilde e_j . $$
 Raw bge cosines are compressed into a high band, so absolute levels mean nothing; only ranks and density-calibrated thresholds are used.
@@ -408,6 +410,9 @@ text-factor-space/
 | D0 | How to handle WRDS data given the AI and automation terms (§2) | Cleared 27 Sep 2026: enterprise no-training plan confirmed by CMU's WRDS representative; scripted queries capped (§2) |
 | D1 | Repo name | `akraghavan/text-factor-space`, created 27 Sep |
 | D7 | Align this spec and the local permissions with the WRDS clearance | Done 27 Sep |
+| D8 | Exclude SPACs (blank-check shells) from the universe? | Yes (27 Sep): per-filing flag, SIC ∈ {6770, 6799} plus blank-check language in Item 1 (§3). Justified on economics before any return test |
+| D9 | Correct the length bias of bag-of-words similarity? | Yes (27 Sep): degree-corrected similarity for peer selection, multiplicative $s_{ij}/(m_i m_j)$ vs additive, chosen on Element A diagnostics only; raw BoW kept as robustness (§5) |
+| D10 | Re-download all filings to fix mis-cut Item 1 spans? | Yes (27 Sep): one pass with raw HTML stored, v1 and v2 compared, rule validated on ~100 hand-checked disagreements, then the text layer is frozen (§4) |
 
 ## 14. References {#references}
 
