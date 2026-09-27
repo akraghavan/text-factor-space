@@ -1,12 +1,13 @@
 # Status
 
-_Last updated: Sat 26 Sep 2026, 23:55 ET_
+_Last updated: Sun 27 Sep 2026, 01:50 ET_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
 - SEC: bulk submissions → 61,589 10-K/10-KT indexed (Jun 2011–Sep 2026).
 - WRDS pulls (Sat night): CRSP v2 monthly and daily (2010-01-04 → 2026-03-31), CCM link table, CCM Fundamentals Annual. Fama–French factors and Hoberg–Phillips TNIC-3 downloaded.
 - Repo scaffold: bootstrap script, project settings, CI, tests (12, skipped until implemented), DATA/PREREG docs, MIT licence.
+- Mac (M4 Pro, 24 GB): local session up; `make test` 12 skipped; NLP stack installed in `.venv` (torch 2.14, sentence-transformers 6.1), MPS available. bge-small encodes ~170 chunks/s on MPS vs ~34 on CPU, so P5 could run here in ~15 min once the Item 1 shards are synced (`src/embed_item1.py` currently hardcodes `device='cpu'`).
 
 ## Running (cloud workspace, public SEC data only)
 - P2 Item 1 extraction: restarted after an out-of-memory kill; ETA ≈ 00:50 ET.
