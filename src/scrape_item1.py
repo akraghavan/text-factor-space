@@ -8,7 +8,8 @@ OUT=str(INTERIM/'item1'); os.makedirs(OUT,exist_ok=True)
 UA={"User-Agent":SEC_UA,"Accept-Encoding":"gzip, deflate"}
 idx=pd.read_parquet(str(INTERIM/'tenk_index.parquet')).sort_values('filing_date').reset_index(drop=True)
 done=set()
-for f in glob.glob(f'{OUT}/*.parquet'): done|=set(pd.read_parquet(f,columns=['accession']).accession)
+for f in glob.glob(f'{OUT}/*.parquet'):   # failed downloads (n_words = -1) are retried; readers drop them via n_words filters
+    s=pd.read_parquet(f,columns=['accession','n_words']); done|=set(s.accession[s.n_words>=0])
 todo=idx[~idx.accession.isin(done)]
 print('todo',len(todo),'done',len(done),flush=True)
 lock=threading.Lock(); last=[0.0]; GAP=1/8

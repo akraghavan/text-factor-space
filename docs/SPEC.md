@@ -71,7 +71,7 @@ Everything SEC-derived (10-K text, embeddings, filing dates) is public: "Informa
 | SEC bulk `submissions.zip` (incl. overflow files) | Form, filing date, acceptance time (UTC), primary document for every filing | All filers | CIK | Public |
 | EDGAR 10-K primary documents | Item 1 text | 61,589 10-K/10-KT, Jun 2011 – Sep 2026 (start chosen so every firm has a 10-K by Jul 2012, when the daily-return window allows the first estimates; ≈4,000 per year matches the universe) | CIK + accession | Public |
 | CRSP Stock v2 (CIZ) monthly | Total return (delisting folded in), market cap ($000s), share/issuer type, exchange | 2009-01 → 2026-06 | PERMNO | WRDS |
-| CRSP Stock v2 (CIZ) daily | Daily total return, market cap | 2010-01-04 → 2026-03-31, 16.7M common-stock rows | PERMNO | WRDS |
+| CRSP Stock v2 (CIZ) daily | Daily total return, market cap | 2010-01-04 → 2026-03-31, 16.1M rows for universe PERMNOs | PERMNO | WRDS |
 | CCM link table | gvkey ↔ PERMNO history, current CIK, SIC, GICS | 32,948 links | gvkey | WRDS |
 | CCM Fundamentals Annual | Book equity inputs, historical SIC (`sich`) | FY2008 → FY2026 | gvkey | WRDS |
 | Ken French library | FF5 (2×3) + momentum, daily and monthly (CIZ-based since Jan 2025) | to 2026-08 | date | Public, cite |
@@ -89,7 +89,7 @@ CIZ `MthRet` "will include delisting returns if appropriate". Where `MthDelFlg �
 
 ### Linking text to returns
 
-CIK → gvkey → PERMNO: CCM links with `LINKTYPE ∈ {LC, LU}`, `LINKPRIM ∈ {P, C}`, valid **on the 10-K availability date**; null end dates mean active. Compustat stores only the *current* CIK (Hoberg–Phillips readme), so firms whose CIK changed are lost: 56,495 of 61,589 filings map (92.3%). Enforce one PERMNO per gvkey-date and one gvkey per PERMNO-date; collapse to one PERMNO per PERMCO (largest cap); dedupe co-registrant filings by accession.
+CIK → gvkey → PERMNO: CCM links with `LINKTYPE ∈ {LC, LU}`, `LINKPRIM ∈ {P, C}`, valid **on the 10-K availability date**; null end dates mean active. Compustat stores only the *current* CIK (Hoberg–Phillips readme), so firms whose CIK changed are lost: 92.3% of the 61,589 indexed filings mapped under the v0 universe; with REITs excluded (v1), 54,602 map and 54,254 firm-years remain. Enforce one PERMNO per gvkey-date and one gvkey per PERMNO-date; collapse to one PERMNO per PERMCO (largest cap); dedupe co-registrant filings by accession.
 
 ### Point-in-time rules
 
@@ -113,8 +113,8 @@ SEC Release 33-10825 (effective 9 Nov 2020) made Item 101 principles-based and a
 | P0 WRDS to parquet | `src/convert_wrds.py` | `crsp_msf`, `crsp_dsf_*`, `ccm_funda` parquet | Row counts match `docs/WRDS_QUERIES.md` |
 | P1 Filing index | `src/build_filing_index.py` | 61,589 10-K/10-KT (parses `recent` and overflow files) | Check: JPM, BAC, GS, C have one 10-K per year 2012–2026 |
 | P2 Item 1 extraction | `src/scrape_item1.py`, `src/item1.py` | Item 1 text shards | ≤8 req/s; 91% clean on first 1,000. Report success by year, size quintile, SIC-2; flag incorporation by reference (<1,500 chars or "incorporated by reference") and try EX-13 |
-| P3 Links | `src/build_links.py` | 56,495 firm-years | Re-run with the corrected universe |
-| P4 Panels | `src/build_panel.py` | monthly, daily, FF | Re-run with IssuerType/ConditionalType filters |
+| P3 Links | `src/build_links.py` | 54,254 firm-years (v0: 56,495) | Re-run with the corrected universe (27 Sep) |
+| P4 Panels | `src/build_panel.py` | monthly, daily, FF | Re-run with IssuerType/ConditionalType filters (27 Sep) |
 | P5 Embeddings | `src/embed_item1.py` | 384-d unit vectors | First 2 × 500 tokens; firm names anonymised in a later pass (see A) |
 | P6 Bag of words | `src/tfidf.py` | binary vectors | Switch to trailing-window vocabulary and a nouns-only variant |
 
