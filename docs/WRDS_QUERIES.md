@@ -11,6 +11,8 @@ Cap (CLAUDE.md rule 0): at most 10 web-query submissions per calendar day and 30
 | 2026-09-26 | 11713731 | crsp_q_ccm | Fundamentals Annual | 2009-01 – 2026-09 | 95,382 rows | |
 | 2026-09-26 | 11713797 | crsp_q_stock | Daily stock file | 2010-01-01 – 2013-12-31 | not downloaded | re-submit while 11713727 looked stalled; redundant |
 | 2026-09-26 | 11713798 | crsp_q_stock | Daily stock file | 2014-01-01 – 2017-12-31 | not downloaded | redundant, same reason |
-| 2026-09-27 | 11716335 | crsp_q_stock | Daily stock file: price/volume (dlyprc, dlyvol) for D12 daily Amihud | 2010-01-01 – 2017-12-31 | running | submitted 18:20 ET |
+| 2026-09-27 | 11716335 | crsp_q_stock | Daily stock file: price/volume (dlyprc, dlyvol) for D12 daily Amihud | 2010-01-01 – 2017-12-31 | 14,059,016 rows | 18:20–18:34 ET; = row count of 11713727; saved as data/raw/crsp_dsf_pv_2010_2017.csv.gz |
+| 2026-09-27 | 11716454 | crsp_q_stock | Daily stock file: price/volume (dlyprc, dlyvol) for D12 daily Amihud | 2018-01-01 – 2026-03-31 | running | submitted 19:07 ET |
 
 26 Sep total: 7 submissions (within the daily cap of 10).
+27 Sep total: 2 submissions. September: 9 of 30.
