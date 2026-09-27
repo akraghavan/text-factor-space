@@ -119,7 +119,8 @@ Run from the repo root with the venv active (`make setup && source .venv/bin/act
 |---|---|---|---|
 | P0 | `python src/convert_wrds.py` | WRDS CSVs | `data/raw/{crsp_msf,crsp_dsf_*,ccm_funda}.parquet` |
 | P1 | `python src/build_filing_index.py` | `crsp_msf.parquet`, `ccm_link.csv.gz`, `submissions.zip` | `data/interim/tenk_index.parquet` (61,589 10-Ks) |
-| P2 | `python src/scrape_item1.py > data/interim/scrape.log 2>&1` | `tenk_index.parquet`, EDGAR (≤ 8 requests/s) | `data/interim/item1/shard_*.parquet`; resumable |
+| P2 | `python src/scrape_item1.py > data/interim/scrape.log 2>&1` | `tenk_index.parquet`, EDGAR (≤ 8 requests/s) | `data/interim/item1/shard_*.parquet`; resumable, retries failed downloads |
+| P2b | `python src/rescue_item1.py` | shards with < 300 words, EDGAR (≤ 8 requests/s) | re-extracts with the line-aware v2 extractor and patches the shards in place (column `extractor`; originals in `data/interim/item1_v1/`); then rerun P5 and P6 |
 | P3 | `python src/build_links.py` | `tenk_index.parquet`, `crsp_msf.parquet`, `ccm_link.csv.gz` | `data/interim/tenk_linked.parquet` (54,254 firm-years) |
 | P4 | `python src/build_panel.py` | `crsp_msf.parquet`, `crsp_dsf_*.parquet`, French zips | `data/processed/{crsp_monthly,crsp_daily,ff_daily,ff_monthly}.parquet` |
 | P5 | `python src/embed_item1.py` (needs `pip install -r requirements-nlp.txt`; `--follow` to run alongside P2) | `item1/` shards | `data/interim/emb/shard_*.parquet` (384-d unit vectors) |
