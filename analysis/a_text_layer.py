@@ -1,12 +1,14 @@
 """Element A validation (SPEC §5): are the dense and bag-of-words text networks sensible, and how do they relate to
 historical SIC-3 and to Hoberg-Phillips TNIC-3?
 
-Formation dates: 1 July of each year 2012-2026. Firms: CRSP universe at the end of June (one PERMNO per PERMCO, the
-largest), each with its latest linked 10-K filed before t and at most 15 months earlier, with >= 100 words of Item 1.
+Formation dates: 1 July of each year 2012-2026. Firms: CRSP universe at the end of June without SPAC months (D8; one
+PERMNO per PERMCO, the largest), each with its latest linked 10-K filed before t and at most 15 months earlier, with >= 100 words of Item 1.
 Networks (s_ij for i < j):
   dense      bge-small embeddings, centred on the cross-sectional mean and renormalised (SPEC §5.3)
   bow_all    binary word vectors, vocabulary from linked filings in [t - 365 d, t)  (src/bow.py, P6 v1)
   bow_nouns  the same restricted to nouns and proper nouns (HP)
+  *_mult, *_add, *_null  D9 degree corrections of the BoW networks: s/(m_i m_j), s - (m_i + m_j)/2, s - m_i m_j/median(m);
+                 m_i = median s_ij over j != i
 Density calibration: pi = share of pairs sharing a historical SIC-3 (CRSP siccd, June), tau = (1 - pi) quantile of s.
 TNIC-3 year Y is used from July Y+1 (unlagged file), so formation t uses Y = t.year - 1 (available to t = 2024).
 Outputs (aggregates only) go to analysis/output/a_text_layer/: markdown tables, PNG figures; CSV copies stay local
@@ -19,11 +21,19 @@ from paths import RAW, INTERIM, PROCESSED, SEC_UA
 import numpy as np, pandas as pd, requests
 from scipy.stats import rankdata
 import bow
+from universe import exclude_spacs
 
 OUT = ROOT / 'analysis' / 'output' / 'a_text_layer'; OUT.mkdir(parents=True, exist_ok=True)
 YEARS = range(2012, 2027)
-NETS = ['dense', 'bow_all', 'bow_nouns']
-LABEL = {'dense': 'Dense (bge-small, centred)', 'bow_all': 'BoW, all words', 'bow_nouns': 'BoW, nouns + proper nouns'}
+FIG_NETS = ['dense', 'bow_all', 'bow_nouns']
+# D9: degree-corrected BoW, m_i = firm i's median similarity to the other firms in the cross-section.
+# Under random word use E s_ij = sqrt(n_i n_j)/V = a_i a_j, m_i ~ a_i a_bar, so E0 s_ij = m_i m_j / median(m), Var0 s_ij ~ 1/V.
+# mult: s_ij / (m_i m_j) (removes the null mean's length term as a ratio); add: s_ij - (m_i + m_j)/2 (assumes a_i + a_j);
+# null: s_ij - m_i m_j / median(m) (subtracts the null mean; variance-stable, the analogue of modularity's A - k k'/2m).
+NETS = FIG_NETS + ['bow_all_mult', 'bow_all_add', 'bow_all_null', 'bow_nouns_mult', 'bow_nouns_add', 'bow_nouns_null']
+LABEL = {'dense': 'Dense (bge-small, centred)', 'bow_all': 'BoW, all words', 'bow_nouns': 'BoW, nouns + proper nouns',
+         'bow_all_mult': 'BoW / (m_i m_j)', 'bow_all_add': 'BoW − (m_i + m_j)/2', 'bow_nouns_mult': 'BoW nouns / (m_i m_j)', 'bow_nouns_add': 'BoW nouns − (m_i + m_j)/2',
+         'bow_all_null': 'BoW − m_i m_j / med(m)', 'bow_nouns_null': 'BoW nouns − m_i m_j / med(m)'}
 FOCAL = ['AAPL', 'MSFT', 'NVDA', 'INTC', 'JPM', 'GS', 'XOM', 'JNJ', 'PFE', 'KO', 'WMT', 'HD', 'BA', 'DAL', 'TSLA', 'NFLX']
 NEIGHBOUR_T = pd.Timestamp('2024-07-01')          # latest formation with TNIC-3 (Y = 2023)
 
@@ -42,7 +52,7 @@ def load():
 
 def firms_at(D, t):
     ym = (t - pd.Timedelta(days=1)).to_period('M')
-    u = D['m'][(D['m'].ym == ym) & D['m'].me.notna()]
+    u = exclude_spacs(D['m'][(D['m'].ym == ym) & D['m'].me.notna()])     # D8
     u = u.sort_values('me', ascending=False).drop_duplicates('permco')
     f = D['lk'][(D['lk'].filing_date < t) & (D['lk'].filing_date >= t - pd.DateOffset(months=15))]
     f = f.sort_values('filing_date').drop_duplicates('permno', keep='last')
@@ -57,13 +67,16 @@ def dense_vectors(D, acc, centre=None):
     return V, mu
 
 def sims(D, t, x):
-    """n x n similarity matrices for the three networks (float32)."""
+    """n x n similarity matrices for every network in NETS (float32)."""
     S = {}
     V, _ = dense_vectors(D, x.accession); S['dense'] = V @ V.T
     rows = D['brow'].loc[x.accession.to_numpy()].to_numpy()
     for var, name in (('all', 'bow_all'), ('nouns', 'bow_nouns')):
         X, _ = bow.formation_vectors(D['B'], t, rows, D['pool'], var)
         S[name] = (X @ X.T).toarray().astype(np.float32)
+        T = S[name].copy(); np.fill_diagonal(T, np.nan); mi = np.maximum(np.nanmedian(T, axis=1), 1e-6).astype(np.float32)
+        S[name + '_mult'] = S[name] / np.outer(mi, mi); S[name + '_add'] = S[name] - (mi[:, None] + mi[None, :]) / 2
+        S[name + '_null'] = S[name] - np.outer(mi, mi) / np.median(mi)
     return S
 
 def auc(score, label):
@@ -199,14 +212,14 @@ def neighbours(D, tnic):
         c = tc.get(tk)
         if c is None or c not in cik_pos.index: continue
         i = int(cik_pos[c]); row = {'ticker': tk, 'cik': c}
-        for net in ('dense', 'bow_nouns'):
+        for net in ('dense', 'bow_nouns', 'bow_nouns_mult', 'bow_nouns_add', 'bow_nouns_null'):
             s = S[net][i].copy(); s[i] = -np.inf
             row[net] = list(x.cik.to_numpy()[np.argsort(-s)[:10]])
         gv = x.gvkey.iloc[i]
         h = pd.concat([g[g.gvkey1 == gv].rename(columns={'gvkey2': 'peer'}), g[g.gvkey2 == gv].rename(columns={'gvkey1': 'peer'})])
         h = h[h.peer.isin(gpos.index)].sort_values('score', ascending=False).head(10)
         row['tnic'] = list(x.cik.to_numpy()[gpos[h.peer].to_numpy()])
-        need |= {c, *row['dense'], *row['bow_nouns'], *row['tnic']}; table.append(row)
+        need |= {c, *row['dense'], *row['bow_nouns'], *row['bow_nouns_mult'], *row['bow_nouns_add'], *row['bow_nouns_null'], *row['tnic']}; table.append(row)
     nm = sec_names(sorted(need))
     lines = [f'# Top-10 text neighbours, formation {t.date()}', '',
              'Firms in the CRSP universe with a linked 10-K; names from SEC EDGAR. Dense = centred bge-small cosine; '
@@ -223,10 +236,17 @@ def neighbours(D, tnic):
         f3 = sic3[r['cik']]
         fmt = lambda cs, mark=True: '; '.join(short(nm.get(str(c), c)) + ('*' if mark and sic3.get(c) == f3 else '') for c in cs) or '—'
         head = [f"**{r['ticker']}** — {short(nm.get(str(r['cik']), r['cik']), 40)}", '', '| Network | Neighbours (most similar first) |', '|---|---|']
-        lines += head + [f"| Dense | {fmt(r['dense'])} |", f"| BoW nouns | {fmt(r['bow_nouns'])} |", f"| TNIC-3 | {fmt(r['tnic'])} |", '']
-        pub += head + [f"| Dense | {fmt(r['dense'], False)} |", f"| BoW nouns | {fmt(r['bow_nouns'], False)} |", '']
+        lines += head + [f"| Dense | {fmt(r['dense'])} |", f"| BoW nouns | {fmt(r['bow_nouns'])} |", f"| BoW nouns / (m_i m_j) | {fmt(r['bow_nouns_mult'])} |",
+                          f"| BoW nouns − (m_i+m_j)/2 | {fmt(r['bow_nouns_add'])} |", f"| BoW nouns − m_i m_j/med(m) | {fmt(r['bow_nouns_null'])} |",
+                          f"| TNIC-3 | {fmt(r['tnic'])} |", '']
+        pub += head + [f"| Dense | {fmt(r['dense'], False)} |", f"| BoW nouns | {fmt(r['bow_nouns'], False)} |",
+                       f"| BoW nouns / (m_i m_j) | {fmt(r['bow_nouns_mult'], False)} |", f"| BoW nouns − (m_i+m_j)/2 | {fmt(r['bow_nouns_add'], False)} |",
+                       f"| BoW nouns − m_i m_j/med(m) | {fmt(r['bow_nouns_null'], False)} |", '']
         overlap.append({'ticker': r['ticker'], 'dense∩bow': len(set(r['dense']) & set(r['bow_nouns'])),
-                        'dense∩tnic': len(set(r['dense']) & set(r['tnic'])), 'bow∩tnic': len(set(r['bow_nouns']) & set(r['tnic']))})
+                        'dense∩tnic': len(set(r['dense']) & set(r['tnic'])), 'bow∩tnic': len(set(r['bow_nouns']) & set(r['tnic'])),
+                        'mult∩tnic': len(set(r['bow_nouns_mult']) & set(r['tnic'])), 'add∩tnic': len(set(r['bow_nouns_add']) & set(r['tnic'])),
+                        'null∩tnic': len(set(r['bow_nouns_null']) & set(r['tnic'])), 'bow∩null': len(set(r['bow_nouns']) & set(r['bow_nouns_null'])),
+                        'bow∩mult': len(set(r['bow_nouns']) & set(r['bow_nouns_mult']))})
     o = pd.DataFrame(overlap)
     lines += ['**Overlap of top-10 lists (out of 10)**', '', to_md(o), '',
               f"Mean: dense∩BoW {o['dense∩bow'].mean():.1f}, dense∩TNIC {o['dense∩tnic'].mean():.1f}, BoW∩TNIC {o['bow∩tnic'].mean():.1f}."]
@@ -257,7 +277,7 @@ def figures(st, sh, tn):
     yrs = sorted({d.year for d in st.formation})
     # 1. AUC for same SIC-3 over time
     fig, ax = plt.subplots(figsize=(8, 4.2))
-    for k, net in enumerate(NETS):
+    for k, net in enumerate(FIG_NETS):
         d = st[st.network == net]; endlabel(ax, [f.year for f in d.formation], d.auc_sic3.to_numpy(), LABEL[net], COL[net], dy=(k - 1) * 9)
     style(ax, 'How well each text network ranks same-SIC-3 pairs (AUC)', 'AUC, same historical SIC-3', 'Formation (1 July)')
     ax.set_xlim(min(yrs) - .5, max(yrs) + 4.5); ax.set_xticks(yrs[::2]); ax.legend(frameon=False, fontsize=8, loc='lower left')
@@ -266,7 +286,7 @@ def figures(st, sh, tn):
     fig, axs = plt.subplots(1, 2, figsize=(10, 4.2))
     pi = st.groupby('formation').pi_sic3.first().mean()
     for top, ax in ((False, axs[0]), (True, axs[1])):
-        for net in NETS:
+        for net in FIG_NETS:
             d = sh[(sh.network == net) & (sh.top2.fillna(False) == top)].groupby('pct').share_same_sic3.mean()
             ax.plot(d.index, d.to_numpy(), color=COL[net], lw=2, label=LABEL[net])
         ax.axhline(pi, color=INK2, lw=1, ls=(0, (4, 3))); ax.annotate(f'unconditional {pi:.1%}', (ax.get_xlim()[0], pi), xytext=(4, 5),
@@ -280,7 +300,7 @@ def figures(st, sh, tn):
     # 3. TNIC agreement at matched density
     if len(tn):
         fig, ax = plt.subplots(figsize=(8, 4.2)); tyrs = sorted({d.year for d in tn.formation})
-        for k, net in enumerate(NETS):
+        for k, net in enumerate(FIG_NETS):
             d = tn[tn.network == net]; endlabel(ax, [f.year for f in d.formation], d.jaccard.to_numpy(), LABEL[net], COL[net], dy=(k - 1) * 9)
         d = tn[tn.network == 'SIC-3']
         ax.plot([f.year for f in d.formation], d.jaccard.to_numpy(), color=INK2, lw=1.5, ls=(0, (4, 3)), label='SIC-3 (reference)')
@@ -317,11 +337,13 @@ def main():
          'mean_cross': '{:.3f}', 'precision_sic3': '{:.3f}', 'recall_sic3': '{:.3f}', 'jaccard_sic3': '{:.3f}', 'corr_len_rowmean': '{:+.2f}'}
     agg = st.groupby('network')[list(f)].mean().reindex(NETS).reset_index()
     tagg = tn.groupby('network')[['jaccard', 'recall_tnic', 'auc_tnic', 'spearman_score']].mean().reindex(['SIC-3'] + NETS).reset_index()
-    yagg = yy.groupby('network')[['median', 'p10']].mean().reindex(NETS).reset_index()
+    yagg = yy.groupby('network')[['median', 'p10']].mean().reindex(FIG_NETS).reset_index()
     rep = ['# Element A — text-network validation', '',
            f'Generated by `analysis/a_text_layer.py` ({pd.Timestamp.now():%Y-%m-%d}). Formations: 1 July {min(YEARS)}–{max(YEARS)}; '
            f'{int(st[st.network == "dense"].n_firms.min())}–{int(st[st.network == "dense"].n_firms.max())} firms per formation. '
-           'Every text network is cut at the (1 − π) quantile, π = same-SIC-3 pair share, so all have SIC-3 density.', '',
+           'Every text network is cut at the (1 − π) quantile, π = same-SIC-3 pair share, so all have SIC-3 density. SPAC '
+           'firm-months are excluded (D8). `*_mult` / `*_add` / `*_null` are the D9 degree-corrected BoW networks: s/(m_i m_j), '
+           's − (m_i + m_j)/2 and s − m_i m_j / median(m), m_i = firm i\'s median similarity to the others.', '',
            '## Averages over formations', '', md(agg, ['network'] + list(f), f), '',
            'precision/recall/Jaccard: text edges (s > τ) vs same-SIC-3 pairs. corr_len_rowmean: correlation across firms of '
            'log Item 1 length with the firm\'s mean similarity to all others (hub/length effect).', '',
