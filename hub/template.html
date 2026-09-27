@@ -190,7 +190,7 @@ function renderSide(){
   $('decisions').innerHTML=(openD.map(d=>`<div class="dec"><div class="q">${esc(d.question)}</div><div class="rec">Recommended: ${esc(d.recommendation)}</div>
     ${d.answer?`<div class="ans">Your answer: ${esc(d.answer)}</div>`:''}
     ${S.live?`<textarea id="dec-${esc(d.id)}" data-id="${esc(d.id)}" placeholder="Type your answer (or 'agree')"></textarea><div class="row"><button type="button" data-save="${esc(d.id)}">Save answer</button><span class="msg" id="msg-${esc(d.id)}"></span></div>`:''}</div>`).join('')||'<p class="dt">Nothing open.</p>')
-    +(setD.length?`<details class="settled"><summary>Settled (${setD.length})</summary>${setD.map(d=>`<div class="dec done"><div class="q">${esc(d.question)}</div><div class="ans">${esc(d.answer||'')}</div></div>`).join('')}</details>`:'');
+    +(setD.length?`<details class="settled"><summary>Settled (${setD.length})</summary>${setD.map(d=>`<div class="dec done"><div class="q">${esc(d.question)}</div><div class="ans">${esc(d.outcome||d.answer||'')}</div>${d.outcome&&d.answer?`<div class="rec">Your answer: ${esc(d.answer)}</div>`:''}${d.why?`<div class="rec">Why: ${esc(d.why)}</div>`:''}</div>`).join('')}</details>`:'');
   $('log').innerHTML=[...(S.log||[])].sort((a,b)=>String(b.t).localeCompare(String(a.t))).slice(0,60).map(l=>`<li><time>${esc(l.t)}</time><span>${esc(l.text)}</span></li>`).join('');
   $('src').textContent=(S.live?'live':'snapshot')+' · updated '+(S.summary.updated||'')+(S.summary.synced?' · last sync '+S.summary.synced:'');
 }

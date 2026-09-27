@@ -27,7 +27,7 @@ for d in seed["tasks"]:
     if d.get("done") and not cur.get("done"): mine.update(done=True, doneAt=d.get("doneAt"))
     if any(cur.get(k) != v for k, v in mine.items()): emit("update", "tasks", did, mine)
 for d in seed["decisions"]:
-    did = d["id"]; cur = live("decisions", did); mine = {k: d[k] for k in ("question", "recommendation", "order") if k in d}
+    did = d["id"]; cur = live("decisions", did); mine = {k: d[k] for k in ("question", "recommendation", "order", "outcome", "why") if k in d}
     if cur is None: emit("set", "decisions", did, {k: v for k, v in d.items() if k != "id"}); continue
     if d.get("status") == "resolved" and cur.get("status") != "resolved":
         mine["status"] = "resolved"
