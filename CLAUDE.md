@@ -10,7 +10,7 @@ Live hub (status board + rendered spec): https://claude.ai/artifact/XgCPW4gmqsF8
 
 ## Hard rules
 
-0. **Do not read, print or process WRDS data (CRSP, Compustat, CCM, and anything derived from them such as `data/interim/tenk_linked*` or `data/processed/crsp*`).** WRDS's AI policy: "loading Data retrieved from WRDS into LLMs and other Generative A.I. tools is prohibited" unless the tool is a protected enterprise instance, which has not been established (SPEC §2, decision D0). You may write code that uses these files; Abhi runs it and decides what aggregate output to share. SEC-derived data (Item 1 text, embeddings, filing index) is public and fine to use. Never submit or script WRDS web queries.
+0. **WRDS data (CRSP, Compustat, CCM) — cleared for use, under two conditions.** On 27 Sep 2026 CMU's WRDS representative confirmed to Abhi by email that his Claude plan is an enterprise instance with a no-training agreement, which is the exception in WRDS's AI policy; so you may read and process WRDS data. On scripted access, the WRDS director said automation is fine with a definitive cap (the ToU clause targets continuous scraping). The cap for this project: **at most 10 WRDS web-query submissions per calendar day and 30 per calendar month, one query running at a time, status checks no more than once a minute, never in a loop that resubmits.** Log every submission in `docs/WRDS_QUERIES.md` (date, product, range, query id) before counting it done. Licensing still applies in full: see rule 1.
 1. **Never commit data.** CRSP/Compustat come from WRDS under CMU's licence and may not be redistributed; the repo is public. `data/` is gitignored. Do not add parquet/csv/zip/npz files, do not print raw CRSP/Compustat rows into docs, notebooks outputs or commit messages. Aggregate results (coefficients, tables of statistics, figures) are fine.
 2. **Do not implement the functions in `tfs_stats/`.** Abhi writes these by hand as interview preparation (they are exactly what quant coding and statistics rounds test). You may explain the math, point out a bug, review his code, or add tests. If asked for a hint, give the next step, not the finished function.
 3. **Every estimator and inference step used in `analysis/` must come from `tfs_stats/`,** not from statsmodels/scikit-learn (those are only for tests).
@@ -43,7 +43,7 @@ pip install -r requirements-nlp.txt    # sentence-transformers + torch, only for
 
 `tests/conftest.py` turns a `NotImplementedError` raised inside `tfs_stats/` into a skip; any other failure still fails. CI (`.github/workflows/ci.yml`) runs the same tests on every push without data. Data reproduction steps are in `docs/DATA.md`.
 
-Heavy ingestion (EDGAR scraping, embeddings) runs in the Claude Cowork cloud workspace; processed data is copied into `data/` on the Mac. If a file under `data/` is missing, say so rather than regenerating it silently.
+Heavy ingestion (EDGAR scraping, embeddings) runs in the Claude Cowork cloud workspace or on this Mac; WRDS extracts live in `data/raw/` here (`crsp_msf`, `crsp_dsf_2010_2017`, `crsp_dsf_2018_2026`, `ccm_link`, `ccm_funda`, all `.csv.gz`). The SEC scraper needs `SEC_USER_AGENT` set (SEC fair-access rules require a contact); Abhi sets it, never hardcode it. If a file under `data/` is missing, say so rather than regenerating it silently.
 
 ## How Abhi likes to work
 

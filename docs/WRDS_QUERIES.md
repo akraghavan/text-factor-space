@@ -1,0 +1,15 @@
+# WRDS query log
+
+Cap (CLAUDE.md rule 0): at most 10 web-query submissions per calendar day and 30 per calendar month, one running at a time, status checks at most once a minute, no resubmitting loops. Every submission is logged here.
+
+| Date (ET) | Query id | Product | Content | Range | Result | Note |
+|---|---|---|---|---|---|---|
+| 2026-09-26 | 11713723 | crsp_q_ccm | Linking table (+ CIK, SIC, GICS, busdesc) | all | 32,948 rows | |
+| 2026-09-26 | 11713725 | crsp_q_stock | Monthly stock file (CIZ) | 2009-01 – 2026-06 | 1,690,904 rows | |
+| 2026-09-26 | 11713727 | crsp_q_stock | Daily stock file | 2010-01-01 – 2017-12-31 | 14,059,016 rows | took 58 min |
+| 2026-09-26 | 11713729 | crsp_q_stock | Daily stock file | 2018-01-01 – 2026-03-31 | 18,279,205 rows | |
+| 2026-09-26 | 11713731 | crsp_q_ccm | Fundamentals Annual | 2009-01 – 2026-09 | 95,382 rows | |
+| 2026-09-26 | 11713797 | crsp_q_stock | Daily stock file | 2010-01-01 – 2013-12-31 | not downloaded | re-submit while 11713727 looked stalled; redundant |
+| 2026-09-26 | 11713798 | crsp_q_stock | Daily stock file | 2014-01-01 – 2017-12-31 | not downloaded | redundant, same reason |
+
+26 Sep total: 7 submissions (within the daily cap of 10).

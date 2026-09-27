@@ -1,7 +1,7 @@
 # Reproducing the data
 
 
-> **WRDS terms.** Run these web queries by hand. The WRDS Terms of Use state: "Users are not permitted to script or otherwise automate the login to the WRDS website or the running of queries to download data from the website. Automation is permitted on the WRDS Cloud server." WRDS's AI policy also prohibits loading WRDS data into generative-AI tools except protected enterprise instances (see SPEC §2).
+> **WRDS access rules for this project.** Scripted web queries are allowed within the cap in `CLAUDE.md` rule 0 (≤10 submissions/day, ≤30/month, one at a time), per the WRDS director's guidance to Abhi on 27 Sep 2026; log each one in `docs/WRDS_QUERIES.md`. Use with Claude is covered by CMU's enterprise no-training agreement (confirmed by CMU's WRDS representative, 27 Sep 2026).
 
 Nothing under `data/` is in this repository. CRSP and Compustat are licensed through WRDS (here via Carnegie Mellon's subscription) and may not be redistributed; everything else is public. This page lists every query and download needed to rebuild `data/`, then the order in which the pipeline turns them into the analysis files. Rules and rationale are in `docs/SPEC.md` §3–§4.
 
