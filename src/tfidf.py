@@ -1,4 +1,5 @@
-"""Hoberg-Phillips-style bag-of-words vectors, one vocabulary per filing year.
+"""P6 v0, superseded by src/bow.py: its calendar-year vocabulary uses filings from later in the year (look-ahead, SPEC §3).
+Hoberg-Phillips-style bag-of-words vectors, one vocabulary per filing year.
 HP (2016): binary word vectors over product words, words in >25% of filings dropped, unit-normalised; similarity = cosine.
 We keep alphabetic tokens (>=3 chars), drop English stopwords, keep words in >=5 docs and <=25% of docs."""
 import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from paths import RAW, INTERIM, PROCESSED, SEC_UA

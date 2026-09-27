@@ -68,7 +68,7 @@ python src/scrape_item1.py > data/interim/scrape.log 2>&1      # P2 Item 1 text 
 python src/build_links.py                                      # P3 filing -> PERMNO
 python src/build_panel.py                                      # P4 CRSP panels, factors
 pip install -r requirements-nlp.txt && python src/embed_item1.py   # P5 embeddings
-python src/tfidf.py                                            # P6 bag-of-words vectors
+python src/bow.py                                              # P6 bag-of-words counts (point-in-time vocabulary)
 ```
 
 ## Acknowledgement
