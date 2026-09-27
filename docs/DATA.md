@@ -7,7 +7,7 @@ Nothing under `data/` is in this repository. CRSP and Compustat are licensed thr
 
 ```
 data/raw/        WRDS extracts, SEC submissions.zip, Fama-French zips, Hoberg-Phillips tnic3_data.zip
-data/interim/    tenk_index, tenk_linked, item1/ (Item 1 text shards), emb/ (embeddings), tfidf/
+data/interim/    tenk_index, tenk_linked, item1/ (Item 1 text shards), emb/ (embeddings), bow/ (P6 v1), tfidf/ (P6 v0)
 data/processed/  crsp_monthly, crsp_daily, ff_daily, ff_monthly
 ```
 
@@ -123,11 +123,13 @@ Run from the repo root with the venv active (`make setup && source .venv/bin/act
 | P3 | `python src/build_links.py` | `tenk_index.parquet`, `crsp_msf.parquet`, `ccm_link.csv.gz` | `data/interim/tenk_linked.parquet` (54,254 firm-years) |
 | P4 | `python src/build_panel.py` | `crsp_msf.parquet`, `crsp_dsf_*.parquet`, French zips | `data/processed/{crsp_monthly,crsp_daily,ff_daily,ff_monthly}.parquet` |
 | P5 | `python src/embed_item1.py` (needs `pip install -r requirements-nlp.txt`; `--follow` to run alongside P2) | `item1/` shards | `data/interim/emb/shard_*.parquet` (384-d unit vectors) |
-| P6 | `python src/tfidf.py` | `tenk_linked.parquet`, `item1/` shards | `data/interim/tfidf/{X,rows,vocab}_<year>.*` |
+| P6 | `python src/bow.py` | `item1/` shards, `tenk_index.parquet`, `tenk_linked.parquet` (summary), WordNet | `data/interim/bow/{n_total,n_title,n_lower}.npz`, `rows.parquet`, `vocab.parquet` |
+| P6 v0 | `python src/tfidf.py` (superseded: calendar-year vocabulary, look-ahead) | `tenk_linked.parquet`, `item1/` shards | `data/interim/tfidf/{X,rows,vocab}_<year>.*` |
 
 Notes:
 - P4 market cap is in **dollars**: `crsp_monthly.me` = CIZ `MthCap` × 1000 and `crsp_daily.cap` = `DlyCap` × 1000 (CRSP reports both in $000s; the `*.parquet` files in `data/raw/` keep CRSP's units). `me_lag` is the prior month's `me`.
 - P5 embeds every Item 1 shard not yet embedded and exits. With `--follow` it keeps polling for new shards until `data/interim/scrape.log` contains `DONE`, so it can run alongside P2 (whose log must then go to that file).
 - P5 downloads `BAAI/bge-small-en-v1.5` from Hugging Face on first use. Device from `TFS_DEVICE`, else MPS > CUDA > CPU (MPS and CPU embeddings agree to ~1e-7); batch from `TFS_BATCH` (64 on GPU, 32 on CPU).
-- P6 needs P2 finished (it reads all shards).
+- P6 needs P2 finished (it reads all shards). It stores word counts per filing once; the vocabulary is applied per formation date by `bow.formation_vectors(B, t, docs, pool, variant)` from filings in the pool filed in [t − 365 days, t): words in ≥ 5 and ≤ 25% of those filings, stop words and geographic terms (`src/geo_terms.py`) dropped; `variant='nouns'` keeps WordNet nouns plus proper nouns (Title-case in ≥ 90% of occurrences in the window).
+- WordNet for the nouns variant: `python -c "import nltk; nltk.download('wordnet', download_dir='data/raw/nltk_data')"` (Princeton WordNet 3.0 via nltk; stands in for HP's Webster's noun list).
 - Checks per stage (row counts, extraction rate, norms) are listed in SPEC §4.

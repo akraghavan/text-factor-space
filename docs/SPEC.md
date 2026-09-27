@@ -112,7 +112,7 @@ SEC Release 33-10825 (effective 9 Nov 2020) made Item 101 principles-based and a
 | P3 Links | `src/build_links.py` | 54,254 firm-years (v0: 56,495) | Re-run with the corrected universe (27 Sep) |
 | P4 Panels | `src/build_panel.py` | monthly, daily, FF | Re-run with IssuerType/ConditionalType filters (27 Sep) |
 | P5 Embeddings | `src/embed_item1.py` | 384-d unit vectors | First 2 × 500 tokens; firm names anonymised in a later pass (see A) |
-| P6 Bag of words | `src/tfidf.py` | binary vectors | Switch to trailing-window vocabulary and a nouns-only variant |
+| P6 Bag of words | `src/bow.py` (v1; `src/tfidf.py` = v0) | per-filing word counts; binary unit vectors per formation date | Vocabulary from filings in [t − 365 d, t); nouns variant (WordNet nouns + proper nouns). v1 vs v0 pair-similarity correlation 0.98–1.00 |
 
 **Item 1 method.** Strip HTML (drop `ix:header` and hidden nodes), find every "Item 1 Business" heading and every "Item 1A / 1B / 1C / Item 2" heading, take the longest start-to-end span with no other "Item 1" heading inside (that rejects table-of-contents entries). Validation against EDGAR-CORPUS (Loukas et al. 2021) on the 2011–2020 overlap: word-set Jaccard, share above 0.8. EDGAR-CORPUS cannot replace the scraper: it stops in 2020.
 

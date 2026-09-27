@@ -9,3 +9,4 @@ requests>=2.31
 matplotlib>=3.8
 pytest>=8
 markdown>=3.5
+nltk>=3.9            # WordNet nouns for the P6 nouns variant (corpus downloaded to data/raw/nltk_data)
