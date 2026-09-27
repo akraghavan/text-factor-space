@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Sun 27 Sep 2026, 17:28 ET_
+_Last updated: Sun 27 Sep 2026, 19:15 ET_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
@@ -21,7 +21,12 @@ _Last updated: Sun 27 Sep 2026, 17:28 ET_
 - **Element A validated (`analysis/a_text_layer.py`, `analysis/output/a_text_layer/`):** 1 July formations 2012–2026, 3,222–3,870 firms. Same-SIC-3 AUC: dense 0.864, BoW nouns 0.861, BoW 0.853 (0.873/0.870/0.862 excluding SIC 6799 blank-check firms). At SIC-3 density, 31–38% of text edges are same-SIC-3 pairs. TNIC-3 agreement (edge Jaccard): BoW nouns 0.616, BoW 0.606, dense 0.339, SIC-3 0.276; AUC for TNIC pairs 0.94–0.97. Same-firm year-on-year similarity median 0.90–0.93. π rises 2.1% → 3.3% (biotech growth). BoW has a strong length/hub effect (corr of log length with mean similarity +0.93); dense −0.23.
 
 ## Running
-- Nothing.
+- **D12 WRDS daily price/volume:** file 1 (2010–2017, query 11716335) landed and converted: 14,055,778 unique permno-dates, keys identical to the daily return file; 2,946 zero prices, 354,648 zero-volume days (skipped in Amihud). File 2 (2018–2026, query 11716454, submitted 19:07) pending; when it lands: `python src/convert_wrds.py && python src/build_panel.py`, then daily Amihud coverage and its correlation with the monthly proxy.
+
+## Done this evening (27 Sep)
+- **D11 applied:** `src/networks.py` is the single network builder for B, C, D, E (dense masked; BoW nouns with `CORRECTION = 'null'`; raw BoW for robustness only); `pair_frame` carries s_dense, s_bow, s_bow_raw. No builder passes raw/mult (only the Element A diagnostic compares all corrections). Test: null removes 99.7% of the length term on a random-word fixture, additive 53%.
+- **D12 code:** `convert_wrds.convert_pv` (permno int32, date, prc = |DlyPrc| float32, vol float32, key check), `build_panel` merges prc/vol, `formation.amihud_daily` (log mean |r|/(|prc|·vol), prior 12 months, ≥ 120 valid days), `d_illiq` in the pair frame; monthly proxy kept as fallback. Tests on synthetic fixtures pass (6 passed, 12 skipped).
+- **PREREG drafted (`docs/PREREG.md`, DRAFT):** all TODOs filled from SPEC and D2–D12; [PROPOSED] items and one [OPEN] item (delisting returns: `MthDelFlg` not in the monthly pull) for Abhi.
 
 ## Text layer v1 — frozen (git tag `text-layer-v1`, 27 Sep 17:28 ET; no extractor/vocabulary changes through 8 Oct)
 - **D10:** all 61,589 primary documents re-downloaded and stored (13:51–16:04, 0 failures, 13 GB gz). Canonical Item 1 = v1 or v2 by structural validity (start/end not at cross-references, no Item 1A inside, 300–40,000 words; prefer v2 when both valid and J < 0.8): v1 47,662, v2 12,957, invalid-only 661, none 309; 99.2% > 300 words. Hand check of 100 random disagreements: rule picks the better candidate 97/100 (95% CI 91.6–99.0%); span fully correct 90/100. Mojibake: 0 (EDGAR documents are ASCII).
@@ -37,8 +42,8 @@ _Last updated: Sun 27 Sep 2026, 17:28 ET_
 - Nothing.
 
 ## Next
-- Abhi: implement `ols_qr`, `vcov`, then `fama_macbeth` (critical path for B, C, E); decide D11 (BoW correction: null-mean recommended) and D12 (2 WRDS queries for daily volume/price vs monthly Amihud proxy).
-- Assistant: once `ols_qr` exists, rolling FF6 residuals and the monthly pair panel for C (plumbing ready in `src/formation.py`); PREREG draft carrying D2/D4/D8/D9 into the frozen specification.
+- Abhi: review `docs/PREREG.md` ([PROPOSED] items; [OPEN] delisting returns) for the Thu 1 Oct freeze; `ols_qr`, `vcov`, `fama_macbeth` (critical path for B, C, E).
+- Assistant: convert D12 file 2 and merge (as soon as it lands); `specs.yaml` + runner (SPEC §10.1) before the freeze; FF-48 industry map and E signal construction (no returns looked at in the test period).
 
 ## Requests
 _(add requests here)_
