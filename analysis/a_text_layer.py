@@ -74,9 +74,7 @@ def sims(D, t, x):
     for var, name in (('all', 'bow_all'), ('nouns', 'bow_nouns')):
         X, _ = bow.formation_vectors(D['B'], t, rows, D['pool'], var)
         S[name] = (X @ X.T).toarray().astype(np.float32)
-        T = S[name].copy(); np.fill_diagonal(T, np.nan); mi = np.maximum(np.nanmedian(T, axis=1), 1e-6).astype(np.float32)
-        S[name + '_mult'] = S[name] / np.outer(mi, mi); S[name + '_add'] = S[name] - (mi[:, None] + mi[None, :]) / 2
-        S[name + '_null'] = S[name] - np.outer(mi, mi) / np.median(mi)
+        for kind in ('mult', 'add', 'null'): S[f'{name}_{kind}'] = bow.degree_correct(S[name], kind)   # D9
     return S
 
 def auc(score, label):

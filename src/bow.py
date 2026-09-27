@@ -103,6 +103,21 @@ def formation_vectors(B, t, docs, pool=None, variant='all', min_df=MIN_DF, max_d
     nrm = np.sqrt(np.asarray(X.multiply(X).sum(1)).ravel()); nrm[nrm == 0] = 1
     return sp.diags(1 / nrm).dot(X).astype(np.float32).tocsr(), cols
 
+def degree_correct(S, kind='null'):
+    """D9 degree correction of a dense n x n BoW similarity matrix (diagonal ignored). m_i = firm i's median similarity to
+    the others in the cross-section. Under random word use E0 s_ij = sqrt(n_i n_j)/V = a_i a_j with m_i ~ a_i a_bar, so
+    E0 s_ij ~ m_i m_j / median(m) and Var0 s_ij ~ 1/V (length-free).
+      'null' (provisional choice, D11): s - m_i m_j / median(m)  -- subtracts the null mean; variance-stable
+      'mult': s / (m_i m_j)   'add': s - (m_i + m_j)/2   'raw': s
+    Chosen on Element A diagnostics only (analysis/output/a_text_layer)."""
+    if kind == 'raw': return S
+    T = np.array(S, dtype=np.float32, copy=True); np.fill_diagonal(T, np.nan)
+    m = np.maximum(np.nanmedian(T, axis=1), 1e-6).astype(np.float32)
+    if kind == 'null': return S - np.outer(m, m) / np.median(m)
+    if kind == 'mult': return S / np.outer(m, m)
+    if kind == 'add': return S - (m[:, None] + m[None, :]) / 2
+    raise ValueError(kind)
+
 def summary():
     """Annual formation dates (1 July): window size, vocabulary sizes, words per filing; v1 vs v0 similarity."""
     B = load(); rows = B['rows']
