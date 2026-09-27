@@ -26,3 +26,6 @@ hub/dbsync/
 docs/private/
 hub/private/
 
+
+# analysis outputs with firm-level licensed data (TNIC peers, CRSP SIC marks) stay local
+analysis/output/**/*_full.md
