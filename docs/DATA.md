@@ -126,6 +126,7 @@ Run from the repo root with the venv active (`make setup && source .venv/bin/act
 | P6 | `python src/tfidf.py` | `tenk_linked.parquet`, `item1/` shards | `data/interim/tfidf/{X,rows,vocab}_<year>.*` |
 
 Notes:
+- P4 market cap is in **dollars**: `crsp_monthly.me` = CIZ `MthCap` × 1000 and `crsp_daily.cap` = `DlyCap` × 1000 (CRSP reports both in $000s; the `*.parquet` files in `data/raw/` keep CRSP's units). `me_lag` is the prior month's `me`.
 - P5 embeds every Item 1 shard not yet embedded and exits. With `--follow` it keeps polling for new shards until `data/interim/scrape.log` contains `DONE`, so it can run alongside P2 (whose log must then go to that file).
 - P5 downloads `BAAI/bge-small-en-v1.5` from Hugging Face on first use. Device from `TFS_DEVICE`, else MPS > CUDA > CPU (MPS and CPU embeddings agree to ~1e-7); batch from `TFS_BATCH` (64 on GPU, 32 on CPU).
 - P6 needs P2 finished (it reads all shards).

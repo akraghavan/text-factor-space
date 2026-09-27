@@ -21,10 +21,11 @@ m=pd.read_parquet(f'{RAW}/crsp_msf.parquet')
 cs=common_stock(m).copy()
 cs['ym']=pd.PeriodIndex(pd.to_datetime(cs.mthcaldt),freq='M')
 cs=cs.rename(columns={'mthret':'ret','mthcap':'me','siccd':'sic'})[['permno','permco','ym','ret','me','mthprc','mthvol','shrout','sic','naics','primaryexch','ticker','issuernm','vwretd']]
+cs['me']=cs.me*1000   # CIZ MthCap is in $000s; panels carry market cap in dollars (SPEC §3)
 cs=cs.sort_values(['permno','ym']).drop_duplicates(['permno','ym'],keep='last')
 cs['me_lag']=cs.groupby('permno').me.shift(1)
 cs.to_parquet(f'{OUT}/crsp_monthly.parquet'); print('monthly',cs.shape, cs.ym.min(), cs.ym.max())
 perm=set(cs.permno)
 parts=[p for p in sorted(glob.glob(f'{RAW}/crsp_dsf_*.parquet'))]
-d=pd.concat([pd.read_parquet(p) for p in parts]); d=d[d.permno.isin(perm)].drop_duplicates(['permno','date'])
+d=pd.concat([pd.read_parquet(p) for p in parts]); d=d[d.permno.isin(perm)].drop_duplicates(['permno','date']); d['cap']=d.cap*1000   # DlyCap $000s -> dollars
 d.to_parquet(f'{OUT}/crsp_daily.parquet'); print('daily',d.shape,d.date.min().date(),d.date.max().date(),d.permno.nunique(), 'parts',parts)
