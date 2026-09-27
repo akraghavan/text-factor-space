@@ -26,3 +26,6 @@ hub/dbsync/
 # private: personal plan and live status (hub only)
 docs/private/
 hub/private/
+
+# local <-> Cowork message files (private)
+.cowork/
