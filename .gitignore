@@ -1,0 +1,28 @@
+# ---- Licensed / large data: NEVER commit (WRDS terms prohibit redistributing CRSP/Compustat) ----
+data/*
+!data/README.md
+*.parquet
+*.csv
+*.csv.gz
+*.zip
+*.npz
+*.npy
+*.pkl
+*.log
+# ---- Python / tooling ----
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ipynb_checkpoints/
+.DS_Store
+.env
+.claude/settings.local.json
+
+# generated
+hub/hub.html
+hub/dbsync/
+
+# private: personal plan and live status (hub only)
+docs/private/
+hub/private/
