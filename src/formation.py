@@ -85,6 +85,41 @@ def amihud_monthly(t):
     a = (w.ret.abs() / dv.where(dv > 0)).groupby(w.permno)
     return a.mean()[a.count() >= 6]
 
+def amihud_from_arrays(R, P, V, min_obs=120):
+    """Amihud (2002) illiquidity per column: mean over valid days of |r_d| / (|prc_d| x vol_d). Valid = finite return,
+    price > 0, volume > 0 (zero-volume days skipped). Columns with fewer than min_obs valid days get NaN."""
+    R, P, V = (np.asarray(a, dtype=np.float64) for a in (R, P, V))
+    ok = np.isfinite(R) & np.isfinite(P) & np.isfinite(V) & (P > 0) & (V > 0)
+    x = np.where(ok, np.abs(np.where(ok, R, 0)) / np.where(ok, P * V, 1), 0.0)
+    n = ok.sum(0)
+    with np.errstate(invalid='ignore', divide='ignore'): out = x.sum(0) / n
+    out[n < min_obs] = np.nan
+    return out
+
+def daily_pv_wide():
+    """(dates, permnos, P, V): |DlyPrc| and DlyVol aligned with daily_wide(); None until the D12 files are converted."""
+    def f():
+        d = pd.read_parquet(PROCESSED / 'crsp_daily.parquet')
+        if not {'prc', 'vol'} <= set(d.columns): return None
+        dates, cols, _ = daily_wide()
+        P = d.pivot(index='date', columns='permno', values='prc').reindex(index=dates, columns=cols).to_numpy(np.float32)
+        V = d.pivot(index='date', columns='permno', values='vol').reindex(index=dates, columns=cols).to_numpy(np.float32)
+        return dates, cols, P, V
+    return _get('pv', f)
+
+def amihud_daily(t, permnos=None, min_obs=120):
+    """D12: log Amihud illiquidity over the trading days of the 12 months before formation month t (>= min_obs valid
+    days). Indexed by permno; None if daily price/volume are not available (use amihud_monthly as the fallback)."""
+    pv = daily_pv_wide()
+    if pv is None: return None
+    t = pd.Period(t, 'M'); dates, cols, P, V = pv; _, _, R = daily_wide()
+    k0, k1 = dates.searchsorted((t - 12).to_timestamp()), dates.searchsorted(t.to_timestamp())
+    sel = slice(None) if permnos is None else cols.get_indexer(pd.Index(permnos))
+    if permnos is not None: sel = sel[sel >= 0]
+    a = amihud_from_arrays(R[k0:k1][:, sel], P[k0:k1][:, sel], V[k0:k1][:, sel], min_obs)
+    with np.errstate(divide='ignore'): la = np.log(a)
+    return pd.Series(la, index=cols[sel]).dropna()
+
 # ---------------------------------------------------------------- daily matrices
 def daily_wide():
     """(dates, permnos, R) with R[d, j] the daily total return of permno j (float32, NaN if missing)."""
@@ -127,29 +162,36 @@ def residuals(X, F):
     return B, E
 
 # ---------------------------------------------------------------- pair panel skeleton (Element C)
-def pair_frame(u, t, top=1000):
+def pair_frame(u, t, top=1000, text=True):
     """Static pair covariates for formation month t among the `top` largest firms of universe u (universe_at(t)).
     Pairs i < j over positions in the returned firm frame. Covariates available without regressions:
     same SIC-1..4 (historical CRSP siccd), Anton-Polk percentile-rank distances in size, B/M and momentum, same primary
-    exchange, same fiscal-year-end month, log length sum and |difference|.
+    exchange, same fiscal-year-end month, log length sum and |difference|, illiquidity rank distance: d_illiq from daily
+    Amihud (D12; NaN until DlyPrc/DlyVol are converted) and d_amihud_m from the monthly proxy (fallback).
+    With text=True: s_dense, s_bow (BoW nouns, null-corrected, D11) and s_bow_raw (robustness) from networks.build.
     Still to add once tfs_stats exists: outcome z_ij (Fisher-z residual correlation in month t), z_lag (prior 12
-    months), |d beta_k|; text similarities come from the network builders. d_amihud_m is the monthly-proxy fallback
-    (D12): the daily Amihud distance needs DlyVol/DlyPrc, which the daily CRSP pull does not have."""
+    months), |d beta_k|."""
     t = pd.Period(t, 'M')
     f = u.nlargest(top, 'me').reset_index(drop=True)
     f['bm'] = book_to_market(t).reindex(f.permno.to_numpy()).to_numpy()
     f['mom'] = momentum(t).reindex(f.permno.to_numpy()).to_numpy()
     f['amihud_m'] = amihud_monthly(t).reindex(f.permno.to_numpy()).to_numpy()
+    ad = amihud_daily(t, f.permno.to_numpy())
+    f['illiq'] = np.nan if ad is None else ad.reindex(f.permno.to_numpy()).to_numpy()   # log daily Amihud
     n = len(f); i, j = np.triu_indices(n, 1)
     P = pd.DataFrame({'i': i.astype(np.int32), 'j': j.astype(np.int32)})
     sic = f.sic.to_numpy(dtype=float)
     for l, div in ((1, 1000), (2, 100), (3, 10), (4, 1)):
         c = np.floor(sic / div); P[f'same_sic{l}'] = ((c[i] == c[j]) & (sic[i] > 0) & (sic[j] > 0)).astype(np.int8)
-    for v in ('me', 'bm', 'mom', 'amihud_m'):
+    for v in ('me', 'bm', 'mom', 'illiq', 'amihud_m'):
         r = f[v].rank(pct=True).to_numpy(); P[f'd_{v}'] = np.abs(r[i] - r[j]).astype(np.float32)   # NaN if either missing
     ex = f.primaryexch.to_numpy(); P['same_exch'] = (ex[i] == ex[j]).astype(np.int8)
     fy = f.fye_month.to_numpy(dtype=float); P['same_fye'] = (fy[i] == fy[j]).astype(np.int8)
     ln = np.log(f.n_words.to_numpy(dtype=float)); P['len_sum'] = (ln[i] + ln[j]).astype(np.float32); P['len_diff'] = np.abs(ln[i] - ln[j]).astype(np.float32)
+    if text:
+        import networks
+        S = networks.build(t, f)
+        for k, M in S.items(): P[f's_{k}'] = M[i, j]
     return f, P
 
 if __name__ == '__main__':
@@ -160,7 +202,8 @@ if __name__ == '__main__':
         u = universe_at(t); f, P = pair_frame(u, t)
         dts, perm, X, F = daily_window(f.permno, t.to_timestamp() - pd.Timedelta(days=1), 252)
         print(f'{t}: universe {len(u)} firms with text; top-1000 pairs {len(P):,}; B/M coverage {f.bm.notna().mean():.1%}, '
-              f'momentum {f.mom.notna().mean():.1%}, Amihud proxy {f.amihud_m.notna().mean():.1%}; 252-day window {dts[0].date()}..{dts[-1].date()}: {X.shape[1]} of '
+              f'momentum {f.mom.notna().mean():.1%}, daily Amihud {f.illiq.notna().mean():.1%}, monthly proxy {f.amihud_m.notna().mean():.1%}; '
+              f'corr(s_dense, s_bow) {P.s_dense.corr(P.s_bow):.2f}; 252-day window {dts[0].date()}..{dts[-1].date()}: {X.shape[1]} of '
               f'{len(f)} complete; share same SIC-3 {P.same_sic3.mean():.2%}')
     try:
         residuals(X[:, :5], F)

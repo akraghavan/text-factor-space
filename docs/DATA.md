@@ -73,6 +73,7 @@ Common output settings for all four: output format **comma-delimited text (.csv)
 | `data/raw/crsp_msf.parquet` | `crsp_msf.csv.gz` | all columns, lower-case names; `mthcaldt` datetime; returns, price, cap, volume numeric; `siccd` nullable integer |
 | `data/raw/crsp_dsf_<range>.parquet` | each `crsp_dsf_<range>.csv.gz` | `permno` (int32), `date`, `cap` (DlyCap, $000s), `ret` (DlyRet, float32) |
 | `data/raw/ccm_funda.parquet` | `ccm_funda.csv.gz` | all columns, lower-case; `datadate` datetime |
+| `data/raw/crsp_dsf_pv_<range>.parquet` (D12) | `crsp_dsf_pv_<range>.csv.gz` (WRDS queries 11716335, 11716454: `permno, dlycaldt, dlyprc, dlyvol`) | `permno` (int32), `date`, `prc` = abs(DlyPrc) (float32), `vol` = DlyVol (float32); duplicate permno-dates dropped; keys checked against the return file. P4 merges them into `crsp_daily` for the daily Amihud measure (`formation.amihud_daily`) |
 
 `ccm_link.csv.gz` is read directly. The script skips outputs newer than their source (`--force` rebuilds) and prints only shapes and date ranges.
 
