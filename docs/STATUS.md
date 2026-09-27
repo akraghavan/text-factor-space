@@ -1,12 +1,13 @@
 # Status
 
-_Last updated: Sun 27 Sep 2026, 03:08 ET (local Claude Code session)_
+_Last updated: Sun 27 Sep 2026, 03:12 ET (Cowork session)_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
 - SEC: bulk submissions → 61,589 10-K/10-KT indexed (Jun 2011–Sep 2026).
 - WRDS pulls (Sat night): CRSP v2 monthly and daily (2010-01-04 → 2026-03-31), CCM link table, CCM Fundamentals Annual. Fama–French factors and Hoberg–Phillips TNIC-3 downloaded.
 - **D0 resolved (27 Sep):** CMU's WRDS representative confirmed the Claude plan is an enterprise no-training instance; scripted WRDS queries allowed under the cap in `CLAUDE.md` rule 0.
+- **D7 done (27 Sep, Abhi's approval):** SPEC §1/§2/§11/§12/§13 rewritten for the WRDS clearance (§13 now splits open and resolved decisions); `.claude/settings.json` no longer denies reads of the WRDS-derived files (credential and force-push denials kept).
 - Repo scaffold: bootstrap script, Claude Code project settings (Opus 5.5, effort high), CI, tests (12, skipped until implemented), DATA/PREREG docs, MIT licence.
 - **Ingestion moved to the Mac (M4 Pro, 24 GB) and finished, 27 Sep:**
   - P0 `src/convert_wrds.py`: WRDS csv.gz → parquet (row counts match `docs/WRDS_QUERIES.md`), 19 s.
@@ -24,7 +25,7 @@ _Last updated: Sun 27 Sep 2026, 03:08 ET (local Claude Code session)_
 - Nothing.
 
 ## Next
-- Abhi: implement `ols_qr`, `vcov`; edit `.claude/settings.json` to lift the WRDS read denials if wanted (Claude cannot edit its own permissions); decide the SPEC §2/§13 wording now that D0 is resolved.
+- Abhi: implement `ols_qr`, `vcov`, then `fama_macbeth` (critical path for Elements C and E); answer D2–D6 (SPEC §13).
 - Claude: P6 with a trailing-12-month vocabulary (the calendar-year version has look-ahead, SPEC §3) and a nouns-only variant; diagnose the 3.7% zero-word extracts (EX-13 / incorporation by reference); Element A validation (similarity distributions, AUC vs SIC-3, neighbour spot checks, TNIC agreement).
 
 ## Requests for Cowork

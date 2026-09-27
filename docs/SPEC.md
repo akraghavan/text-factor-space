@@ -40,23 +40,19 @@ Q1 is about second moments, Q2 about *forecast* second moments, Q3 about first m
 - `docs/PREREG.md` frozen (git hash recorded) before any test-period result is looked at.
 - `docs/RESULTS.md`: 2 pages; every number reproducible by one command.
 - Résumé bullet built only from numbers that exist; a 2-minute pitch; answers to the probes in each element.
-- **Blocking prerequisite:** the WRDS data-use decision in §2.
+- **Compliance:** WRDS data use was cleared on 27 Sep 2026 under the conditions in §2.
 
 ## 2. Compliance and licensing — read first {#compliance}
 
-The research pass found two WRDS rules that affect how this project can run. Both were confirmed on WRDS's own pages.
+Two WRDS rules govern how this project may use CRSP and Compustat. Both were checked on WRDS's own pages, and both were settled for this project on 27 Sep 2026.
 
-| Rule (verbatim) | Source | What happened tonight | Consequence |
-|---|---|---|---|
-| "loading Data retrieved from WRDS into LLMs and other Generative A.I. tools is prohibited" — except "protected" enterprise versions with a no-training data-protection agreement; CRSP and S&P are among the vendors covered | WRDS AI Policy page | CRSP and Compustat extracts were processed by scripts in the Claude cloud workspace, and a handful of rows appeared in the conversation during checks | Whether Abhi's Claude plan counts as "protected" is not established. Until it is, **Claude should not read or process WRDS data**. |
-| "Users are not permitted to script or otherwise automate … the running of queries to download data from the website. Automation is permitted on the WRDS Cloud server." | WRDS Terms of Use §1 | The five web queries were submitted by Claude driving the browser, with Abhi's approval | Future pulls: Abhi submits web queries by hand, or use WRDS Cloud if CMU's account allows it |
-| Redistribution: "you may not reproduce, distribute, modify, adapt, create derivative works of … the Proprietary Material" | WRDS Terms of Use §2 | Nothing published | Public repo holds code, docs and non-invertible aggregates only |
+| Rule (verbatim) | Source | Status for this project |
+|---|---|---|
+| "loading Data retrieved from WRDS into LLMs and other Generative A.I. tools is prohibited" — except "protected" enterprise versions with a no-training data-protection agreement; CRSP and S&P are among the vendors covered | WRDS AI Policy page | **Cleared.** CMU's WRDS representative confirmed that the Claude plan used here is an enterprise instance with a no-training agreement, which is the policy's exception. Claude sessions may read and process WRDS data. |
+| "Users are not permitted to script or otherwise automate … the running of queries to download data from the website. Automation is permitted on the WRDS Cloud server." | WRDS Terms of Use §1 | **Cleared under a cap.** Scripted web queries are acceptable with a definitive limit; the clause targets continuous scraping. This project's cap: at most 10 submissions per calendar day and 30 per calendar month, one query running at a time, status checks no more than once a minute, never a loop that resubmits. Every submission is logged in `docs/WRDS_QUERIES.md` before it counts as done. |
+| Redistribution: "you may not reproduce, distribute, modify, adapt, create derivative works of … the Proprietary Material" | WRDS Terms of Use §2 | **Binding, unchanged.** The public repo holds code, docs and non-invertible aggregates only (see below). |
 
-**Decision needed from Abhi (D0), with the options:**
-
-1. **Ask CMU's WRDS representative** (contact in the private plan) whether analysis with Claude is allowed under CMU's subscription. Recommended in all cases.
-2. **Local-only WRDS work until cleared:** delete WRDS extracts from the cloud workspace; WRDS-dependent code runs only on the Mac, written and executed by Abhi; Claude sees code and aggregate outputs he chooses to share, never data. Claude Code on the Mac gets `Read(./data/**)` denied and does not execute WRDS-touching scripts.
-3. **Switch the return source for the Claude-assisted parts** to non-WRDS data (e.g. Yahoo daily prices for current tickers), accepting survivorship bias, and keep CRSP for Abhi's local confirmatory runs.
+The operating rules for Claude sessions are rules 0 and 1 in `CLAUDE.md`. Until 27 Sep this section recorded the question as open (decision D0) and Claude paused all WRDS-data work; the pulls made before then, submitted by Claude through the WRDS web interface with Abhi's approval, are logged in `docs/WRDS_QUERIES.md`.
 
 Everything SEC-derived (10-K text, embeddings, filing dates) is public: "Information presented on sec.gov is considered public information and may be copied or further distributed". Ken French factors are public with attribution. Hoberg–Phillips data carry no posted terms; cite them.
 
@@ -364,7 +360,7 @@ With $R_j(a,b) = \prod_{m=a}^{b}(1+r_{jm}) - 1$ and $P_i$ the density-calibrated
 ```
 text-factor-space/
 ├── CLAUDE.md             context + hard rules for Claude Code sessions
-├── .claude/settings.json model claude-opus-5-5, effort high, permissions (data reads denied)
+├── .claude/settings.json model claude-opus-5-5, effort high, permissions (credential reads and force-pushes denied)
 ├── scripts/bootstrap_mac.sh   one-time: create GitHub repo, push, venv, tests, launch Claude Code
 ├── docs/  SPEC · STATUS · PREREG · DATA · RESULTS
 ├── src/          pipeline P1–P6
@@ -379,15 +375,15 @@ text-factor-space/
 |---|---|
 | Pipeline, parsing, plotting, hub, tests | Claude |
 | `tfs_stats/` | **Abhi**, by hand |
-| `analysis/` | Abhi drives; Claude assists only on non-WRDS parts until D0 is resolved |
+| `analysis/` | Abhi drives; Claude assists (WRDS use cleared, §2); every estimator comes from `tfs_stats/` |
 
-**Sync model.** The Cowork cloud session runs SEC ingestion and writes into `~/Downloads/text-factor-space`, committing with a `[cowork]` prefix. The local Claude Code session (Opus 5.5, effort high) owns `git pull --rebase` and `git push`. Context passes through `CLAUDE.md`, `docs/SPEC.md` and `docs/STATUS.md`; the hub mirrors `docs/STATUS.md`. A local session can message the cloud session with `claude -p "…" --cloud <session-id>` where the account supports it; otherwise it writes requests into `docs/STATUS.md`. Claude Code cannot read claude.ai Project documents or memory directly, and `--teleport` only applies to repo-backed cloud sessions.
+**Sync model.** Long jobs (EDGAR scraping, embeddings on the Mac's GPU, panel builds) run on the Mac under a local Claude Code session (Opus 5.5, effort high), which owns `git pull --rebase` and `git push`. A Claude Cowork session plans, reviews and keeps the status hub current; it writes into `~/Downloads/text-factor-space` and commits with a `[cowork]` prefix. The two sessions exchange requests and progress reports through a gitignored `.cowork/` folder, and context passes through `CLAUDE.md`, `docs/SPEC.md` and `docs/STATUS.md`. Claude Code cannot read claude.ai Project documents or memory directly.
 
 ## 12. Risks and limitations {#risks}
 
 | Risk | Effect | Mitigation |
 |---|---|---|
-| WRDS AI/automation terms | Could block Claude-assisted analysis of CRSP/Compustat | D0 decision; ask CMU's WRDS representative; local-only fallback |
+| WRDS licence and query terms | Redistribution would breach the licence; an uncapped query loop would breach the Terms of Use | Claude use cleared 27 Sep (§2); `data/` gitignored, aggregates only; query cap and log in `docs/WRDS_QUERIES.md` |
 | Low power post-2018 (E) and small gaps between estimators (D) | Nulls likely | Power analysis stated up front; confidence intervals; pre/post differences |
 | Current-only CIK | ~8% of filings unmapped, possibly non-random | Report coverage by size/industry; EDGAR `formerNames` matching as fallback |
 | Item 1 extraction failures (~9%) | Skews away from banks, small firms, incorporation-by-reference filers | Coverage report; EX-13 fallback; inverse-probability weights |
@@ -396,17 +392,25 @@ text-factor-space/
 | Analyst co-coverage not observable | Text effect may proxy for it | Stated limitation (Ali & Hirshleifer 2020) |
 | Time | Scope creep before 8 Oct | Hard stop Fri 2 Oct; cut order |
 
-## 13. Open decisions {#decisions}
+## 13. Decisions {#decisions}
+
+**Open**
 
 | ID | Decision | Recommendation |
 |---|---|---|
-| D0 | How to handle WRDS data given the AI and automation terms (§2) | Ask CMU's WRDS rep; meanwhile WRDS data stays on the Mac and is processed only by code Abhi runs; Claude sees code and chosen aggregates |
-| D1 | Repo name `akraghavan/text-factor-space` | Yes |
 | D2 | Primary similarity for the confirmatory tests | Dense (centred, names masked) for H1 (comovement, where pretraining leakage matters least); bag-of-words for H3 (predictability, leakage-free) |
 | D3 | Embedding input | Keep the first 2 × 500 tokens for v1; a full-text version only with the human-capital subsection stripped |
 | D4 | Network formation | Monthly-updated (latest 10-K available by month-end, ≤15 months old) as primary; the annual July–June schedule only for the TNIC head-to-head |
 | D5 | Element D design | Stretch goal; T = 252, N = 500, primary benchmark LW nonlinear shrinkage |
 | D6 | What is public in the repo | Public: research design, code, data-reproduction docs. Private (gitignored, on the Mac and in the hub only): interview mapping, schedule, pitch, live status seed |
+
+**Resolved**
+
+| ID | Decision | Outcome |
+|---|---|---|
+| D0 | How to handle WRDS data given the AI and automation terms (§2) | Cleared 27 Sep 2026: enterprise no-training plan confirmed by CMU's WRDS representative; scripted queries capped (§2) |
+| D1 | Repo name | `akraghavan/text-factor-space`, created 27 Sep |
+| D7 | Align this spec and the Claude Code permissions with the WRDS clearance | Done 27 Sep |
 
 ## 14. References {#references}
 

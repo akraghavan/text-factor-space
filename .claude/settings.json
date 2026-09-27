@@ -21,11 +21,6 @@
       "Bash(python:*)"
     ],
     "deny": [
-      "Read(./data/raw/tnic3*)",
-      "Read(./data/interim/tenk_linked*)",
-      "Read(./data/processed/crsp*)",
-      "Read(./data/raw/ccm*)",
-      "Read(./data/raw/crsp*)",
       "Read(./.env)",
       "Read(./.env.*)",
       "Read(~/.config/gh/**)",
