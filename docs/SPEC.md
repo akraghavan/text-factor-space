@@ -397,8 +397,8 @@ text-factor-space/
 
 | ID | Decision | Recommendation |
 |---|---|---|
-| D5 | Element D design | Stretch goal; T = 252, N = 500, primary benchmark LW nonlinear shrinkage |
-| D6 | What is public in the repo | Public: research design, code, data-reproduction docs. Private (gitignored, on the Mac and in the hub only): interview mapping, schedule, pitch, live status seed |
+| D11 | Form of the BoW length correction (D9) | Null-mean subtraction $s_{ij} - m_i m_j/\mathrm{med}(m)$: under random word use $\mathbb E_0 s_{ij} = a_i a_j$ with variance $\approx 1/V$ free of length, so subtracting the null mean removes the bias without inflating short-document noise (dividing by $m_i m_j$ does). Best SIC-3 AUC, SIC precision and TNIC AUC on Element A diagnostics; used provisionally in the rebuild |
+| D12 | Liquidity control for Element C | Two WRDS web queries for daily volume and price (within the cap, logged); a monthly Amihud proxy is built meanwhile as a fallback |
 
 **Resolved**
 
@@ -410,6 +410,8 @@ text-factor-space/
 | D2 | Primary similarity for the confirmatory tests | Adopted (27 Sep): dense embedding (centred, names masked) for H1, comovement, where pretraining leakage matters least; bag-of-words for H3, predictability, which must be leakage-free |
 | D3 | Embedding input | Adopted (27 Sep): first 2 × 500 tokens of Item 1 for v1; a full-text version only with the human-capital subsection stripped |
 | D4 | Network formation | Adopted (27 Sep): monthly-updated networks (latest 10-K available by month-end, ≤ 15 months old) as primary; the annual July–June schedule only for the TNIC-3 head-to-head |
+| D5 | Element D design | Adopted (27 Sep): stretch goal for 8 Oct; T = 252 (LW 2017 template), N = 500; primary benchmark LW analytical nonlinear shrinkage |
+| D6 | What is public in the repo | Adopted (27 Sep): research design, code and data-reproduction docs are public; interview mapping, schedule, pitch and live status stay private (gitignored); no firm-level WRDS data anywhere in the repo |
 | D8 | Exclude SPACs (blank-check shells) from the universe? | Yes (27 Sep): per-filing flag from shell language in Item 1 (§3; the SIC-based rule was replaced after a name check showed precision 0.34). Justified on economics before any return test |
 | D9 | Correct the length bias of bag-of-words similarity? | Yes (27 Sep): degree-corrected similarity for peer selection, multiplicative $s_{ij}/(m_i m_j)$ vs additive, chosen on Element A diagnostics only; raw BoW kept as robustness (§5) |
 | D10 | Re-download all filings to fix mis-cut Item 1 spans? | Yes (27 Sep): one pass with raw HTML stored, v1 and v2 compared, rule validated on ~100 hand-checked disagreements, then the text layer is frozen (§4) |
