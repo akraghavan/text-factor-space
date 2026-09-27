@@ -1,5 +1,5 @@
 """Clean CRSP common-stock panels (monthly + daily) and Fama-French factors."""
-import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from paths import RAW, INTERIM, PROCESSED, SEC_UA
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from paths import RAW, INTERIM, PROCESSED, SEC_UA; from universe import common_stock
 import pandas as pd, zipfile, io, os, glob
 RAW=str(RAW); OUT=str(PROCESSED); os.makedirs(OUT,exist_ok=True)
 def ff(zipname):
@@ -18,7 +18,7 @@ ffm=f5m.merge(momm,on='date'); ffm['ym']=pd.PeriodIndex(pd.to_datetime(ffm.date,
 ffd.to_parquet(f'{OUT}/ff_daily.parquet'); ffm.to_parquet(f'{OUT}/ff_monthly.parquet')
 print('FF daily',ffd.date.min().date(),ffd.date.max().date(),ffd.columns.tolist()); print('FF monthly',ffm.ym.min(),ffm.ym.max())
 m=pd.read_parquet(f'{RAW}/crsp_msf.parquet')
-cs=m[(m.sharetype=='NS')&(m.securitytype=='EQTY')&(m.securitysubtype=='COM')&(m.usincflg=='Y')&(m.primaryexch.isin(['N','A','Q']))].copy()
+cs=common_stock(m).copy()
 cs['ym']=pd.PeriodIndex(pd.to_datetime(cs.mthcaldt),freq='M')
 cs=cs.rename(columns={'mthret':'ret','mthcap':'me','siccd':'sic'})[['permno','permco','ym','ret','me','mthprc','mthvol','shrout','sic','naics','primaryexch','ticker','issuernm','vwretd']]
 cs=cs.sort_values(['permno','ym']).drop_duplicates(['permno','ym'],keep='last')
