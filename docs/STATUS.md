@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Sun 27 Sep 2026, 04:15 ET (local Claude Code session)_
+_Last updated: Sun 27 Sep 2026, 14:40 ET (local Claude Code session)_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
@@ -22,7 +22,13 @@ _Last updated: Sun 27 Sep 2026, 04:15 ET (local Claude Code session)_
 - **Element A validated (`analysis/a_text_layer.py`, `analysis/output/a_text_layer/`):** 1 July formations 2012–2026, 3,222–3,870 firms. Same-SIC-3 AUC: dense 0.864, BoW nouns 0.861, BoW 0.853 (0.873/0.870/0.862 excluding SIC 6799 blank-check firms). At SIC-3 density, 31–38% of text edges are same-SIC-3 pairs. TNIC-3 agreement (edge Jaccard): BoW nouns 0.616, BoW 0.606, dense 0.339, SIC-3 0.276; AUC for TNIC pairs 0.94–0.97. Same-firm year-on-year similarity median 0.90–0.93. π rises 2.1% → 3.3% (biotech growth). BoW has a strong length/hub effect (corr of log length with mean similarity +0.93); dense −0.23.
 
 ## Running
-- Nothing.
+- **D10 re-download** of all 61,589 10-K primary documents to data/raw/edgar_html (raw bytes, gzip), started 13:51 ET, ~7.7 req/s, ETA ~16:05 ET. Then canonical Item 1 (v1 vs v2 with validity checks, 100-case hand check), masked re-embed, P6 v1, Element A, tag `text-layer-v1` (text layer frozen through 8 Oct).
+
+## Done today (27 Sep, afternoon)
+- D8 SPAC exclusion (`src/universe.py`): text rule "we are a blank check company" / ≥ 3 × "initial business combination"; the SIC-based rule was rejected after a filing-date-name check (precision 0.34). 386 SPAC filings; 1.8% of universe firm-months in 2022.
+- D9 diagnostics in Element A: null-mean subtraction s − m_i m_j / median(m) recommended (length corr 0.93 → 0.51, SIC-3 AUC 0.863 → 0.895, TNIC Jaccard 0.612 → 0.623); multiplicative rejected (spurious short-document edges). Awaiting Abhi.
+- Name masking for the dense network (`src/mask_names.py`): 91% of linked filings get ≥ 1 own-name mask.
+- B/C plumbing (`src/formation.py`): point-in-time universes, B/M, momentum, daily windows, pair skeleton; residuals route through `tfs_stats.ols_qr` (blocked until written).
 
 ## Blocked
 - Nothing.
