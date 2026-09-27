@@ -1,0 +1,4 @@
+# Only needed for the embedding stage (src/embed_item1.py). Install on top of requirements.txt:
+#   pip install -r requirements.txt -r requirements-nlp.txt
+sentence-transformers>=3.0
+torch>=2.3
