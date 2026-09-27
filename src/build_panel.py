@@ -26,6 +26,10 @@ cs=cs.sort_values(['permno','ym']).drop_duplicates(['permno','ym'],keep='last')
 cs['me_lag']=cs.groupby('permno').me.shift(1)
 cs.to_parquet(f'{OUT}/crsp_monthly.parquet'); print('monthly',cs.shape, cs.ym.min(), cs.ym.max())
 perm=set(cs.permno)
-parts=[p for p in sorted(glob.glob(f'{RAW}/crsp_dsf_*.parquet'))]
+parts=[p for p in sorted(glob.glob(f'{RAW}/crsp_dsf_[0-9]*.parquet'))]   # returns/cap; crsp_dsf_pv_* hold price/volume (D12)
 d=pd.concat([pd.read_parquet(p) for p in parts]); d=d[d.permno.isin(perm)].drop_duplicates(['permno','date']); d['cap']=d.cap*1000   # DlyCap $000s -> dollars
+pv=sorted(glob.glob(f'{RAW}/crsp_dsf_pv_*.parquet'))
+if pv:   # D12: |DlyPrc| and DlyVol for daily Amihud
+    q=pd.concat([pd.read_parquet(p) for p in pv]).drop_duplicates(['permno','date'])
+    d=d.merge(q,on=['permno','date'],how='left'); print('daily price/volume merged: prc',f'{d.prc.notna().mean():.1%}','vol',f'{d.vol.notna().mean():.1%}')
 d.to_parquet(f'{OUT}/crsp_daily.parquet'); print('daily',d.shape,d.date.min().date(),d.date.max().date(),d.permno.nunique(), 'parts',parts)

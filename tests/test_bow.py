@@ -46,3 +46,16 @@ def test_nouns_variant_keeps_proper_nouns_only_by_capitalisation():
     _, cols = bow.formation_vectors(B, T, np.arange(8), variant='nouns', min_df=1, max_df=1.0)
     kept = set(B['vocab'].word[cols])
     assert 'valve' not in kept and 'acme' in kept and 'pump' in kept
+
+def test_null_correction_removes_the_length_term():
+    """D11: under random word use s_ij ~ a_i a_j (a_i ~ sqrt(n_i/V)); subtracting m_i m_j / median(m) removes the length
+    term from each firm's mean similarity, while the raw mean tracks length and the additive form leaves most of it."""
+    rng = np.random.default_rng(0); n = 400
+    a = np.sqrt(rng.uniform(200, 5000, n) / 20000)                     # document lengths 200-5,000 words, V = 20,000
+    S = np.outer(a, a) + rng.normal(0, 0.003, (n, n)); S = (S + S.T) / 2; np.fill_diagonal(S, 1)
+    rowmean = lambda M: (M.sum(1) - np.diag(M)) / (n - 1)
+    # length term left in firm mean similarity = slope of the row mean on a, relative to the raw slope
+    slope = {k: np.polyfit(a, rowmean(bow.degree_correct(S, k)), 1)[0] for k in ('raw', 'add', 'null')}
+    assert abs(slope['null'] / slope['raw']) < 0.05      # null removes >= 95% of the length term
+    assert slope['add'] / slope['raw'] > 0.4             # additive leaves about half of it
+    assert bow.degree_correct(S, 'raw') is S
