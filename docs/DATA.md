@@ -107,7 +107,7 @@ Byte-for-byte reproduction of the public files needs the same download date (Sep
 - if several PERMNOs qualify, keep the one with the largest market cap in the filing month;
 - keep one 10-K per PERMNO per report year (the latest filing).
 
-Compustat stores only each company's *current* CIK, so firms whose CIK changed are dropped rather than mislinked: 56,495 firm-year 10-Ks map (92.3% of 61,589).
+Compustat stores only each company's *current* CIK, so firms whose CIK changed are dropped rather than mislinked. With the v1 universe, 54,602 of 61,589 indexed 10-Ks map (88.7%) and 54,254 firm-years remain after one per PERMNO per report year (3,378–4,046 per filing year 2012–2026). The index is a superset built with the v0 universe, so its REIT filings now simply fail to map; v0 mapped 92.3% (56,495 firm-years).
 
 **Point in time.** A 10-K's text is usable from the trading day after its filing date and for at most 15 months; Compustat fundamentals 6 months after fiscal year end; industry from CRSP `siccd` as of the month (GICS is a current snapshot, robustness only); universe membership and size from the prior month-end.
 
@@ -120,7 +120,7 @@ Run from the repo root with the venv active (`make setup && source .venv/bin/act
 | P0 | `python src/convert_wrds.py` | WRDS CSVs | `data/raw/{crsp_msf,crsp_dsf_*,ccm_funda}.parquet` |
 | P1 | `python src/build_filing_index.py` | `crsp_msf.parquet`, `ccm_link.csv.gz`, `submissions.zip` | `data/interim/tenk_index.parquet` (61,589 10-Ks) |
 | P2 | `python src/scrape_item1.py > data/interim/scrape.log 2>&1` | `tenk_index.parquet`, EDGAR (≤ 8 requests/s) | `data/interim/item1/shard_*.parquet`; resumable |
-| P3 | `python src/build_links.py` | `tenk_index.parquet`, `crsp_msf.parquet`, `ccm_link.csv.gz` | `data/interim/tenk_linked.parquet` (56,495 firm-years) |
+| P3 | `python src/build_links.py` | `tenk_index.parquet`, `crsp_msf.parquet`, `ccm_link.csv.gz` | `data/interim/tenk_linked.parquet` (54,254 firm-years) |
 | P4 | `python src/build_panel.py` | `crsp_msf.parquet`, `crsp_dsf_*.parquet`, French zips | `data/processed/{crsp_monthly,crsp_daily,ff_daily,ff_monthly}.parquet` |
 | P5 | `python src/embed_item1.py` (needs `pip install -r requirements-nlp.txt`; `--follow` to run alongside P2) | `item1/` shards | `data/interim/emb/shard_*.parquet` (384-d unit vectors) |
 | P6 | `python src/tfidf.py` | `tenk_linked.parquet`, `item1/` shards | `data/interim/tfidf/{X,rows,vocab}_<year>.*` |
