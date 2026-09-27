@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Sun 27 Sep 2026, 03:20 ET_
+_Last updated: Sun 27 Sep 2026, 03:08 ET_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
