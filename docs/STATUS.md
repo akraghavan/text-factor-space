@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Sun 27 Sep 2026, 03:08 ET_
+_Last updated: Sun 27 Sep 2026, 03:12 ET_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
@@ -24,6 +24,7 @@ _Last updated: Sun 27 Sep 2026, 03:08 ET_
 - Nothing.
 
 ## Next
+- Abhi: implement `ols_qr`, `vcov`, then `fama_macbeth` (critical path for Elements C and E); answer D2–D6 (SPEC §13).
 - Assistant: P6 with a trailing-12-month vocabulary (the calendar-year version has look-ahead, SPEC §3) and a nouns-only variant; diagnose the 3.7% zero-word extracts (EX-13 / incorporation by reference); Element A validation (similarity distributions, AUC vs SIC-3, neighbour spot checks, TNIC agreement).
 
 ## Requests
