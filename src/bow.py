@@ -43,7 +43,7 @@ def build():
     from multiprocessing import Pool
     t0 = time.time(); OUT.mkdir(parents=True, exist_ok=True)
     shards = sorted(glob.glob(str(INTERIM / 'item1' / 'shard_*.parquet')))
-    with Pool(max(1, (os.cpu_count() or 2) - 2)) as p: parts = p.map(_count_shard, shards)
+    with Pool(min(4, max(1, (os.cpu_count() or 2) - 2))) as p: parts = p.map(_count_shard, shards)   # pool capped at 4 workers (thermal limit on the Mac)
     vocab = np.array(sorted(set().union(*(set(x[2]) for x in parts))))
     rows_acc, rows_nw, R, C, T, TI, LO = [], [], [], [], [], [], []
     off = 0

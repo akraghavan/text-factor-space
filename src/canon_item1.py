@@ -59,7 +59,7 @@ def one(acc):
 
 def run(accs, keep_candidates=False):
     from multiprocessing import Pool
-    with Pool(max(1, (os.cpu_count() or 2) - 2)) as p: res = p.map(one, accs, chunksize=20)
+    with Pool(min(4, max(1, (os.cpu_count() or 2) - 2))) as p: res = p.map(one, accs, chunksize=20)   # pool capped at 4 workers (thermal limit on the Mac)
     d = pd.DataFrame(res)
     return d if keep_candidates else d.drop(columns=['v1_text', 'v2_text'])
 
