@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Sun 27 Sep 2026, 04:25 ET (local Claude Code session)_
+_Last updated: Sun 27 Sep 2026, 04:15 ET (local Claude Code session)_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
