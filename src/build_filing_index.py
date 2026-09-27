@@ -1,9 +1,9 @@
 """Build the 10-K filing index for the CRSP common-stock universe from SEC bulk submissions.zip."""
-import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from paths import RAW, INTERIM, PROCESSED, SEC_UA
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from paths import RAW, INTERIM, PROCESSED, SEC_UA; from universe import common_stock
 import pandas as pd, zipfile, json, re
 RAW=str(RAW); OUT=str(INTERIM)
 m=pd.read_parquet(f'{RAW}/crsp_msf.parquet')
-cs=m[(m.sharetype=='NS')&(m.securitytype=='EQTY')&(m.securitysubtype=='COM')&(m.usincflg=='Y')&(m.primaryexch.isin(['N','A','Q']))]
+cs=common_stock(m)
 cs_perm=set(cs.permno.unique())
 lk=pd.read_csv(f'{RAW}/ccm_link.csv.gz',low_memory=False); lk.columns=lk.columns.str.lower()
 lk['linkenddt']=pd.to_datetime(lk.linkenddt.replace('E','2099-12-31'),errors='coerce').fillna(pd.Timestamp('2099-12-31'))

@@ -110,6 +110,7 @@ SEC Release 33-10825 (effective 9 Nov 2020) made Item 101 principles-based and a
 
 | Stage | Script | Output | Status / checks |
 |---|---|---|---|
+| P0 WRDS to parquet | `src/convert_wrds.py` | `crsp_msf`, `crsp_dsf_*`, `ccm_funda` parquet | Row counts match `docs/WRDS_QUERIES.md` |
 | P1 Filing index | `src/build_filing_index.py` | 61,589 10-K/10-KT (parses `recent` and overflow files) | Check: JPM, BAC, GS, C have one 10-K per year 2012–2026 |
 | P2 Item 1 extraction | `src/scrape_item1.py`, `src/item1.py` | Item 1 text shards | ≤8 req/s; 91% clean on first 1,000. Report success by year, size quintile, SIC-2; flag incorporation by reference (<1,500 chars or "incorporated by reference") and try EX-13 |
 | P3 Links | `src/build_links.py` | 56,495 firm-years | Re-run with the corrected universe |

@@ -1,9 +1,9 @@
 """Map each 10-K (CIK, filing date) to a CRSP PERMNO valid on the filing date, via Compustat CIK -> gvkey -> CCM link."""
-import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from paths import RAW, INTERIM, PROCESSED, SEC_UA
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from paths import RAW, INTERIM, PROCESSED, SEC_UA; from universe import common_stock
 import pandas as pd
 RAW=str(RAW); INT=str(INTERIM)
 m=pd.read_parquet(f'{RAW}/crsp_msf.parquet')
-cs=m[(m.sharetype=='NS')&(m.securitytype=='EQTY')&(m.securitysubtype=='COM')&(m.usincflg=='Y')&(m.primaryexch.isin(['N','A','Q']))]
+cs=common_stock(m)
 cs_perm=set(cs.permno.unique())
 lk=pd.read_csv(f'{RAW}/ccm_link.csv.gz',low_memory=False); lk.columns=lk.columns.str.lower()
 lk['linkdt']=pd.to_datetime(lk.linkdt); lk['linkenddt']=pd.to_datetime(lk.linkenddt.replace('E','2099-12-31'),errors='coerce').fillna(pd.Timestamp('2099-12-31'))

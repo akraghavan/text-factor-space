@@ -62,6 +62,7 @@ make test           # tfs_stats tests; functions not yet written are reported as
 Rebuilding the data needs WRDS access for the CRSP/Compustat pulls in `docs/DATA.md`; then, with `.venv` active:
 
 ```
+python src/convert_wrds.py                                     # P0 WRDS csv.gz -> parquet
 python src/build_filing_index.py                               # P1 10-K index
 python src/scrape_item1.py > data/interim/scrape.log 2>&1      # P2 Item 1 text (SEC fair-access rate)
 python src/build_links.py                                      # P3 filing -> PERMNO

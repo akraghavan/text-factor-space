@@ -64,29 +64,17 @@ Common output settings for all four: output format **comma-delimited text (.csv)
 | Variables | `gvkey, lpermno, lpermco, linkprim, linktype, liid, datadate, fyear, cik, conm, tic, exchg, fyr, sich, naicsh, at, ceq, seq, pstk, pstkl, pstkrv, txditc, csho, prcc_f, sale, revt, ni, ib, lt, oancf, xrd, capx, emp, cogs, xsga, dvc` |
 | Result | 95,382 rows (FY2008 → FY2026) |
 
-### Converting the WRDS CSVs to parquet
+### Converting the WRDS CSVs to parquet (P0)
 
-`build_filing_index.py`, `build_links.py` and `build_panel.py` read `crsp_msf.parquet` and `crsp_dsf_*.parquet`, not the CSVs. No script in `src/` does this step yet; the conversion below reproduces the schemas of the existing files (lower-case column names; daily columns renamed to `permno, date, cap, ret`).
+`build_filing_index.py`, `build_links.py` and `build_panel.py` read parquet, not the CSVs. `python src/convert_wrds.py` writes:
 
-```python
-import glob, pandas as pd
-m = pd.read_csv("data/raw/crsp_msf.csv.gz", low_memory=False)
-m.columns = m.columns.str.lower()
-m.to_parquet("data/raw/crsp_msf.parquet")
+| Output | From | Schema |
+|---|---|---|
+| `data/raw/crsp_msf.parquet` | `crsp_msf.csv.gz` | all columns, lower-case names; `mthcaldt` datetime; returns, price, cap, volume numeric; `siccd` nullable integer |
+| `data/raw/crsp_dsf_<range>.parquet` | each `crsp_dsf_<range>.csv.gz` | `permno` (int32), `date`, `cap` (DlyCap, $000s), `ret` (DlyRet, float32) |
+| `data/raw/ccm_funda.parquet` | `ccm_funda.csv.gz` | all columns, lower-case; `datadate` datetime |
 
-for f in sorted(glob.glob("data/raw/crsp_dsf_*.csv.gz")):
-    d = pd.read_csv(f, low_memory=False)
-    d.columns = d.columns.str.lower()
-    d = d.rename(columns={"dlycaldt": "date", "dlycap": "cap", "dlyret": "ret"})[["permno", "date", "cap", "ret"]]
-    d["permno"] = d["permno"].astype("int32")
-    d["date"] = pd.to_datetime(d["date"])
-    d["ret"] = pd.to_numeric(d["ret"], errors="coerce").astype("float32")
-    d.to_parquet(f.replace(".csv.gz", ".parquet"))
-
-f = pd.read_csv("data/raw/ccm_funda.csv.gz", low_memory=False)
-f.columns = f.columns.str.lower()
-f.to_parquet("data/raw/ccm_funda.parquet")
-```
+`ccm_link.csv.gz` is read directly. The script skips outputs newer than their source (`--force` rebuilds) and prints only shapes and date ranges.
 
 ## 2. Public sources
 
@@ -109,7 +97,7 @@ Byte-for-byte reproduction of the public files needs the same download date (Sep
 
 ## 3. Universe and linking rules (SPEC §3)
 
-**Universe.** US-incorporated common stock on NYSE, NYSE American or Nasdaq, from the CRSP monthly file: `sharetype = 'NS'`, `securitytype = 'EQTY'`, `securitysubtype = 'COM'`, `usincflg = 'Y'`, `primaryexch ∈ {N, A, Q}`. This is the CIZ counterpart of the legacy `SHRCD ∈ {10, 11}` filter (exact mapping, including REIT treatment, still being verified). Result: 8,401 PERMNOs, 3,750–4,600 per year.
+**Universe.** US-incorporated common stock on NYSE, NYSE American or Nasdaq, from the CRSP monthly file: `sharetype = 'NS'`, `securitytype = 'EQTY'`, `securitysubtype = 'COM'`, `usincflg = 'Y'`, `issuertype ∈ {ACOR, CORP}`, `conditionaltype ∈ {RW, NW}`, `primaryexch ∈ {N, A, Q}` (`src/universe.py`). This is the CIZ counterpart of the legacy `SHRCD ∈ {10, 11}` filter; `issuertype` drops REITs (legacy 18), which v0 included.
 
 **10-K index (P1).** Forms `10-K`, `10-K405`, `10-KT` filed on or after 2011-06-01, for every CIK with a CCM link to a universe PERMNO that is active on or after 2011-01-01. Duplicate accession numbers are dropped.
 
@@ -129,16 +117,16 @@ Run from the repo root with the venv active (`make setup && source .venv/bin/act
 
 | Stage | Command | Reads | Writes |
 |---|---|---|---|
-| P0 | the conversion snippet above | WRDS CSVs | `data/raw/*.parquet` |
+| P0 | `python src/convert_wrds.py` | WRDS CSVs | `data/raw/{crsp_msf,crsp_dsf_*,ccm_funda}.parquet` |
 | P1 | `python src/build_filing_index.py` | `crsp_msf.parquet`, `ccm_link.csv.gz`, `submissions.zip` | `data/interim/tenk_index.parquet` (61,589 10-Ks) |
 | P2 | `python src/scrape_item1.py > data/interim/scrape.log 2>&1` | `tenk_index.parquet`, EDGAR (≤ 8 requests/s) | `data/interim/item1/shard_*.parquet`; resumable |
 | P3 | `python src/build_links.py` | `tenk_index.parquet`, `crsp_msf.parquet`, `ccm_link.csv.gz` | `data/interim/tenk_linked.parquet` (56,495 firm-years) |
 | P4 | `python src/build_panel.py` | `crsp_msf.parquet`, `crsp_dsf_*.parquet`, French zips | `data/processed/{crsp_monthly,crsp_daily,ff_daily,ff_monthly}.parquet` |
-| P5 | `python src/embed_item1.py` (needs `pip install -r requirements-nlp.txt`) | `item1/` shards | `data/interim/emb/shard_*.parquet` (384-d unit vectors) |
+| P5 | `python src/embed_item1.py` (needs `pip install -r requirements-nlp.txt`; `--follow` to run alongside P2) | `item1/` shards | `data/interim/emb/shard_*.parquet` (384-d unit vectors) |
 | P6 | `python src/tfidf.py` | `tenk_linked.parquet`, `item1/` shards | `data/interim/tfidf/{X,rows,vocab}_<year>.*` |
 
 Notes:
-- P2's log must go to `data/interim/scrape.log`: P5 processes shards as they appear and stops only once that log contains `DONE`, so P5 can run alongside P2.
-- P5 downloads `BAAI/bge-small-en-v1.5` from Hugging Face on first use and runs on CPU.
+- P5 embeds every Item 1 shard not yet embedded and exits. With `--follow` it keeps polling for new shards until `data/interim/scrape.log` contains `DONE`, so it can run alongside P2 (whose log must then go to that file).
+- P5 downloads `BAAI/bge-small-en-v1.5` from Hugging Face on first use. Device from `TFS_DEVICE`, else MPS > CUDA > CPU (MPS and CPU embeddings agree to ~1e-7); batch from `TFS_BATCH` (64 on GPU, 32 on CPU).
 - P6 needs P2 finished (it reads all shards).
 - Checks per stage (row counts, extraction rate, norms) are listed in SPEC §4.
