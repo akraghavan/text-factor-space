@@ -119,16 +119,21 @@ Run from the repo root with the venv active (`make setup && source .venv/bin/act
 |---|---|---|---|
 | P0 | `python src/convert_wrds.py` | WRDS CSVs | `data/raw/{crsp_msf,crsp_dsf_*,ccm_funda}.parquet` |
 | P1 | `python src/build_filing_index.py` | `crsp_msf.parquet`, `ccm_link.csv.gz`, `submissions.zip` | `data/interim/tenk_index.parquet` (61,589 10-Ks) |
-| P2 | `python src/scrape_item1.py > data/interim/scrape.log 2>&1` | `tenk_index.parquet`, EDGAR (≤ 8 requests/s) | `data/interim/item1/shard_*.parquet`; resumable, retries failed downloads |
-| P2b | `python src/rescue_item1.py` | shards with < 300 words, EDGAR (≤ 8 requests/s) | re-extracts with the line-aware v2 extractor and patches the shards in place (column `extractor`; originals in `data/interim/item1_v1/`); then rerun P5 and P6 |
+| P2 (historical) | `python src/scrape_item1.py > data/interim/scrape.log 2>&1` | `tenk_index.parquet`, EDGAR (≤ 8 requests/s) | `data/interim/item1/shard_*.parquet`; resumable, retries failed downloads |
+| P2b (historical) | `python src/rescue_item1.py` | shards with < 300 words, EDGAR (≤ 8 requests/s) | re-extracts with the line-aware v2 extractor and patches the shards in place (column `extractor`; originals in `data/interim/item1_v1/`); then rerun P5 and P6 |
+| **P2′ (canonical, text-layer-v1)** | `python src/refetch_html.py >> data/interim/refetch.log 2>&1` | `tenk_index.parquet`, EDGAR (≤ 8 requests/s; `SEC_USER_AGENT`) | `data/raw/edgar_html/<accession>.html.gz` (raw bytes, 61,589, ~13 GB) + `_manifest.parquet`; resumable, ~2.2 h |
+| **P2″** | `python src/canon_item1.py`, then `mv data/interim/item1_canon data/interim/item1` | stored HTML | canonical Item 1 shards: v1 and v2 extractors, structural validity checks, rule validated on 100 hand-checked disagreements (`analysis/output/d10/handcheck.md`); ~10 min |
 | P3 | `python src/build_links.py` | `tenk_index.parquet`, `crsp_msf.parquet`, `ccm_link.csv.gz` | `data/interim/tenk_linked.parquet` (54,254 firm-years) |
 | P4 | `python src/build_panel.py` | `crsp_msf.parquet`, `crsp_dsf_*.parquet`, French zips | `data/processed/{crsp_monthly,crsp_daily,ff_daily,ff_monthly}.parquet` |
+| P4b | `python src/universe.py` | `tenk_linked`, `crsp_monthly`, Item 1 shards | D8 SPAC flags: `data/interim/spac_filings.parquet`, `data/processed/spac_months.parquet` (excluded via `universe.exclude_spacs`) |
+| P4c | `python src/mask_names.py` | `tenk_linked`, `crsp_monthly`, Item 1 shards | `data/interim/name_masks.parquet` (own name/ticker patterns applied by P5) |
 | P5 | `python src/embed_item1.py` (needs `pip install -r requirements-nlp.txt`; `--follow` to run alongside P2) | `item1/` shards | `data/interim/emb/shard_*.parquet` (384-d unit vectors) |
 | P6 | `python src/bow.py` | `item1/` shards, `tenk_index.parquet`, `tenk_linked.parquet` (summary), WordNet | `data/interim/bow/{n_total,n_title,n_lower}.npz`, `rows.parquet`, `vocab.parquet` |
 | P6 v0 | `python src/tfidf.py` (superseded: calendar-year vocabulary, look-ahead) | `tenk_linked.parquet`, `item1/` shards | `data/interim/tfidf/{X,rows,vocab}_<year>.*` |
 
 Notes:
 - P4 market cap is in **dollars**: `crsp_monthly.me` = CIZ `MthCap` × 1000 and `crsp_daily.cap` = `DlyCap` × 1000 (CRSP reports both in $000s; the `*.parquet` files in `data/raw/` keep CRSP's units). `me_lag` is the prior month's `me`.
+- The text layer is frozen at git tag `text-layer-v1` (27 Sep 2026): P2′/P2″ canonical Item 1 → P4b SPAC flags → P4c name masks → P5 (masked) → P6. P2/P2b are kept only to document how the first extraction was made.
 - P5 embeds every Item 1 shard not yet embedded and exits. With `--follow` it keeps polling for new shards until `data/interim/scrape.log` contains `DONE`, so it can run alongside P2 (whose log must then go to that file).
 - P5 downloads `BAAI/bge-small-en-v1.5` from Hugging Face on first use. Device from `TFS_DEVICE`, else MPS > CUDA > CPU (MPS and CPU embeddings agree to ~1e-7); batch from `TFS_BATCH` (64 on GPU, 32 on CPU).
 - P6 needs P2 finished (it reads all shards). It stores word counts per filing once; the vocabulary is applied per formation date by `bow.formation_vectors(B, t, docs, pool, variant)` from filings in the pool filed in [t − 365 days, t): words in ≥ 5 and ≤ 25% of those filings, stop words and geographic terms (`src/geo_terms.py`) dropped; `variant='nouns'` keeps WordNet nouns plus proper nouns (Title-case in ≥ 90% of occurrences in the window).

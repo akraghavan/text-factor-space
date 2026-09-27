@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Sun 27 Sep 2026, 14:40 ET (local Claude Code session)_
+_Last updated: Sun 27 Sep 2026, 17:40 ET (local Claude Code session)_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
@@ -22,21 +22,24 @@ _Last updated: Sun 27 Sep 2026, 14:40 ET (local Claude Code session)_
 - **Element A validated (`analysis/a_text_layer.py`, `analysis/output/a_text_layer/`):** 1 July formations 2012–2026, 3,222–3,870 firms. Same-SIC-3 AUC: dense 0.864, BoW nouns 0.861, BoW 0.853 (0.873/0.870/0.862 excluding SIC 6799 blank-check firms). At SIC-3 density, 31–38% of text edges are same-SIC-3 pairs. TNIC-3 agreement (edge Jaccard): BoW nouns 0.616, BoW 0.606, dense 0.339, SIC-3 0.276; AUC for TNIC pairs 0.94–0.97. Same-firm year-on-year similarity median 0.90–0.93. π rises 2.1% → 3.3% (biotech growth). BoW has a strong length/hub effect (corr of log length with mean similarity +0.93); dense −0.23.
 
 ## Running
-- **D10 re-download** of all 61,589 10-K primary documents to data/raw/edgar_html (raw bytes, gzip), started 13:51 ET, ~7.7 req/s, ETA ~16:05 ET. Then canonical Item 1 (v1 vs v2 with validity checks, 100-case hand check), masked re-embed, P6 v1, Element A, tag `text-layer-v1` (text layer frozen through 8 Oct).
+- Nothing.
+
+## Text layer v1 — frozen (git tag `text-layer-v1`, 27 Sep 17:40 ET; no extractor/vocabulary changes through 8 Oct)
+- **D10:** all 61,589 primary documents re-downloaded and stored (13:51–16:04, 0 failures, 13 GB gz). Canonical Item 1 = v1 or v2 by structural validity (start/end not at cross-references, no Item 1A inside, 300–40,000 words; prefer v2 when both valid and J < 0.8): v1 47,662, v2 12,957, invalid-only 661, none 309; 99.2% > 300 words. Hand check of 100 random disagreements: rule picks the better candidate 97/100 (95% CI 91.6–99.0%); span fully correct 90/100. Mojibake: 0 (EDGAR documents are ASCII).
+- **D8:** 386 SPAC filings (text rule; SIC rule rejected at precision 0.34); 1.8% of universe firm-months in 2022.
+- **Masking:** 93.6% of linked filings get ≥ 1 own-name mask (84.5% in the first 1,000 words). Dense embeddings masked.
+- **P5/P6 rebuilt** on the canonical text: 61,144 filings embedded; BoW 61,144 × 144,498.
+- **Element A (SPACs excluded), means 2012–2026:** same-SIC-3 AUC dense 0.882, BoW nouns 0.882, BoW nouns null-corrected 0.905. TNIC-3 edge Jaccard: BoW nouns 0.644 (null 0.647), dense 0.361, SIC-3 0.277; Spearman with TNIC score 0.91 (was 0.71 on the P2 text). Length correlation: raw BoW +0.93, null +0.55, dense −0.29.
 
 ## Done today (27 Sep, afternoon)
-- D8 SPAC exclusion (`src/universe.py`): text rule "we are a blank check company" / ≥ 3 × "initial business combination"; the SIC-based rule was rejected after a filing-date-name check (precision 0.34). 386 SPAC filings; 1.8% of universe firm-months in 2022.
-- D9 diagnostics in Element A: null-mean subtraction s − m_i m_j / median(m) recommended (length corr 0.93 → 0.51, SIC-3 AUC 0.863 → 0.895, TNIC Jaccard 0.612 → 0.623); multiplicative rejected (spurious short-document edges). Awaiting Abhi.
-- Name masking for the dense network (`src/mask_names.py`): 91% of linked filings get ≥ 1 own-name mask.
-- B/C plumbing (`src/formation.py`): point-in-time universes, B/M, momentum, daily windows, pair skeleton; residuals route through `tfs_stats.ols_qr` (blocked until written).
+- D8 SPAC rule, D9 diagnostics (null-mean correction recommended → D11), name masking (`src/mask_names.py`), B/C plumbing (`src/formation.py`, monthly Amihud proxy for D12), D10 re-download + canonical extraction + hand check.
 
 ## Blocked
 - Nothing.
 
 ## Next
-- Abhi: implement `ols_qr`, `vcov`, then `fama_macbeth` (critical path for Elements C and E); answer D2–D6 (SPEC §13).
-- Abhi/Cowork decisions raised by Element A: (1) exclude SIC 6799 blank-check companies (SPACs, 468 in the June 2022 universe) from the universe? (2) BoW length/hub effect: HP-style median-similarity adjustment or length controls only in C? (3) a best-of-v1/v2 Item 1 pass over all 61,589 filings (~2.1 h re-download) to fix the ~7% of v1 spans that look wrong?
-- Claude: Element B/C prerequisites that do not need `tfs_stats` (rolling FF6 betas and daily residuals, pair panels); name-masking pass before embedding (SPEC §5 pitfalls).
+- Abhi: implement `ols_qr`, `vcov`, then `fama_macbeth` (critical path for B, C, E); decide D11 (BoW correction: null-mean recommended) and D12 (2 WRDS queries for daily volume/price vs monthly Amihud proxy).
+- Claude: once `ols_qr` exists, rolling FF6 residuals and the monthly pair panel for C (plumbing ready in `src/formation.py`); PREREG draft carrying D2/D4/D8/D9 into the frozen specification.
 
 ## Requests for Cowork
 _(local Claude Code sessions add requests here)_
