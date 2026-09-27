@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Sun 27 Sep 2026, 17:40 ET_
+_Last updated: Sun 27 Sep 2026, 17:28 ET_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
@@ -23,7 +23,7 @@ _Last updated: Sun 27 Sep 2026, 17:40 ET_
 ## Running
 - Nothing.
 
-## Text layer v1 — frozen (git tag `text-layer-v1`, 27 Sep 17:40 ET; no extractor/vocabulary changes through 8 Oct)
+## Text layer v1 — frozen (git tag `text-layer-v1`, 27 Sep 17:28 ET; no extractor/vocabulary changes through 8 Oct)
 - **D10:** all 61,589 primary documents re-downloaded and stored (13:51–16:04, 0 failures, 13 GB gz). Canonical Item 1 = v1 or v2 by structural validity (start/end not at cross-references, no Item 1A inside, 300–40,000 words; prefer v2 when both valid and J < 0.8): v1 47,662, v2 12,957, invalid-only 661, none 309; 99.2% > 300 words. Hand check of 100 random disagreements: rule picks the better candidate 97/100 (95% CI 91.6–99.0%); span fully correct 90/100. Mojibake: 0 (EDGAR documents are ASCII).
 - **D8:** 386 SPAC filings (text rule; SIC rule rejected at precision 0.34); 1.8% of universe firm-months in 2022.
 - **Masking:** 93.6% of linked filings get ≥ 1 own-name mask (84.5% in the first 1,000 words). Dense embeddings masked.
