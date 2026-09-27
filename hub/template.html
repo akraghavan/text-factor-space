@@ -95,6 +95,7 @@ blockquote p{margin:4px 0}
 .dec .row{display:flex;gap:8px;align-items:center;margin-top:6px}
 .dec button{font:600 12.5px var(--f-head);letter-spacing:.03em;padding:6px 12px;border-radius:6px;border:1px solid var(--accent);background:var(--accent);color:var(--surface);cursor:pointer}
 .dec .ans{font-size:13px;color:var(--done);margin-top:6px}
+.settled{margin:4px 0 0}.settled summary{cursor:pointer;font:600 12.5px var(--f-head);color:var(--muted);letter-spacing:.03em;margin:0 0 8px}.dec.done{opacity:.8}
 .dec .msg{font:11.5px var(--f-mono);color:var(--muted)}
 .log{list-style:none;margin:0;padding:0;max-height:300px;overflow:auto}
 .log li{display:grid;grid-template-columns:118px minmax(0,1fr);gap:10px;font-size:13px;padding:6px 0;border-top:1px solid var(--rule)}
@@ -185,11 +186,13 @@ function renderSide(){
   $('headline').textContent=S.summary.headline||'';
   $('nexts').innerHTML=(S.summary.next||[]).map(n=>`<li>${esc(n)}</li>`).join('');
   $('tasks').innerHTML=(S.tasks||[]).sort((a,b)=>(a.order||0)-(b.order||0)).map(t=>`<label class="task ${t.done?'done':''}"><input type="checkbox" id="task-${esc(t.id)}" data-id="${esc(t.id)}" ${t.done?'checked':''} ${S.live?'':'disabled'}><span><span class="t">${esc(t.text)}</span><br><span class="meta">${esc(t.owner||'')}${t.due?' · due '+esc(t.due):''}</span></span></label>`).join('');
-  $('decisions').innerHTML=(S.decisions||[]).sort((a,b)=>(a.order||0)-(b.order||0)).map(d=>`<div class="dec"><div class="q">${esc(d.question)}</div><div class="rec">Recommended: ${esc(d.recommendation)}</div>
+  const decs=[...(S.decisions||[])].sort((a,b)=>(a.order||0)-(b.order||0));const openD=decs.filter(d=>d.status!=='resolved');const setD=decs.filter(d=>d.status==='resolved');
+  $('decisions').innerHTML=(openD.map(d=>`<div class="dec"><div class="q">${esc(d.question)}</div><div class="rec">Recommended: ${esc(d.recommendation)}</div>
     ${d.answer?`<div class="ans">Your answer: ${esc(d.answer)}</div>`:''}
-    ${S.live?`<textarea id="dec-${esc(d.id)}" data-id="${esc(d.id)}" placeholder="Type your answer (or 'agree')"></textarea><div class="row"><button type="button" data-save="${esc(d.id)}">Save answer</button><span class="msg" id="msg-${esc(d.id)}"></span></div>`:''}</div>`).join('')||'<p class="dt">Nothing open.</p>';
+    ${S.live?`<textarea id="dec-${esc(d.id)}" data-id="${esc(d.id)}" placeholder="Type your answer (or 'agree')"></textarea><div class="row"><button type="button" data-save="${esc(d.id)}">Save answer</button><span class="msg" id="msg-${esc(d.id)}"></span></div>`:''}</div>`).join('')||'<p class="dt">Nothing open.</p>')
+    +(setD.length?`<details class="settled"><summary>Settled (${setD.length})</summary>${setD.map(d=>`<div class="dec done"><div class="q">${esc(d.question)}</div><div class="ans">${esc(d.answer||'')}</div></div>`).join('')}</details>`:'');
   $('log').innerHTML=[...(S.log||[])].sort((a,b)=>String(b.t).localeCompare(String(a.t))).slice(0,60).map(l=>`<li><time>${esc(l.t)}</time><span>${esc(l.text)}</span></li>`).join('');
-  $('src').textContent=S.live?'live · synced':'snapshot · '+(S.summary.updated||'');
+  $('src').textContent=(S.live?'live':'snapshot')+' · updated '+(S.summary.updated||'')+(S.summary.synced?' · last sync '+S.summary.synced:'');
 }
 function renderTl(){
   $('tl').innerHTML=(S.milestones||[]).map(m=>{const d=daysTo(m.date);return `<div class="${m.kind==='interview'?'interview':''} ${d<0?'past':''}"><div class="d">${esc(m.date)}${d>=0?' · in '+d+'d':''}</div><div class="l">${esc(m.label)}</div></div>`}).join('');
