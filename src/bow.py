@@ -107,7 +107,7 @@ def degree_correct(S, kind='null'):
     """D9 degree correction of a dense n x n BoW similarity matrix (diagonal ignored). m_i = firm i's median similarity to
     the others in the cross-section. Under random word use E0 s_ij = sqrt(n_i n_j)/V = a_i a_j with m_i ~ a_i a_bar, so
     E0 s_ij ~ m_i m_j / median(m) and Var0 s_ij ~ 1/V (length-free).
-      'null' (provisional choice, D11): s - m_i m_j / median(m)  -- subtracts the null mean; variance-stable
+      'null' (adopted, D11, 27 Sep): s - m_i m_j / median(m)  -- subtracts the null mean; variance-stable
       'mult': s / (m_i m_j)   'add': s - (m_i + m_j)/2   'raw': s
     Chosen on Element A diagnostics only (analysis/output/a_text_layer)."""
     if kind == 'raw': return S
