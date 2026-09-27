@@ -108,13 +108,13 @@ SEC Release 33-10825 (effective 9 Nov 2020) made Item 101 principles-based and a
 |---|---|---|---|
 | P0 WRDS to parquet | `src/convert_wrds.py` | `crsp_msf`, `crsp_dsf_*`, `ccm_funda` parquet | Row counts match `docs/WRDS_QUERIES.md` |
 | P1 Filing index | `src/build_filing_index.py` | 61,589 10-K/10-KT (parses `recent` and overflow files) | Check: JPM, BAC, GS, C have one 10-K per year 2012–2026 |
-| P2 Item 1 extraction | `src/scrape_item1.py`, `src/item1.py` | Item 1 text shards | ≤8 req/s; 91% clean on first 1,000. Report success by year, size quintile, SIC-2; flag incorporation by reference (<1,500 chars or "incorporated by reference") and try EX-13 |
+| P2 Item 1 extraction | `src/scrape_item1.py`, `src/item1.py`, `src/rescue_item1.py` (P2b) | Item 1 text shards | ≤8 req/s. v1 left 3.7% with 0 words (concentrated in SIC 29/10/13/49: "Items 1 and 2" headings); 0/60 sampled failures incorporate Item 1 from EX-13. The v2 fallback recovers 1,836 of 2,254; 99.2% of 61,589 filings now > 300 words |
 | P3 Links | `src/build_links.py` | 54,254 firm-years (v0: 56,495) | Re-run with the corrected universe (27 Sep) |
 | P4 Panels | `src/build_panel.py` | monthly, daily, FF | Re-run with IssuerType/ConditionalType filters (27 Sep) |
 | P5 Embeddings | `src/embed_item1.py` | 384-d unit vectors | First 2 × 500 tokens; firm names anonymised in a later pass (see A) |
 | P6 Bag of words | `src/bow.py` (v1; `src/tfidf.py` = v0) | per-filing word counts; binary unit vectors per formation date | Vocabulary from filings in [t − 365 d, t); nouns variant (WordNet nouns + proper nouns). v1 vs v0 pair-similarity correlation 0.98–1.00 |
 
-**Item 1 method.** Strip HTML (drop `ix:header` and hidden nodes), find every "Item 1 Business" heading and every "Item 1A / 1B / 1C / Item 2" heading, take the longest start-to-end span with no other "Item 1" heading inside (that rejects table-of-contents entries). Validation against EDGAR-CORPUS (Loukas et al. 2021) on the 2011–2020 overlap: word-set Jaccard, share above 0.8. EDGAR-CORPUS cannot replace the scraper: it stops in 2020.
+**Item 1 method.** Strip HTML (drop `ix:header` and hidden nodes), find every "Item 1 Business" heading and every "Item 1A / 1B / 1C / Item 2" heading, take the longest start-to-end span with no other "Item 1" heading inside (that rejects table-of-contents entries). Where that yields < 300 words, a line-aware v2 (headings only at line starts, plural "Items 1 and 2", "Description of Business", zero-width characters) is used if it finds more text; on 40 filings where v1 works, the two agree (word-set Jaccard median 1.00, 82% > 0.8). Validation against EDGAR-CORPUS (Loukas et al. 2021) on the 2011–2020 overlap: word-set Jaccard, share above 0.8. EDGAR-CORPUS cannot replace the scraper: it stops in 2020.
 
 ## 5. Element A — Text networks {#element-a}
 
