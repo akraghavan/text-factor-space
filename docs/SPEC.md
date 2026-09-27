@@ -400,9 +400,6 @@ text-factor-space/
 
 | ID | Decision | Recommendation |
 |---|---|---|
-| D2 | Primary similarity for the confirmatory tests | Dense (centred, names masked) for H1 (comovement, where pretraining leakage matters least); bag-of-words for H3 (predictability, leakage-free) |
-| D3 | Embedding input | Keep the first 2 × 500 tokens for v1; a full-text version only with the human-capital subsection stripped |
-| D4 | Network formation | Monthly-updated (latest 10-K available by month-end, ≤15 months old) as primary; the annual July–June schedule only for the TNIC head-to-head |
 | D5 | Element D design | Stretch goal; T = 252, N = 500, primary benchmark LW nonlinear shrinkage |
 | D6 | What is public in the repo | Public: research design, code, data-reproduction docs. Private (gitignored, on the Mac and in the hub only): interview mapping, schedule, pitch, live status seed |
 
@@ -413,6 +410,9 @@ text-factor-space/
 | D0 | How to handle WRDS data given the AI and automation terms (§2) | Cleared 27 Sep 2026: enterprise no-training plan confirmed by CMU's WRDS representative; scripted queries capped (§2) |
 | D1 | Repo name | `akraghavan/text-factor-space`, created 27 Sep |
 | D7 | Align this spec and the Claude Code permissions with the WRDS clearance | Done 27 Sep |
+| D2 | Primary similarity for the confirmatory tests | Adopted (27 Sep): dense embedding (centred, names masked) for H1, comovement, where pretraining leakage matters least; bag-of-words for H3, predictability, which must be leakage-free |
+| D3 | Embedding input | Adopted (27 Sep): first 2 × 500 tokens of Item 1 for v1; a full-text version only with the human-capital subsection stripped |
+| D4 | Network formation | Adopted (27 Sep): monthly-updated networks (latest 10-K available by month-end, ≤ 15 months old) as primary; the annual July–June schedule only for the TNIC-3 head-to-head |
 | D8 | Exclude SPACs (blank-check shells) from the universe? | Yes (27 Sep): per-filing flag, SIC ∈ {6770, 6799} plus blank-check language in Item 1 (§3). Justified on economics before any return test |
 | D9 | Correct the length bias of bag-of-words similarity? | Yes (27 Sep): degree-corrected similarity for peer selection, multiplicative $s_{ij}/(m_i m_j)$ vs additive, chosen on Element A diagnostics only; raw BoW kept as robustness (§5) |
 | D10 | Re-download all filings to fix mis-cut Item 1 spans? | Yes (27 Sep): one pass with raw HTML stored, v1 and v2 compared, rule validated on ~100 hand-checked disagreements, then the text layer is frozen (§4) |
