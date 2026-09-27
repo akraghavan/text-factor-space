@@ -76,6 +76,15 @@ def momentum(t):
     r = np.exp(g.apply(lambda s: np.log1p(s.dropna()).sum())) - 1
     return r[g.count() >= 8]
 
+def amihud_monthly(t):
+    """Fallback illiquidity (D12 open): mean over months t-12..t-1 of |r_m| / (mthvol x |mthprc|) (CRSP monthly share volume
+    and price), >= 6 months observed. Replaced by the daily Amihud measure if DlyVol/DlyPrc are pulled. Indexed by permno."""
+    t = pd.Period(t, 'M'); m = monthly()
+    w = m[(m.ym >= t - 12) & (m.ym <= t - 1)]
+    dv = w.mthvol * w.mthprc.abs()
+    a = (w.ret.abs() / dv.where(dv > 0)).groupby(w.permno)
+    return a.mean()[a.count() >= 6]
+
 # ---------------------------------------------------------------- daily matrices
 def daily_wide():
     """(dates, permnos, R) with R[d, j] the daily total return of permno j (float32, NaN if missing)."""
@@ -124,18 +133,19 @@ def pair_frame(u, t, top=1000):
     same SIC-1..4 (historical CRSP siccd), Anton-Polk percentile-rank distances in size, B/M and momentum, same primary
     exchange, same fiscal-year-end month, log length sum and |difference|.
     Still to add once tfs_stats exists: outcome z_ij (Fisher-z residual correlation in month t), z_lag (prior 12
-    months), |d beta_k|; text similarities come from the network builders; Amihud distance needs daily volume/price,
-    which the daily CRSP pull does not have (only monthly mthvol/mthprc)."""
+    months), |d beta_k|; text similarities come from the network builders. d_amihud_m is the monthly-proxy fallback
+    (D12): the daily Amihud distance needs DlyVol/DlyPrc, which the daily CRSP pull does not have."""
     t = pd.Period(t, 'M')
     f = u.nlargest(top, 'me').reset_index(drop=True)
     f['bm'] = book_to_market(t).reindex(f.permno.to_numpy()).to_numpy()
     f['mom'] = momentum(t).reindex(f.permno.to_numpy()).to_numpy()
+    f['amihud_m'] = amihud_monthly(t).reindex(f.permno.to_numpy()).to_numpy()
     n = len(f); i, j = np.triu_indices(n, 1)
     P = pd.DataFrame({'i': i.astype(np.int32), 'j': j.astype(np.int32)})
     sic = f.sic.to_numpy(dtype=float)
     for l, div in ((1, 1000), (2, 100), (3, 10), (4, 1)):
         c = np.floor(sic / div); P[f'same_sic{l}'] = ((c[i] == c[j]) & (sic[i] > 0) & (sic[j] > 0)).astype(np.int8)
-    for v in ('me', 'bm', 'mom'):
+    for v in ('me', 'bm', 'mom', 'amihud_m'):
         r = f[v].rank(pct=True).to_numpy(); P[f'd_{v}'] = np.abs(r[i] - r[j]).astype(np.float32)   # NaN if either missing
     ex = f.primaryexch.to_numpy(); P['same_exch'] = (ex[i] == ex[j]).astype(np.int8)
     fy = f.fye_month.to_numpy(dtype=float); P['same_fye'] = (fy[i] == fy[j]).astype(np.int8)
@@ -150,7 +160,7 @@ if __name__ == '__main__':
         u = universe_at(t); f, P = pair_frame(u, t)
         dts, perm, X, F = daily_window(f.permno, t.to_timestamp() - pd.Timedelta(days=1), 252)
         print(f'{t}: universe {len(u)} firms with text; top-1000 pairs {len(P):,}; B/M coverage {f.bm.notna().mean():.1%}, '
-              f'momentum {f.mom.notna().mean():.1%}; 252-day window {dts[0].date()}..{dts[-1].date()}: {X.shape[1]} of '
+              f'momentum {f.mom.notna().mean():.1%}, Amihud proxy {f.amihud_m.notna().mean():.1%}; 252-day window {dts[0].date()}..{dts[-1].date()}: {X.shape[1]} of '
               f'{len(f)} complete; share same SIC-3 {P.same_sic3.mean():.2%}')
     try:
         residuals(X[:, :5], F)
