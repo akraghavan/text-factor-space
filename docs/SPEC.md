@@ -36,7 +36,7 @@ Q1 is about second moments, Q2 about *forecast* second moments, Q3 about first m
 ### Definition of done (first milestone, Thu 8 Oct)
 
 - **Scope:** Element A validated; **Q1 (Elements B, C) complete**; **Q3 as the HP replication on the common sample** plus the out-of-sample extension; Q2 (Element D) is a stretch goal with the core estimators only. One clean result beats three half-done ones.
-- `tfs_stats/` written by Abhi, all tests green.
+- `tfs_stats/` implemented on standard libraries (D13), all tests green; Abhi has explained back every estimator, data step and design decision (`docs/STATS_GUIDE.md`).
 - `docs/PREREG.md` frozen (git hash recorded) before any test-period result is looked at.
 - `docs/RESULTS.md`: 2 pages; every number reproducible by one command.
 - Résumé bullet built only from numbers that exist; a 2-minute pitch; answers to the probes in each element.
@@ -366,7 +366,8 @@ text-factor-space/
 ├── scripts/bootstrap_mac.sh   one-time: create GitHub repo, push, venv, tests, launch Claude Code
 ├── docs/  SPEC · STATUS · PREREG · DATA · RESULTS
 ├── src/          pipeline P1–P6
-├── tfs_stats/    estimators and inference (Abhi writes these)
+├── tfs_stats/    estimators and inference on statsmodels / linearmodels / scikit-learn (D13)
+├── practice/     OLS by hand, batch and streaming (Abhi's exercises)
 ├── tests/        checked against statsmodels / scikit-learn; unimplemented = skipped
 ├── analysis/     element scripts → tables and figures
 ├── hub/          builds the hub from docs/SPEC.md
@@ -376,7 +377,8 @@ text-factor-space/
 | Part | Written by |
 |---|---|
 | Pipeline, parsing, plotting, hub, tests | Claude |
-| `tfs_stats/` | **Abhi**, by hand |
+| `tfs_stats/` | Claude, on standard libraries (D13); Abhi explains every function |
+| `practice/` | **Abhi**, by hand (tutored) |
 | `analysis/` | Abhi drives; Claude assists (WRDS use cleared, §2); every estimator comes from `tfs_stats/` |
 
 **Sync model.** Long jobs (EDGAR scraping, embeddings on the Mac's GPU, panel builds) run on the Mac under a local Claude Code session (Opus 5.5, effort high), which owns `git pull --rebase` and `git push`. A Claude Cowork session plans, reviews and keeps the status hub current; it writes into `~/Downloads/text-factor-space` and commits with a `[cowork]` prefix. The two sessions exchange requests and progress reports through a gitignored `.cowork/` folder, and context passes through `CLAUDE.md`, `docs/SPEC.md` and `docs/STATUS.md`. Claude Code cannot read claude.ai Project documents or memory directly.
@@ -398,7 +400,7 @@ text-factor-space/
 
 **Open**
 
-None as of 27 Sep.
+None as of 28 Sep.
 
 **Resolved**
 
@@ -417,6 +419,7 @@ None as of 27 Sep.
 | D10 | Re-download all filings to fix mis-cut Item 1 spans? | Yes (27 Sep): one pass with raw HTML stored, v1 and v2 compared, rule validated on ~100 hand-checked disagreements, then the text layer is frozen (§4) |
 | D11 | Form of the BoW length correction (D9) | Null-mean subtraction $s_{ij} - m_i m_j/\mathrm{med}(m)$ adopted (27 Sep): removes the length term without inflating noise; best SIC-3 AUC (0.905) with TNIC-3 agreement kept (0.647), chosen on Element A diagnostics only (§5) |
 | D12 | Liquidity control for Element C | Daily Amihud illiquidity adopted (27 Sep): two WRDS web queries for daily price and volume (`dlyprc`, `dlyvol`), same product, dataset and date chunks as the daily return pull, logged in `docs/WRDS_QUERIES.md`; the monthly proxy stays only as a fallback |
+| D13 | Hand-write the estimators in `tfs_stats/`, or use standard libraries? | Libraries (28 Sep, Abhi): `tfs_stats/` stays the single estimator layer but Claude writes it on statsmodels, linearmodels, scikit-learn, scipy and numpy; custom code only where no library exists (EWC, dyadic-robust, MRQAP, Fama–MacBeth on sufficient statistics, text-target shrinkage). Library code is at least as accurate and fast, and the hand-written dependency was blocking C and E. Condition: every element of the project is explained well enough for Abhi to defend it in an interview (`docs/STATS_GUIDE.md`, explain-back sessions). OLS by hand, batch and streaming, stays as tutored practice in `practice/`, off the critical path |
 
 ## 14. References {#references}
 

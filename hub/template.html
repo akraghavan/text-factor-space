@@ -135,6 +135,9 @@ table.st a:hover code{text-decoration:underline}
 .fnmap .t-lb{font:italic 10.5px var(--f-body);fill:var(--muted)}
 .fnmap .ar{fill:none;stroke:currentColor;stroke-width:1.2}
 section.guide h3{scroll-margin-top:84px;padding-top:14px;border-top:1px solid var(--rule)}
+section.guide details{border:1px solid var(--rule);border-radius:8px;padding:6px 14px;margin:10px 0 16px;background:var(--bg)}
+section.guide summary{cursor:pointer;font:600 13px var(--f-head);letter-spacing:.03em;color:var(--accent);padding:4px 0}
+section.guide details[open] summary{margin-bottom:6px}
 @media (max-width:980px){.grid2{grid-template-columns:1fr}}
 @media (max-width:860px){.shell{grid-template-columns:1fr}.rail{position:static;max-height:none;flex-direction:row;flex-wrap:wrap;gap:4px;padding-block:12px 0}.rail .lbl{width:100%;margin:4px 0}.rail a{background:var(--surface);border:1px solid var(--rule)}section.spec,section.live{padding:20px 18px}.kpis{margin-left:0}}
 @media (max-width:520px){.stage{grid-template-columns:78px minmax(0,1fr)}.stage .own{grid-column:2}.log li{grid-template-columns:1fr}}
@@ -153,7 +156,7 @@ html{scroll-behavior:smooth}
     <div class="lbl">Live</div>
     <a href="#status">Status board</a>
     <a href="#timeline">Timeline</a>
-    <div class="lbl">Stats modules</div>
+    <div class="lbl">Estimators</div>
     <a href="#stats">Tracker and map</a>
     {{GUIDE_NAV}}
     <div class="lbl">Specification</div>
@@ -175,13 +178,13 @@ html{scroll-behavior:smooth}
     </section>
     <section class="live" id="timeline"><h2>Timeline</h2><div class="tl" id="tl"></div></section>
     <section class="live" id="stats">
-      <div class="live-head"><h2>Stats modules you write</h2><span class="src" id="stats-src">tracker</span></div>
+      <div class="live-head"><h2>Estimators: what they do and how to explain them</h2><span class="src" id="stats-src">tracker</span></div>
       <div class="st-lead">{{GUIDE_INTRO}}</div>
       <div class="st-legend" aria-label="Status meanings">
-        <span><span class="pill planned">not started</span> function still raises NotImplementedError</span>
-        <span><span class="pill running">drafting</span> your code is in, its test is not green yet</span>
-        <span><span class="pill pass">tests pass</span> green on your Mac and rerun by Cowork</span>
-        <span><span class="pill done">reviewed</span> reviewed and explained back</span>
+        <span><span class="pill planned">to do</span> not yet in the code</span>
+        <span><span class="pill running">in progress</span> being written or practised</span>
+        <span><span class="pill pass">in code</span> library-backed, tests green (rerun by Cowork)</span>
+        <span><span class="pill done">explained back</span> you explained it and answered its probes</span>
       </div>
       <div class="tw"><table class="st" id="statstrack"></table></div>
       <figure class="fnmap">
@@ -189,7 +192,7 @@ html{scroll-behavior:smooth}
         <svg viewBox="0 0 1040 416" role="img" aria-label="Where each tfs_stats function sits: ols_qr turns daily returns into factor residuals that feed B through mp_edges and ipr and C through monthly pair correlations; fama_macbeth, with vcov for its standard error, produces the C and E results; ledoit_wolf or clip_correlation estimate a covariance matrix that min_var_weights turns into D's portfolio.">
           <defs><marker id="tfsArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
           <text class="t-hd" x="95" y="18" text-anchor="middle">Input</text>
-          <text class="t-hd" x="525" y="18" text-anchor="middle">Your functions (blue) · pipeline code (dashed)</text>
+          <text class="t-hd" x="525" y="18" text-anchor="middle">tfs_stats estimators (blue) · pipeline code (dashed)</text>
           <text class="t-hd" x="950" y="18" text-anchor="middle">Result</text>
           <!-- inputs -->
           <rect class="b-data" x="10" y="34" width="170" height="146" rx="6"/>
@@ -294,7 +297,7 @@ function renderKpis(){
   k.push(`<span class="kpi">stages <b>${done}/${st.length}</b> done</span>`);
   if(run)k.push(`<span class="kpi">running <b>${run}</b></span>`);
   if(ts){const d=daysTo(ts.date);k.push(`<span class="kpi">${esc(ts.kpi)} <b>${d>0?d+'d':'today'}</b></span>`)}
-  if((S.stats||[]).length){const p=S.stats.filter(r=>PASSING.includes(r.status)).length;k.push(`<span class="kpi">tfs_stats <b>${p}/${S.stats.length}</b> passing</span>`)}
+  if((S.stats||[]).length){const p=S.stats.filter(r=>PASSING.includes(r.status)).length;k.push(`<span class="kpi">explained <b>${p}/${S.stats.length}</b></span>`)}
   k.push(`<span class="kpi">updated <b>${esc(S.summary.updated||'')}</b></span>`);
   $('kpis').innerHTML=k.join('');
 }
@@ -324,20 +327,20 @@ function renderSide(){
 function renderTl(){
   $('tl').innerHTML=(S.milestones||[]).map(m=>{const d=daysTo(m.date);return `<div class="${m.kind==='interview'?'interview':''} ${d<0?'past':''}"><div class="d">${esc(m.date)}${d>=0?' · in '+d+'d':''}</div><div class="l">${esc(m.label)}</div></div>`}).join('');
 }
-const PASSING=['tests pass','reviewed'];
-const ST_CLS={'not started':'planned','drafting':'running','tests pass':'pass','reviewed':'done'};
+const PASSING=['explained back','done'];
+const ST_CLS={'to do':'planned','in progress':'running','in code':'pass','explained back':'done','done':'done'};
 function renderStats(){
   const el=$('statstrack');if(!el)return;
   const rows=[...(S.stats||[])].sort((a,b)=>(a.order||0)-(b.order||0));
-  el.innerHTML=`<thead><tr><th>#</th><th>Function</th><th>Job in the project</th><th>Feeds</th><th>Test</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr>
+  el.innerHTML=`<thead><tr><th>#</th><th>Estimator</th><th>Job in the project</th><th>Feeds</th><th>In the code</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr>
     <td class="num">${esc(r.order)}</td>
     <td><a href="#${esc(r.anchor)}"><code>${esc(r.fn)}</code></a><div class="st-file">${esc(r.file)}</div></td>
     <td>${esc(r.role)}</td>
     <td>${(r.feeds||[]).map(f=>`<span class="chip">${esc(f)}</span>`).join('')}</td>
-    <td><code class="st-test">${esc(r.test)}</code></td>
-    <td><span class="pill ${ST_CLS[r.status]||'planned'}">${esc(r.status||'not started')}</span>${r.note?`<div class="st-note">${esc(r.note)}</div>`:''}</td></tr>`).join('')}</tbody>`;
+    <td><span class="st-test">${esc(r.test)}</span></td>
+    <td><span class="pill ${ST_CLS[r.status]||'planned'}">${esc(r.status||'to do')}</span>${r.note?`<div class="st-note">${esc(r.note)}</div>`:''}</td></tr>`).join('')}</tbody>`;
   const p=rows.filter(r=>PASSING.includes(r.status)).length;
-  $('stats-src').textContent=`${p} of ${rows.length} passing`+(S.live?' · live':'');
+  $('stats-src').textContent=`${p} of ${rows.length} explained back`+(S.live?' · live':'');
 }
 function renderAll(){renderKpis();renderStages();renderSide();renderTl();renderStats()}
 renderAll();

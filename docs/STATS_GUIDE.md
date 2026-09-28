@@ -1,54 +1,34 @@
-# Stats modules guide
+# Estimators guide
 
-You write eight functions in `tfs_stats/`: three in `regression.py` and five in `rmt.py`. They are the only estimators `analysis/` is allowed to use (CLAUDE.md rule 3), so every coefficient, standard error and eigenvalue the project reports passes through your code. Each function has a test that compares it with statsmodels or scikit-learn. For each function this guide gives its job in the project, the math with the derivation, what the test checks, a plan in words, the traps, questions to answer before coding, and what to read. It does not give the code. Writing it is the point (rule 2).
+The project's estimators live in `tfs_stats/`: three in `regression.py` and five in `rmt.py`, plus the custom ones listed near the end. Since decision D13 (28 Sep) Claude writes them on standard libraries (statsmodels, linearmodels, scikit-learn, scipy, numpy), the way research code is written anywhere. Your job is different and harder: be able to explain every one of them in an interview, from the derivation to the conventions in the code. For each estimator this guide gives its job in the project, the math with the derivation, how the project computes it, what its test checks, the traps, and the questions an interviewer is likely to ask. One exercise stays hand-written because interviews test it directly: OLS by hand, batch and streaming (the Practice section, with a full walkthrough).
 
 ## How we work on these {#stats-workflow}
 
-Three of us, with different jobs:
+| Who | Does |
+|---|---|
+| You | Read each card, explain it back, answer its "Check yourself" questions, do the OLS practice |
+| Claude Code (in the repo) | Writes `tfs_stats/` on libraries, with a docstring per function that names the library call and every convention; tutors you in `practice/` without writing your solution |
+| Cowork (the dashboard session) | Writes and maintains these explanations, runs the explain-back sessions, checks the code against the cards, keeps the tracker current |
 
-| Who | Does | Does not |
-|---|---|---|
-| You | Derive each function, write it, run its test, explain it back | Copy an implementation |
-| Claude Code (tutor, in the repo) | Reads your file, runs tests, explains errors and numpy behaviour, gives hints one level at a time, adds edge-case tests after you pass | Write or paste the function body (rule 2) |
-| Cowork (the dashboard session) | Goes through the math with you before you start, reviews your code on your Mac, runs your tests independently, keeps the tracker current | Edit `tfs_stats/` |
+The loop for each estimator:
 
-The loop for each function:
+1. **Read the card.** The math first, then "How the project computes it".
+2. **Read the code.** Open the function in `tfs_stats/`. It is short: mostly one library call plus the conventions around it.
+3. **Explain it back.** In the Cowork chat, say "explain-back `<function>`" and explain in your own words what it computes, why this way, and one trap. I push back like an interviewer would and correct anything off.
+4. **Answer the probes.** Work through "Check yourself" on paper; that is the interview material.
+5. **Tracker.** When the explanation holds up, the tracker moves to "explained back".
 
-1. **Brief.** Read the function's card below. In the Cowork chat, explain the math back in a few lines. I correct anything that is off before you write code.
-2. **Plan in comments.** Inside the function, write the algorithm as 3–6 plain-English comment lines. Ask the tutor or me to check the plan.
-3. **First attempt.** Write the code under the comments and run only that function's test (commands in the next section).
-4. **Hints when stuck.** After about 15 minutes stuck, ask for one hint level at a time: **H1** names the idea you are missing, **H2** gives the next step, **H3** points at the line with the bug.
-5. **Review.** When the test passes, say "review `<function>`" in the Cowork chat. I read the code for edge cases, numerical problems and clarity, and rerun the tests on my side.
-6. **Explain it back.** Two minutes out loud: what it computes, why it is computed this way, one trap. Then answer one question from the card's "Check yourself" list. The tracker moves to "reviewed".
+The order follows the results: C and E need `ols_qr`, `vcov` and `fama_macbeth` first; B needs `mp_edges` and `ipr`; D (the stretch goal) needs `clip_correlation`, `min_var_weights` and `ledoit_wolf`.
 
-Paste this into Claude Code once per function, with the name filled in:
-
-```text
-I'm writing tfs_stats.<function> myself (CLAUDE.md rule 2); its card is in docs/STATS_GUIDE.md.
-Be my tutor. Do not write or paste the function body or anything close to it.
-1. First ask me to explain the math in my own words, and correct me.
-2. Check my plan (the comment lines) before I write code.
-3. When I ask for a hint, give only the level I ask for: H1 the idea, H2 the next step, H3 the line with the bug.
-4. You may run the tests, read my code, and explain error messages and numpy behaviour.
-5. When the test passes, review for edge cases and numerical issues, then ask me one interview question about it.
-```
-
-**Order.** The sequence is deliberate: two one-line warm-ups to learn the loop, then the critical path.
-
-| # | Function | Why at this point | Size of a tidy solution |
+| # | Estimator | Explain back by | Why then |
 |---|---|---|---|
-| 1 | `ipr` | Warm-up. Learn write → test → review on one line of numpy | 1 line |
-| 2 | `mp_edges` | Second warm-up. The formula behind B's noise edge | 2 lines |
-| 3 | `ols_qr` | Every regression in the project. Blocks B, C and E | about 12 lines |
-| 4 | `vcov` | Every standard error. Reuses `ols_qr`'s triangular solve | about 30 lines |
-| 5 | `fama_macbeth` | The headline inference for C (Q1) and E (Q3) | about 20 lines |
-| 6 | `clip_correlation` | D's RMT estimator. Uses `mp_edges` | about 10 lines |
-| 7 | `min_var_weights` | D's portfolio | 3 lines |
-| 8 | `ledoit_wolf` | D's benchmark and the hardest algebra | about 15 lines |
+| 1 | `ols_qr` | Tue 29 Sep | Every regression in the project; also the practice exercise |
+| 2 | `vcov` | Tue 29 Sep | Every standard error |
+| 3 | `fama_macbeth`, EWC | Wed 30 Sep | The headline inference for C (Q1) and E (Q3) |
+| 4 | `mp_edges`, `ipr` | Thu 1 Oct | B's noise edge and localisation |
+| 5 | `clip_correlation`, `min_var_weights`, `ledoit_wolf` | Thu 1 Oct | D, if it stays in |
 
-Line counts only calibrate scope. D is the stretch goal (SPEC §10), so 6–8 are the ones to drop if the week runs short.
-
-## Toolkit: numpy and the tests {#stats-toolkit}
+## Toolkit: reading the code and running the tests {#stats-toolkit}
 
 Run tests from the repo root with the virtual environment active:
 
@@ -60,9 +40,17 @@ python -m pytest tests/test_regression.py -k ill -q -s          # -s shows print
 make test                                                       # everything
 ```
 
-In the output, `s` means skipped: the function still raises `NotImplementedError` (`tests/conftest.py` turns that into a skip). `F` means your code ran and disagreed with the reference, or crashed. `.` means passed.
+In the output, `s` means skipped (a function still raises `NotImplementedError`), `F` means the code disagreed with the reference or crashed, and `.` means passed.
 
-The numpy you need. Try each on a 4×3 example in a Python shell before using it:
+The library calls you will see in `tfs_stats/`, and the numpy you need for reading them and for the practice. Try each on a 4×3 example in a Python shell:
+
+| Job | Call | Note |
+|---|---|---|
+| OLS with a chosen covariance | `sm.OLS(y, X).fit(cov_type=...)` | `'nonrobust'`, `'HC1'`, `'cluster'` (with `cov_kwds={'groups': g}`), `'HAC'` (with `cov_kwds={'maxlags': L}`); `.params`, `.bse`, `.cov_params()` |
+| Fama–MacBeth reference | `linearmodels.FamaMacBeth(y, X).fit(cov_type='kernel')` | Used in tests to check the project's own Fama–MacBeth |
+| Ledoit–Wolf | `sklearn.covariance.LedoitWolf().fit(X).covariance_` | Identity target, `shrinkage_` holds δ |
+| Least squares for many series at once | `np.linalg.lstsq(Z, Y)` or QR with `scipy.linalg.solve_triangular` | One factorisation of Z serves every column of Y |
+
 
 | Need | numpy | Note |
 |---|---|---|
@@ -73,14 +61,14 @@ The numpy you need. Try each on a 4×3 example in a Python shell before using it
 | Labels to integers | `np.unique(g, return_inverse=True)` | Any labels become codes 0…G−1 |
 | Sum rows by group | `np.add.at` | Or sort by group and use `np.add.reduceat` |
 | Symmetric eigenproblem | `np.linalg.eigh(C)` | Eigenvalues ascending; eigenvectors are the columns |
-| Linear solve | `np.linalg.solve(A, b)` | Fine in `rmt.py`. In `regression.py` only `np.linalg.qr` is allowed (no `lstsq`, no `inv`) |
+| Linear solve | `np.linalg.solve(A, b)` | Never form an inverse just to multiply by it |
 | Compare arrays | `np.allclose(a, b, rtol=…, atol=…)` | What every test uses |
 
 Habits that save hours: build a case small enough to check by hand (n = 5, k = 2); print shapes at each step; loop over small dimensions (k columns, T months) freely, but never over n, which reaches hundreds of thousands of rows in C.
 
 ## regression.py {#stats-regression}
 
-Numpy only: `np.linalg.qr` is allowed, `np.linalg.lstsq` and `np.linalg.inv` are not (the module docstring). The three functions build on each other: `vcov` reuses the triangular solve you write for `ols_qr`, and `fama_macbeth` calls both.
+Regression and inference. The three functions build on each other: `fama_macbeth` runs `ols_qr` once per period and uses the `vcov` logic for the standard error of the mean slope.
 
 ### ols_qr(X, y) → (beta, resid) {#fn-ols_qr}
 
@@ -110,7 +98,7 @@ Residuals are $e = y - X\hat\beta$, which equals $y - Qc$ because $X\hat\beta = 
 
 **What the test checks.** `test_beta`: n = 500, an intercept and three normal regressors, heteroskedastic noise; $\hat\beta$ must match statsmodels to `atol=1e-10`. `test_ill_conditioned`: the third column is the second plus $10^{-7}$ noise; $\hat\beta$ must match `np.linalg.lstsq` to `rtol=1e-3`. The normal equations usually fail this and QR passes. Run it with `-s` to see both errors printed.
 
-**Plan in words.** Factor $X$. Form $c$. Write back-substitution as its own small helper, because `vcov` needs it again. Compute residuals. Return two 1-D arrays.
+**How the project computes it.** A QR factorisation from numpy with SciPy's triangular solve (`np.linalg.qr`, `scipy.linalg.solve_triangular`), accepting a matrix of responses so one factorisation of the factor matrix serves all 1,000 stocks in a window. That is the main speed-up in `formation.residuals`: the factors are the same for every stock, so only the right-hand side changes. The practice exercise below has you write the same thing by hand.
 
 **Traps.**
 
@@ -124,7 +112,7 @@ Residuals are $e = y - X\hat\beta$, which equals $y - Qc$ because $X\hat\beta = 
 - $Q^\top$ is k×n. Why is $\lVert y - X\beta\rVert \neq \lVert Q^\top y - R\beta\rVert$ in general, and what is the missing piece?
 - What do QR and back-substitution cost in n and k? Which dominates for a 252×7 regression?
 
-**Read.** Trefethen & Bau, Lectures 7 (QR), 11 (least squares), 17 (back-substitution), 18–19 (conditioning and stability of least squares). The numpy `qr` docs. After your attempt: statsmodels `linear_model.py`, where `OLS.fit(method="qr")` does the same thing.
+**Read.** Trefethen & Bau, Lectures 7 (QR), 11 (least squares), 17 (back-substitution), 18–19 (conditioning and stability of least squares). The numpy `qr` docs. To see a production implementation: statsmodels `linear_model.py`, where `OLS.fit(method="qr")` does the same thing.
 
 ### vcov(X, resid, kind, groups, lags) → V {#fn-vcov}
 
@@ -147,11 +135,11 @@ For the cluster row, keeping only same-group pairs gives $\sum_g\sum_{i,j\in g} 
 
 One object unifies all four. Stack the **scores** $g_i = e_i x_i$ as rows of an n×k matrix $G$. Then the HC meat is $G^\top G$; the cluster meat is the same product after first summing the rows of $G$ within each group; and $\Gamma_l$ is $G^\top G$ between $G$ and itself shifted by $l$ rows. Once you see that, each kind is a few lines.
 
-**The bread without `inv`.** $X^\top X = R^\top Q^\top Q R = R^\top R$, so $(X^\top X)^{-1} = R^{-1}R^{-\top}$. Get $R^{-1}$ by running your back-substitution against each column of the identity.
+**The bread without `inv`.** $X^\top X = R^\top Q^\top Q R = R^\top R$, so $(X^\top X)^{-1} = R^{-1}R^{-\top}$. Get $R^{-1}$ by back-substitution against each column of the identity, never with `inv`.
 
 **What the test checks.** n = 500, k = 4, errors scaled by $1 + \lvert x_1\rvert$ (so the classical formula is wrong for this data, which is the point), 40 random clusters, and NW with 5 lags. Each kind must match statsmodels to `rtol=1e-8`. That is effectively exact, so the finite-sample factors must be exactly the ones in the table and the docstring. The NW case matches statsmodels' `HAC` with `use_correction=False`, meaning no factor at all.
 
-**Plan in words.** QR of $X$ and the bread. Build the score matrix. Branch on `kind` for the meat and the factor. Multiply bread × meat × bread. Validate the inputs: `groups` is required for `cluster`, `lags` for `NW`, and an unknown `kind` raises `ValueError`.
+**How the project computes it.** statsmodels' sandwich estimators: `sm.OLS(y, X).fit(cov_type='nonrobust' | 'HC1' | 'cluster' | 'HAC')`, with `use_correction=False` for Newey–West so there is no finite-sample factor. The factors in the table above are exactly what statsmodels applies, which is why the test can require agreement to `rtol=1e-8`.
 
 **Traps.**
 
@@ -166,7 +154,7 @@ One object unifies all four. Stack the **scores** $g_i = e_i x_i$ as rows of an 
 - With $L = 0$, what is NW?
 - Why are Bartlett weights needed?
 
-**Read.** Cameron & Miller (2015) is the best single read: a practitioner's guide with a free PDF. Also White (1980), MacKinnon & White (1985) for HC0–HC3, and Newey & West (1987, 1994). Petersen (2009) has a web page with test data and reference standard errors you can reproduce. After your attempt: statsmodels `sandwich_covariance.py` and the `get_robustcov_results` docs.
+**Read.** Cameron & Miller (2015) is the best single read: a practitioner's guide with a free PDF. Also White (1980), MacKinnon & White (1985) for HC0–HC3, and Newey & West (1987, 1994). Petersen (2009) has a web page with test data and reference standard errors you can reproduce. To see a production implementation: statsmodels `sandwich_covariance.py` and the `get_robustcov_results` docs.
 
 ### fama_macbeth(y, X, t, nw_lags) → dict {#fn-fama_macbeth}
 
@@ -184,7 +172,7 @@ The trick that makes this short: **a mean is OLS on a constant.** Regress the sl
 
 **What the test checks.** T = 120 months, N = 300 observations a month, one regressor, true slopes $0.02 + 0.05\,\eta_t$. `coef[1]` must equal the mean of the per-month `np.polyfit` slopes, and `se[1]` must equal `std(ddof=1)/sqrt(T)` to `rtol=1e-6`. The output is a dict with `coef`, `se`, `tstat` (each k+1) and `lambdas` (T×(k+1)).
 
-**Plan in words.** Find the distinct periods. For each, take its rows, prepend a column of ones, call `ols_qr`, store the slopes. Average. Get standard errors from `vcov` on a column of ones, one coefficient at a time or all at once, with the $T/(T-1)$ decision applied. Compute t-statistics. Return the dict.
+**How the project computes it.** One cross-sectional regression per period (`ols_qr`), then the slope series goes through statsmodels' HAC on a constant, with the $T/(T-1)$ factor applied (the convention above; Claude Code records the choice in the docstring). For C the per-month regressions come from monthly sufficient statistics ($X^\top X$, $X^\top y$), because the stacked panel does not fit in memory; the inference on the slope series is the same. The test cross-checks against a per-period `polyfit` and against linearmodels' `FamaMacBeth`.
 
 **Traps.**
 
@@ -201,7 +189,7 @@ The trick that makes this short: **a mean is OLS on a constant.** Regress the sl
 - Why is the lag $L = 4$ at $T = 165$?
 - Why does E report NW(2) at all? (For comparability with Hoberg & Phillips.)
 
-**Read.** Fama & MacBeth (1973). Cochrane, *Asset Pricing*, ch. 12, §12.3. Petersen (2009), on why FM standard errors can still be too small. Newey & West (1994), on the lag rule. After your attempt: linearmodels' `FamaMacBeth` docs.
+**Read.** Fama & MacBeth (1973). Cochrane, *Asset Pricing*, ch. 12, §12.3. Petersen (2009), on why FM standard errors can still be too small. Newey & West (1994), on the lag rule. To compare: linearmodels' `FamaMacBeth` docs.
 
 ## rmt.py {#stats-rmt}
 
@@ -218,6 +206,8 @@ A *random* unit vector gives about $3/N$, not $1/N$. Write $v = g/\lVert g\rVert
 $$\operatorname{E}[\text{IPR}] = \frac{3}{N+2} \approx \frac3N .$$
 
 Plerou et al. (2002) report an average IPR of about $3\times10^{-3}$ at $N = 1{,}000$ and describe it as "≈ 1/N"; the value is $3/N$. The SPEC repeated "≈ 1/N" and was corrected on 27 Sep. This $3/N$ is the noise baseline B compares its modes against.
+
+**How the project computes it.** One line of numpy: the column sums of the fourth powers of the eigenvector matrix.
 
 **What the test checks.** The columns of a 5×5 identity each give 1; a flat vector of length 100 gives 0.01.
 
@@ -239,6 +229,8 @@ You can check the spread from the first two moments without the full derivation.
 
 The function is one line. The understanding is the work. SPEC §6's table follows from it: $N = 500$, $T = 756$ gives $q = 0.661$ and $\lambda_+ = 3.288$.
 
+**How the project computes it.** The closed form above, one line.
+
 **What the test checks.** $N = 400$, $T = 1{,}600$ ($q = 0.25$): $\lambda_+$ must be exactly 2.25, and on pure noise the largest sample eigenvalue must stay below $1.05\,\lambda_+$ and the smallest above $0.9\,\lambda_-$.
 
 **Where the project goes further.** In B the caller adjusts two inputs: $\sigma^2 = 1 - \lambda_{\max}/N$, iterated, because the market mode takes $\lambda_{\max}$ of the trace; and $q_{\text{eff}} = N/(T-K-1)$ for residuals from a K-factor regression.
@@ -259,7 +251,7 @@ Why the average and not zero: zeros would make the matrix singular, and a minimu
 
 **What the test checks.** $N = 200$, $T = 500$, a one-factor model: the result must have a unit diagonal, be symmetric, and have a strictly positive smallest eigenvalue.
 
-**Plan in words.** Eigen-decompose, get the edge, split the eigenvalues, average the bulk, rebuild, rescale, then symmetrise to remove floating-point asymmetry.
+**How the project computes it.** `np.linalg.eigh`, the edge from `mp_edges`, bulk eigenvalues replaced by their mean, rebuilt, rescaled to a unit diagonal and symmetrised. There is no standard library function for clipping; it is a few lines of numpy.
 
 **Traps.** `eigh` sorts eigenvalues in ascending order. If no eigenvalue is above the edge the answer is essentially the identity, which is correct. For residual correlation matrices the caller should pass the effective sample size, $T-K-1$.
 
@@ -274,6 +266,8 @@ Why the average and not zero: zeros would make the matrix singular, and a minimu
 **The math.** Minimise $w^\top S w$ subject to $\mathbf 1^\top w = 1$. With $\mathcal L = w^\top S w - 2\gamma(\mathbf 1^\top w - 1)$, the first-order condition is $2Sw - 2\gamma\mathbf 1 = 0$, so $Sw = \gamma\mathbf 1$ and $w = \gamma S^{-1}\mathbf 1$. The constraint fixes $\gamma = 1/(\mathbf 1^\top S^{-1}\mathbf 1)$. The minimum variance itself is $w^\top S w = \gamma^2\,\mathbf 1^\top S^{-1}\mathbf 1 = \gamma$.
 
 Compute it with one linear solve, $Sz = \mathbf 1$, then $w = z/\sum_i z_i$. Never form $S^{-1}$: a solve is cheaper and more accurate than an inverse followed by a product.
+
+**How the project computes it.** `np.linalg.solve(S, ones)` and a normalisation.
 
 **What the test checks.** $S = AA^\top + 50I$ with $N = 50$: the weights sum to 1, and every component of $Sw$ is equal (the first-order condition).
 
@@ -303,7 +297,9 @@ This is the same trade-off as SPEC §8's one-entry derivation, $\delta^* = \oper
 
 $$\sum_t\lVert x_t x_t^\top - S\rVert^2 = \sum_t\lVert x_t x_t^\top\rVert^2 - 2\Big\langle\sum_t x_t x_t^\top, S\Big\rangle + T\lVert S\rVert^2 = \sum_t\lVert x_t x_t^\top\rVert^2 - T\lVert S\rVert^2 ,$$
 
-and $\lVert x_t x_t^\top\rVert^2 = (x_t^\top x_t)^2/N$. So $\bar b^2$ needs only the row sums of squares of $X$ and $\operatorname{tr}(S^2)$. Work this through yourself before coding; it is the whole trick.
+and $\lVert x_t x_t^\top\rVert^2 = (x_t^\top x_t)^2/N$. So $\bar b^2$ needs only the row sums of squares of $X$ and $\operatorname{tr}(S^2)$. Work this through on paper; it is the whole trick, and a good interview answer to "how would you compute this for 3,000 stocks?"
+
+**How the project computes it.** scikit-learn's `LedoitWolf().fit(X)`, whose `covariance_` is $\hat\Sigma$ and `shrinkage_` is $\delta$. The derivation above is what that call computes, convention for convention.
 
 **What the test checks.** $T = 60$, $N = 100$, so $S$ is singular and shrinkage is essential; $\delta$ comes out close to 1. The result must equal scikit-learn's `LedoitWolf().fit(X).covariance_` to `rtol=1e-8`, so the conventions must match exactly: demean, divide by $T$, cap $b^2$ at $d^2$.
 
@@ -311,24 +307,140 @@ and $\lVert x_t x_t^\top\rVert^2 = (x_t^\top x_t)^2/N$. So $\bar b^2$ needs only
 
 **Check yourself.** Why is $\delta$ near 1 when $N > T$? What happens to $\delta$ as $T\to\infty$ with $N$ fixed?
 
-**Read.** Ledoit & Wolf (2004, JMVA; free PDF), the section that defines the estimator. "Honey, I shrunk…" (2004) for intuition. After your attempt: scikit-learn's `ledoit_wolf_shrinkage` in `_shrunk_covariance.py`, to compare conventions line by line.
+**Read.** Ledoit & Wolf (2004, JMVA; free PDF), the section that defines the estimator. "Honey, I shrunk…" (2004) for intuition. To see a production implementation: scikit-learn's `ledoit_wolf_shrinkage` in `_shrunk_covariance.py`, to compare conventions line by line.
 
-## Not in tfs_stats yet {#stats-missing}
+## Practice: OLS by hand {#stats-practice}
 
-The SPEC's inference also calls for estimators that have no function or test yet. Rule 3 means each one is either written in `tfs_stats/` or dropped:
+Two Sigma's later coding round reportedly asks candidates to implement linear regression efficiently, including a streaming version (Glassdoor and WSO reports, not the firm's own words). This is the one piece worth writing yourself. Claude Code puts stubs and tests in `practice/ols_by_hand.py` and `practice/test_ols_by_hand.py`; you fill them in. For each step: try it first, then open the walkthrough. Run the tests with `python -m pytest practice -q`.
 
-| Estimator | Used in | Size | Suggestion |
-|---|---|---|---|
-| EWC standard errors (Lazarus, Lewis, Stock & Watson 2018) | C and E, reported next to NW | small: a cosine-weighted long-run variance | Write it after `fama_macbeth` |
-| Dyadic-robust standard errors | C, robustness 2 | a variant of the cluster meat | After 8 Oct unless ahead of schedule |
-| MRQAP permutation test | C, robustness 1 | a permutation loop around `ols_qr` | After 8 Oct unless ahead of schedule |
-| Nonlinear shrinkage, text-target shrinkage, variance-difference test | D | large | Goes with D (stretch) |
+### Step 1: one regressor, no intercept {#fn-practice-1d}
 
-We settle this list with the PREREG review on Wed 30 Sep.
+Minimise $\sum_i (y_i - \beta x_i)^2$. The derivative is $-2\sum_i x_i(y_i - \beta x_i) = 0$, so
+
+$$\hat\beta = \frac{\sum_i x_i y_i}{\sum_i x_i^2}.$$
+
+Streaming is immediate: keep the two running sums $S_{xy}$ and $S_{xx}$, add $x_i y_i$ and $x_i^2$ as each point arrives, and divide whenever asked. Memory is two numbers, whatever $n$ is.
+
+<details markdown="1"><summary>Walkthrough</summary>
+
+```python
+def ols_1d_no_intercept(x, y):
+    return (x @ y) / (x @ x)
+```
+
+`x @ y` is $\sum_i x_i y_i$ for 1-D arrays. An interviewer's follow-up: what if $\sum x_i^2 = 0$? (All $x_i = 0$: $\beta$ is not identified; raise.)
+
+</details>
+
+### Step 2: many regressors, batch, via QR {#fn-practice-qr}
+
+The derivation is on the `ols_qr` card: $X = QR$ turns the normal equations into $R\beta = Q^\top y$, solved from the bottom row up. Write `back_substitute(R, c)` yourself with a loop from the last row to the first, then `ols_qr_by_hand(X, y)` using `np.linalg.qr`.
+
+<details markdown="1"><summary>Walkthrough</summary>
+
+```python
+import numpy as np
+
+def back_substitute(R, c):
+    k = len(c)
+    b = np.zeros(k)
+    for i in range(k - 1, -1, -1):              # last row first
+        b[i] = (c[i] - R[i, i+1:] @ b[i+1:]) / R[i, i]
+    return b
+
+def ols_qr_by_hand(X, y):
+    Q, R = np.linalg.qr(X)                      # reduced: Q is n×k, R is k×k
+    beta = back_substitute(R, Q.T @ y)
+    return beta, y - X @ beta
+```
+
+Row $i$ of $R\beta = c$ reads $R_{ii}\beta_i + \sum_{j>i} R_{ij}\beta_j = c_i$; the $\beta_j$ with $j > i$ are already known when you reach row $i$, which is the whole algorithm. Cost: $O(nk^2)$ for QR, $O(k^2)$ for the solve. On the test's ill-conditioned case ($\kappa(X) \approx 1.8\times10^7$) this matches the exact least-squares answer to about $3\times10^{-10}$, while `np.linalg.solve(X.T @ X, X.T @ y)` is off by about $4\times10^{-2}$: the $\kappa^2$ effect, measured.
+
+</details>
+
+### Step 3: streaming OLS {#fn-practice-stream}
+
+Rows arrive one at a time (or in blocks) and you may not store them. Everything OLS needs is in three running sums:
+
+$$A = \sum_i x_i x_i^\top = X^\top X \ (k\times k), \qquad b = \sum_i x_i y_i = X^\top y, \qquad S_{yy} = \sum_i y_i^2 .$$
+
+At any time $\hat\beta = A^{-1}b$ (a solve, not an inverse). The residual sum of squares needs no residuals: $e^\top e = y^\top y - 2\hat\beta^\top X^\top y + \hat\beta^\top X^\top X\hat\beta$, and at the optimum $X^\top X\hat\beta = X^\top y$, so
+
+$$e^\top e = S_{yy} - \hat\beta^\top b, \qquad s^2 = \frac{e^\top e}{n-k}.$$
+
+Memory is $O(k^2)$ and each update costs $O(k^2)$, independent of $n$. Write a class `StreamingOLS(k)` with `update(X_rows, y_rows)`, `coef()` and `sigma2()`.
+
+<details markdown="1"><summary>Walkthrough</summary>
+
+```python
+class StreamingOLS:
+    def __init__(self, k):
+        self.A = np.zeros((k, k)); self.b = np.zeros(k); self.yy = 0.0; self.n = 0
+
+    def update(self, X, y):                      # one row or a block of rows
+        X = np.atleast_2d(X); y = np.atleast_1d(y)
+        self.A += X.T @ X
+        self.b += X.T @ y
+        self.yy += y @ y
+        self.n += len(y)
+
+    def coef(self):
+        return np.linalg.solve(self.A, self.b)
+
+    def sigma2(self):
+        beta = self.coef()
+        return (self.yy - beta @ self.b) / (self.n - len(beta))
+```
+
+The trade-off to say out loud: this *is* the normal equations, so it squares the condition number. Remedies, in order of effort: centre and scale the regressors (running means with Welford's update), or keep a QR or Cholesky factor and update it with Givens rotations instead of accumulating $X^\top X$.
+
+</details>
+
+### Step 4: recursive least squares (the version for rolling betas) {#fn-practice-rls}
+
+Sometimes you want $\hat\beta$ after every row without a $k\times k$ solve each time, or you want old data to fade (time-varying betas). Keep $P = A^{-1}$ and update it with the Sherman–Morrison identity:
+
+$$(A + xx^\top)^{-1} = P - \frac{P x x^\top P}{1 + x^\top P x}.$$
+
+With the gain $g = Px/(1 + x^\top P x)$ this is $P \leftarrow P - g\,(Px)^\top$. For the coefficients, $\beta_{\text{new}} = P_{\text{new}}(b + xy)$. Two facts do the work: $P_{\text{new}}\,b = \beta - g\,x^\top\beta$, and $P_{\text{new}}\,x = g$. Together:
+
+$$\beta \leftarrow \beta + g\,(y - x^\top\beta),$$
+
+a correction proportional to the prediction error. With a forgetting factor $\lambda < 1$ (so $A_t = \lambda A_{t-1} + xx^\top$), the gain becomes $g = Px/(\lambda + x^\top Px)$ and $P \leftarrow (P - g(Px)^\top)/\lambda$: old rows are down-weighted geometrically, an exponentially weighted rolling beta. Start from $P = \delta I$ with $\delta$ large, which is a weak prior centred on zero.
+
+<details markdown="1"><summary>Walkthrough</summary>
+
+```python
+class RLS:
+    def __init__(self, k, lam=1.0, delta=1e6):
+        self.P = delta * np.eye(k); self.beta = np.zeros(k); self.lam = lam
+
+    def update(self, x, y):
+        Px = self.P @ x
+        g = Px / (self.lam + x @ Px)
+        self.beta = self.beta + g * (y - x @ self.beta)
+        self.P = (self.P - np.outer(g, Px)) / self.lam
+```
+
+With $\lambda = 1$ and $n = 500$, $k = 4$, this agrees with batch OLS to about $5\times10^{-9}$ (the residual difference comes from the $\delta I$ prior). Interview follow-ups: why is each update $O(k^2)$? (Matrix–vector products only.) What does $\lambda = 0.99$ mean? (An effective window of about $1/(1-\lambda) = 100$ observations.)
+
+</details>
+
+## Custom estimators (no library version) {#stats-missing}
+
+The SPEC's inference also needs estimators that no standard library provides. Claude Code writes them in `tfs_stats/` with tests against simulations whose answer is known, and each gets a card here when it lands.
+
+| Estimator | Used in | When |
+|---|---|---|
+| EWC standard errors (Lazarus, Lewis, Stock & Watson 2018) | C and E, reported next to NW | Before the freeze, Wed 30 Sep |
+| Fama–MacBeth on monthly sufficient statistics | C (half a million pairs a month) | With C, Tue 29 Sep |
+| Dyadic-robust standard errors | C, robustness 2 | After Fall Break (PLAN) |
+| MRQAP permutation test | C, robustness 1 | After Fall Break (PLAN) |
+| Text-target shrinkage, variance-difference test | D | With D, if it stays in |
 
 ## Reading list {#stats-reading}
 
-Read the papers and book chapters before or while you work. Read the reference implementations **after** your own attempt passes or stalls: they are for comparing conventions, and reading them first turns the exercise into transcription.
+Read the papers and book chapters alongside the cards. The reference implementations are what `tfs_stats/` calls; read them when you want to see a convention in code.
 
 | Topic | Source | Link |
 |---|---|---|
@@ -357,7 +469,7 @@ Read the papers and book chapters before or while you work. Read the reference i
 | Why constraints help | Jagannathan & Ma (2003), *J. Finance* 58(4):1651–1683 | [doi:10.1111/1540-6261.00580](https://doi.org/10.1111/1540-6261.00580) |
 | Mean–variance, original | Markowitz (1952), *J. Finance* 7(1):77–91 | [doi:10.1111/j.1540-6261.1952.tb01525.x](https://doi.org/10.1111/j.1540-6261.1952.tb01525.x) |
 
-Reference implementations, for after your attempt:
+Reference implementations (what `tfs_stats/` calls):
 
 | Function | Where to compare | Link |
 |---|---|---|

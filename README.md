@@ -35,7 +35,7 @@ Element A builds and validates the text representations used by all three. The f
 - **D. Covariance horse race.** A nested target a·11ᵀ + b·G + (1−a−b)·I, so text adds value only if b ≠ 0; out-of-sample minimum-variance volatility against Ledoit–Wolf (linear and nonlinear), RMT clipping, factor and PCA models, and a same-spectrum placebo.
 - **E. Signal.** Hoberg–Phillips text-peer 12-month momentum on a sample that starts where theirs ended; Fama–MacBeth with Newey–West and EWC errors, quintile/decile portfolios with FF5 + momentum + reversal alphas, a stratified peer-substitution null, and a pre/post-publication split with a power analysis stated in advance.
 
-Every estimator and inference step used by the analysis is written by hand in `tfs_stats/` (numpy only) and tested against statsmodels and scikit-learn. Primary specifications are pre-registered in [`docs/PREREG.md`](docs/PREREG.md) before the out-of-sample tests are run.
+Every estimator and inference step used by the analysis lives in `tfs_stats/`, built on statsmodels, linearmodels and scikit-learn where standard implementations exist, and tested against them (or against simulations with known answers where no library version exists). Primary specifications are pre-registered in [`docs/PREREG.md`](docs/PREREG.md) before the out-of-sample tests are run.
 
 ## Repository layout
 

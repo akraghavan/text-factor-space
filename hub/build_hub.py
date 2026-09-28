@@ -20,7 +20,7 @@ def render(text, cls):
         store.append((m.group(1), display)); return f"MATHTOKEN{len(store)-1}X"
     text = re.sub(r"\$\$(.+?)\$\$", lambda m: keep(m, True), text, flags=re.S)
     text = re.sub(r"(?<![\\$])\$([^$\n]+?)\$", lambda m: keep(m, False), text)
-    md = markdown.Markdown(extensions=["tables", "fenced_code", "toc", "attr_list", "def_list", "sane_lists"],
+    md = markdown.Markdown(extensions=["tables", "fenced_code", "toc", "attr_list", "def_list", "sane_lists", "md_in_html"],
                            extension_configs={"toc": {"permalink": False}})
     body = md.convert(text)
     def restore(m):
