@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Sun 27 Sep 2026, 19:35 ET_
+_Last updated: Sun 27 Sep 2026, 20:20 ET_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
@@ -21,7 +21,11 @@ _Last updated: Sun 27 Sep 2026, 19:35 ET_
 - **Element A validated (`analysis/a_text_layer.py`, `analysis/output/a_text_layer/`):** 1 July formations 2012–2026, 3,222–3,870 firms. Same-SIC-3 AUC: dense 0.864, BoW nouns 0.861, BoW 0.853 (0.873/0.870/0.862 excluding SIC 6799 blank-check firms). At SIC-3 density, 31–38% of text edges are same-SIC-3 pairs. TNIC-3 agreement (edge Jaccard): BoW nouns 0.616, BoW 0.606, dense 0.339, SIC-3 0.276; AUC for TNIC pairs 0.94–0.97. Same-firm year-on-year similarity median 0.90–0.93. π rises 2.1% → 3.3% (biotech growth). BoW has a strong length/hub effect (corr of log length with mean similarity +0.93); dense −0.23.
 
 ## Running
-- **D12 WRDS daily price/volume:** file 1 (2010–2017, query 11716335) landed and converted: 14,055,778 unique permno-dates, keys identical to the daily return file; 2,946 zero prices, 354,648 zero-volume days (skipped in Amihud). File 2 (2018–2026, query 11716454, submitted 19:07) pending; when it lands: `python src/convert_wrds.py && python src/build_panel.py`, then daily Amihud coverage and its correlation with the monthly proxy.
+- Nothing.
+
+## D12 done (27 Sep, 20:15 ET)
+- Both daily price/volume files converted: 2010–2017 14,055,778 and 2018–2026 18,275,590 unique permno-dates (3,238 and 3,615 duplicate keys dropped); keys identical to the daily return files (0 unmatched either way). Merged into `crsp_daily` (16,093,352 rows; prc and vol present on 98.8%).
+- Daily Amihud (log mean |r|/(|prc|·vol) over the prior 12 months, ≥ 120 valid days, zero-volume days skipped), 165 formation months 2012-07 → 2026-03: coverage 99.5% of the text universe (min 96.7%), **99.8% of the top 1,000 used in C (min 98.0%)**. Rank correlation with the monthly proxy 0.994 (0.985–0.996); Pearson of logs 0.981. `d_illiq` in the pair frame now uses the daily measure; the monthly proxy stays as fallback.
 
 ## Done this evening (27 Sep)
 - **Orphaned job killed (19:31 ET):** a validity diagnostic I started at 16:15 ET by piping a script into `python -` with a 10-worker multiprocessing pool. On macOS (spawn) workers cannot re-import a stdin script, so each died at start and the pool respawned them for 3 h 13 min, producing nothing and throttling the Mac. My 16:25 `pkill` hit only the workers, not the parent. Killed parent 88156, resource tracker 88165 and all spawn workers; pgrep confirms none remain. A 4-worker pool cap was added and then reverted at Abhi's request (use full compute). **Verified no effect (20:05 ET):** every file modified since 16:15 traces to a known writer (rebuild chain, the cloud session, my edits); stored HTML untouched since 16:04 (61,589 files, 0/300 gzip errors); item1 61,589 rows; embeddings 61,144, recomputing 64 gives max |diff| 3e-8; BoW counts for a recomputed shard (1,988 filings) identical; SPAC 386, masks 54,254 and Element A AUCs as reported. Rules: no multiprocessing from stdin scripts (use a file with a `__main__` guard); after any kill, check the parent is gone; tell Abhi before starting a heavy job.
@@ -44,7 +48,7 @@ _Last updated: Sun 27 Sep 2026, 19:35 ET_
 
 ## Next
 - Abhi: review `docs/PREREG.md` ([PROPOSED] items; [OPEN] delisting returns) for the Thu 1 Oct freeze; `ols_qr`, `vcov`, `fama_macbeth` (critical path for B, C, E).
-- Assistant: convert D12 file 2 and merge (as soon as it lands); `specs.yaml` + runner (SPEC §10.1) before the freeze; FF-48 industry map and E signal construction (no returns looked at in the test period).
+- Assistant: `specs.yaml` + runner (SPEC §10.1) before the freeze; FF-48 industry map and E signal construction (no returns looked at in the test period).
 
 ## Requests
 _(add requests here)_
