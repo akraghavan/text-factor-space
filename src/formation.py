@@ -1,7 +1,6 @@
 """Plumbing for Elements B and C (SPEC §6-§7): point-in-time universes, aligned daily excess-return and factor
-matrices, residuals via tfs_stats (project rule 3), and the pair-panel skeleton for C. No estimator lives here: the
-only regression, `residuals`, calls tfs_stats.regression.ols_qr, which Abhi writes; until then it raises
-NotImplementedError and B/C stop there.
+matrices, residuals via tfs_stats (project rule 3), and the pair-panel covariates for C. No estimator lives here: the
+only regression, `residuals`, calls tfs_stats.regression.ols_qr (the library-backed estimator layer, D13).
 
 Timing (SPEC §3). Formation month t: formation date = first calendar day of t. Universe, size and SIC from the end of
 month t-1 (CRSP monthly, SPAC months excluded (D8), one PERMNO per PERMCO: the largest). Text vintage: the latest linked
@@ -148,18 +147,29 @@ def daily_window(permnos, end, T, min_obs=None):
     X = X[:, keep] - f.RF.to_numpy(np.float32)[:, None]
     return dts, perm[keep], X, f[FACTORS].to_numpy(np.float64)
 
-def residuals(X, F):
-    """Time-series OLS of each column of X on [1, F] via tfs_stats.regression.ols_qr (rule 3).
-    Returns (B [N x (1 + K)] intercept and betas, E [T x N] residuals). Requires complete columns."""
+def residuals(X, F, min_obs=None):
+    """Time-series OLS of every column of X (T x N excess returns) on [1, F] (T x K factors) via
+    tfs_stats.regression.ols_qr, vectorised: one QR factorisation of [1, F] serves every column with a complete window
+    (the factors are the same for every stock, only the right-hand side changes). Columns with gaps but at least
+    `min_obs` finite returns are fitted one by one on their own rows; columns with fewer (or min_obs=None and any gap)
+    get NaN. Returns (B [N x (1 + K)]: intercept and betas, E [T x N] in-window residuals, NaN where x is missing,
+    nobs [N]). Card: docs/STATS_GUIDE.md#fn-ols_qr"""
     from paths import ROOT
     if str(ROOT) not in sys.path: sys.path.insert(0, str(ROOT))
     from tfs_stats.regression import ols_qr
-    if not np.isfinite(X).all(): raise ValueError('residuals needs complete columns; filter with daily_window(min_obs=T)')
-    Z = np.column_stack([np.ones(len(F)), F])
-    B = np.empty((X.shape[1], Z.shape[1])); E = np.empty(X.shape, dtype=np.float64)
-    for j in range(X.shape[1]):
-        b, e = ols_qr(Z, X[:, j].astype(np.float64)); B[j], E[:, j] = b, e
-    return B, E
+    X = np.asarray(X, dtype=np.float64); Z = np.column_stack([np.ones(len(F)), np.asarray(F, dtype=np.float64)])
+    T, N = X.shape; B = np.full((N, Z.shape[1]), np.nan); E = np.full((T, N), np.nan)
+    ok = np.isfinite(X); nobs = ok.sum(0)
+    full = nobs == T
+    if full.any():
+        b, e = ols_qr(Z, X[:, full]); B[full], E[:, full] = b.T, e
+    part = np.flatnonzero(~full & (nobs >= (min_obs if min_obs is not None else T + 1)))
+    for j in part:
+        m = ok[:, j]
+        try: b, e = ols_qr(Z[m], X[m, j])
+        except np.linalg.LinAlgError: continue
+        B[j] = b; E[m, j] = e
+    return B, E, nobs
 
 # ---------------------------------------------------------------- pair panel skeleton (Element C)
 def pair_frame(u, t, top=1000, text=True):
@@ -205,8 +215,6 @@ if __name__ == '__main__':
               f'momentum {f.mom.notna().mean():.1%}, daily Amihud {f.illiq.notna().mean():.1%}, monthly proxy {f.amihud_m.notna().mean():.1%}; '
               f'corr(s_dense, s_bow) {P.s_dense.corr(P.s_bow):.2f}; 252-day window {dts[0].date()}..{dts[-1].date()}: {X.shape[1]} of '
               f'{len(f)} complete; share same SIC-3 {P.same_sic3.mean():.2%}')
-    try:
-        residuals(X[:, :5], F)
-    except NotImplementedError:
-        print('residuals -> tfs_stats.regression.ols_qr not implemented yet (expected; Abhi writes it)')
+    Bh, Eh, nob = residuals(X, F)
+    print(f'residuals (last window): {int(np.isfinite(Bh[:, 1]).sum())} stocks fitted in one QR; mean market beta {np.nanmean(Bh[:, 1]):.2f}')
     print(f'{time.time() - t0:.0f}s')
