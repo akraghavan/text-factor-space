@@ -1,6 +1,6 @@
 """Report tests of not-yet-written tfs_stats functions as SKIPPED instead of FAILED.
 
-tfs_stats/ is written by hand; until a function is implemented it raises NotImplementedError.
+tfs_stats/ is the estimator layer on standard libraries (D13); a function not yet written raises NotImplementedError.
 Only a NotImplementedError raised from inside tfs_stats/ is converted, so the same exception
 coming from numpy, statsmodels or the test itself still fails loudly.
 """
@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-REASON = "not implemented yet (tfs_stats is written by hand)"
+REASON = "not implemented yet in tfs_stats"
 TFS_STATS = Path(__file__).resolve().parents[1] / "tfs_stats"
 
 
