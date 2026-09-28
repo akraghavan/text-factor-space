@@ -76,11 +76,20 @@ Descriptive element; not in the confirmatory family.
 - H3 is also reported against the Harvey–Liu–Zhu t > 3 hurdle.
 - Everything else is exploratory: Benjamini–Hochberg at q = 0.10 across the exploratory log, Benjamini–Yekutieli as a check, Romano–Wolf stepdown (block bootstrap of months) across FM slope series.
 
+## Flags raised while building (28 Sep; for review, nothing below changes a specification)
+
+1. **B formations start in 2014, not 2013.** Rolling out-of-sample residuals (betas re-estimated monthly on the prior 252 days, SPEC §6.2) exist from January 2011 (daily data start January 2010), so the first complete 756-day residual window ends June 2014: 12 formations, 2014–2025.
+2. **B residual construction: this draft said "regressed … over the same window"; SPEC §6.2 says rolling betas.** The code follows SPEC (the out-of-sample residual panel in `src/c_panel.py`), and then q = N/T (no in-window degrees of freedom are used). The B paragraph above should be reworded to rolling betas at the freeze.
+3. **C: pairs with a missing B/M are ~10% of pairs** (negative or missing book equity, no Compustat link); under the draft they drop out of the monthly regression. Option: keep them with a missing-B/M indicator and rank distance set to the median.
+4. **C: z_lag requires ≥ 126 common residual days** over the prior 12 months (a design choice made in code, not yet stated above).
+5. **E: a peer's R(t−12, t−1) requires ≥ 8 of 12 monthly returns** (same rule as own momentum); not yet stated above.
+6. **E: about a quarter of universe firms have no text peer at SIC-3 density** (null-corrected BoW: 22.6% in Jul 2013, 25.0% in Jul 2016; raw BoW 30–34%; median degree 4–5, mean ~70, degree correlates +0.4–0.5 with Item 1 length). The "≥ 1 peer" filter (as in HP) drops them from E. A per-firm top-k peer set would keep them but is a different network definition; decide before the freeze whether to add it as a pre-listed exploratory variant (not primary).
+
 ## Before the freeze (checklist)
 
 - [ ] Abhi decides every [PROPOSED] item; [OPEN] delisting returns resolved.
-- [ ] `tfs_stats` (`ols_qr`, `vcov`, `fama_macbeth`) written and tests green (SPEC §1).
-- [ ] D12 daily price/volume converted (both files) and merged; daily Amihud coverage reported.
+- [x] `tfs_stats` on standard libraries (D13) with tests green: 30 pass (28 Sep).
+- [x] D12 daily price/volume converted and merged; daily Amihud coverage 99.8% of C's top 1,000 (27 Sep).
 - [ ] `specs.yaml` registry and the runner that rejects unregistered specs and appends to `runs.log` (SPEC §10.1).
 - [ ] SPEC §3 industry-code row aligned with the choice above.
 - [ ] Record the freeze commit hash and date above; remove the DRAFT box.

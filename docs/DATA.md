@@ -128,6 +128,7 @@ Run from the repo root with the venv active (`make setup && source .venv/bin/act
 | P4 | `python src/build_panel.py` | `crsp_msf.parquet`, `crsp_dsf_*.parquet`, French zips | `data/processed/{crsp_monthly,crsp_daily,ff_daily,ff_monthly}.parquet` |
 | P4b | `python src/universe.py` | `tenk_linked`, `crsp_monthly`, Item 1 shards | D8 SPAC flags: `data/interim/spac_filings.parquet`, `data/processed/spac_months.parquet` (excluded via `universe.exclude_spacs`) |
 | P4c | `python src/mask_names.py` | `tenk_linked`, `crsp_monthly`, Item 1 shards | `data/interim/name_masks.parquet` (own name/ticker patterns applied by P5) |
+| P7 (C, B) | `python src/c_panel.py --build` | `crsp_daily`, `ff_daily` | out-of-sample FF6 residual panel: `data/processed/ff6_resid_daily.npy` (+ index, permnos), `ff6_betas.parquet`; betas on the 252 trading days before each month (≥ 200 obs), applied to the month's days; 7 s |
 | P5 | `python src/embed_item1.py` (needs `pip install -r requirements-nlp.txt`; `--follow` to run alongside P2) | `item1/` shards | `data/interim/emb/shard_*.parquet` (384-d unit vectors) |
 | P6 | `python src/bow.py` | `item1/` shards, `tenk_index.parquet`, `tenk_linked.parquet` (summary), WordNet | `data/interim/bow/{n_total,n_title,n_lower}.npz`, `rows.parquet`, `vocab.parquet` |
 | P6 v0 | `python src/tfidf.py` (superseded: calendar-year vocabulary, look-ahead) | `tenk_linked.parquet`, `item1/` shards | `data/interim/tfidf/{X,rows,vocab}_<year>.*` |
