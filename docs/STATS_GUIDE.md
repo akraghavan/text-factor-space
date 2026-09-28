@@ -168,7 +168,7 @@ with $\gamma_l$ the lag-$l$ autocovariance of the slope series. If the slopes ar
 
 The trick that makes this short: **a mean is OLS on a constant.** Regress the slope series on a column of ones. The coefficient is $\bar\lambda$, the residuals are $\hat\lambda_t - \bar\lambda$, and `vcov` with `kind='NW'` returns exactly the Newey–West variance of the mean. So `fama_macbeth` is a loop of `ols_qr` calls followed by `vcov`.
 
-**A convention to settle (talk to me about it).** With `nw_lags=0` the test expects $\operatorname{sd}(\lambda)$ with `ddof=1`, divided by $\sqrt T$. That equals `vcov(ones, λ − λ̄, 'classical')`. `vcov` with `'NW'` and $L = 0$ divides by $T$ instead of $T-1$, so it is smaller by the factor $(T-1)/T$. Two consistent options: use `classical` at $L = 0$ and `NW` above it, or multiply NW by $T/(T-1)$ at every $L$. The second is what Stata's `newey` does (its $n/(n-k)$ with $k = 1$) and makes $L = 0$ reproduce the test exactly. Apply the factor inside `fama_macbeth`; `vcov`'s own NW must stay uncorrected to pass its test.
+**A convention to settle — settled 28 Sep (D13): $T/(T-1)$ at every lag, as linearmodels' `FamaMacBeth` does (checked in the tests).** With `nw_lags=0` the test expects $\operatorname{sd}(\lambda)$ with `ddof=1`, divided by $\sqrt T$. That equals `vcov(ones, λ − λ̄, 'classical')`. `vcov` with `'NW'` and $L = 0$ divides by $T$ instead of $T-1$, so it is smaller by the factor $(T-1)/T$. Two consistent options: use `classical` at $L = 0$ and `NW` above it, or multiply NW by $T/(T-1)$ at every $L$. The second is what Stata's `newey` does (its $n/(n-k)$ with $k = 1$) and makes $L = 0$ reproduce the test exactly. Apply the factor inside `fama_macbeth`; `vcov`'s own NW must stay uncorrected to pass its test.
 
 **What the test checks.** T = 120 months, N = 300 observations a month, one regressor, true slopes $0.02 + 0.05\,\eta_t$. `coef[1]` must equal the mean of the per-month `np.polyfit` slopes, and `se[1]` must equal `std(ddof=1)/sqrt(T)` to `rtol=1e-6`. The output is a dict with `coef`, `se`, `tstat` (each k+1) and `lambdas` (T×(k+1)).
 
@@ -432,11 +432,39 @@ The SPEC's inference also needs estimators that no standard library provides. Cl
 
 | Estimator | Used in | When |
 |---|---|---|
-| EWC standard errors (Lazarus, Lewis, Stock & Watson 2018) | C and E, reported next to NW | Before the freeze, Wed 30 Sep |
-| Fama–MacBeth on monthly sufficient statistics | C (half a million pairs a month) | With C, Tue 29 Sep |
+| EWC standard errors (Lazarus, Lewis, Stock & Watson 2018) | C and E, reported next to NW | Done 28 Sep: `ewc` ([card](#fn-ewc)) |
+| Fama–MacBeth on monthly sufficient statistics | C (half a million pairs a month) | Done 28 Sep: `fm_from_moments` ([card](#fn-fm_moments)) |
 | Dyadic-robust standard errors | C, robustness 2 | After Fall Break (PLAN) |
 | MRQAP permutation test | C, robustness 1 | After Fall Break (PLAN) |
 | Text-target shrinkage, variance-difference test | D | With D, if it stays in |
+
+### fm_inference(lambdas, nw_lags) and fm_from_moments(XtX, Xty, n, nw_lags) {#fn-fm_moments}
+
+**Job in the project.** The two halves of `fama_macbeth`, split so C can run at scale. `fm_inference` is the second FM step on its own: given a T×p series of per-period slopes, return the mean, its Newey–West standard error with the $T/(T-1)$ factor, and the t-statistic. `fm_from_moments` produces those slopes from per-month sufficient statistics $X_t^\top X_t$ and $X_t^\top y_t$, so the 499,500-pair months never have to be stacked (about 10 GB).
+
+**The math.** Each month's OLS slope depends on the data only through $X_t^\top X_t$ and $X_t^\top y_t$: $\hat\lambda_t = (X_t^\top X_t)^{-1}X_t^\top y_t$. Accumulate those two small matrices (p×p and p) month by month, even chunk by chunk within a month, and solve at the end. The inference step is unchanged: it only sees the slope series.
+
+**How the project computes it.** `scipy.linalg.cho_factor` / `cho_solve` on each month's $X^\top X$ (symmetric positive definite), skipping months with fewer rows than columns or a condition number above $10^{10}$; the condition numbers are returned so they can be checked. Then `fm_inference`, which is `vcov(ones, λ − λ̄, 'NW', L)` × $T/(T-1)$ per column (statsmodels HAC on a constant).
+
+**The trade-off to be able to explain.** This is the normal-equations route that `ols_qr` avoids: $\operatorname{cond}(X^\top X) = \operatorname{cond}(X)^2$. It is acceptable here because C's regressors are standardised within month (similarity z-scores, ranks in [0, 1], 0/1 dummies), so $\operatorname{cond}(X)$ is small; where a month fits in memory, the QR path (`fama_macbeth`) is used instead, and the test checks that both give the same slopes to 1e-10.
+
+**What the test checks.** Moments path = stacked `fama_macbeth` (slopes to 1e-10, standard errors to 1e-10 relative), and `fama_macbeth` = linearmodels `FamaMacBeth(cov_type='kernel', kernel='bartlett', bandwidth=L)` at L = 0 and 3. linearmodels applies the same $T/(T-1)$ factor at every bandwidth, which is independent confirmation of the convention.
+
+### ewc(u, nu) {#fn-ewc}
+
+**Job in the project.** The honest standard error next to Newey–West for C's and E's slope series (SPEC §7, §9; PREREG). Short-lag NW over-rejects when the series is persistent; EWC keeps the size close to nominal by using a fixed number of low-frequency cosine projections and Student-t critical values (Lazarus, Lewis, Stock & Watson 2018).
+
+**The math.** Project the demeaned series on the first $\nu$ cosines: $\Lambda_j = \sqrt{2/T}\sum_{t=1}^{T}\cos\big(\pi j (t-\tfrac12)/T\big)(u_t-\bar u)$, $j = 1..\nu$. For a stationary series each $\Lambda_j$ is approximately $N(0, \Omega)$, independent across $j$, where $\Omega$ is the long-run variance (the spectral density at frequency zero, times $2\pi$). So $\hat\Omega = \frac1\nu\sum_j\Lambda_j^2$ is approximately $\Omega\,\chi^2_\nu/\nu$, and $t = \bar u/\sqrt{\hat\Omega/T}$ is approximately Student $t_\nu$. That exact small-sample distribution is the point: NW's variance estimate is noisy too, but it is compared with normal critical values as if it were not.
+
+**Choice of $\nu$.** $\nu = \lfloor 0.4\,T^{2/3}\rfloor$: 12 at T = 165 (C), 8 at T = 91 (E's test period). Larger $\nu$ means lower variance of $\hat\Omega$ but more bias from higher frequencies.
+
+**How the project computes it.** Custom (no library has it): a ν×T cosine weight matrix times the demeaned series, in numpy; p-values from `scipy.stats.t`.
+
+**What the test checks.** On iid data with variance 4 (T = 165, 2,000 draws), the average $\hat\Omega$ is within 3% of 4. On AR(1) data with $\phi = 0.5$, T = 165, the 95% interval covers the true mean 94.7% of the time (4,000 draws), against 89.2% for NW(4) with normal critical values.
+
+**Check yourself.** Why are the cosine projections approximately independent? Why does using $t_\nu$ instead of $N(0,1)$ fix most of the over-rejection? What happens to EWC if you set $\nu = T-1$?
+
+**Read.** Lazarus, Lewis, Stock & Watson (2018), JBES, "HAR Inference: Recommendations for Practice" (sections 2–3 and the recommendations). Müller (2007) for the fixed-b idea behind it.
 
 ## Reading list {#stats-reading}
 

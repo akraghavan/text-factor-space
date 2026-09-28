@@ -5,6 +5,7 @@ pyarrow>=15
 scipy>=1.13
 scikit-learn>=1.5
 statsmodels>=0.14
+linearmodels>=6.0     # FamaMacBeth reference in tests (tfs_stats.fama_macbeth convention check)
 requests>=2.31
 matplotlib>=3.8
 pytest>=8
