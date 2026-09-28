@@ -106,6 +106,35 @@ blockquote p{margin:4px 0}
 .tl .l{font-size:13.5px;font-weight:600;line-height:1.35;margin-top:3px}
 .tl .interview{border-color:var(--accent);background:var(--accent-soft)}
 .tl .past{opacity:.6}
+/* stats modules */
+.rail a.sub{padding:4px 10px 4px 22px;font:12.5px/1.3 var(--f-mono);color:var(--muted)}
+.pill.pass{background:var(--accent-soft);color:var(--accent)}
+.st-lead p{margin:0 0 14px;max-width:84ch;color:var(--ink-2)}
+.st-legend{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:12.5px;color:var(--muted);margin:0 0 6px}
+.st-legend>span{display:inline-flex;gap:7px;align-items:center}
+table.st td{vertical-align:middle}
+table.st .num{font:500 13px var(--f-mono);color:var(--muted);width:28px}
+table.st a{text-decoration:none}
+table.st a:hover code{text-decoration:underline}
+.st-file{font:11px var(--f-mono);color:var(--muted);margin-top:3px}
+.chip{display:inline-block;font:500 11px/1 var(--f-mono);padding:4px 6px;border-radius:4px;background:var(--sunk);color:var(--ink-2);margin:2px 4px 2px 0}
+.st-test{font-size:11.5px}
+.st-note{font-size:12px;color:var(--muted);margin-top:4px;max-width:28ch}
+.fnmap{margin:18px 0 0}
+.fnwrap{overflow-x:auto}
+.fnmap svg{display:block;width:100%;min-width:760px;height:auto;color:var(--ink-2)}
+.fnmap figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-width:92ch}
+.fnmap .b-data{fill:var(--sunk);stroke:var(--rule)}
+.fnmap .b-fn{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.5}
+.fnmap .b-pipe{fill:none;stroke:var(--muted);stroke-dasharray:4 3}
+.fnmap .b-out{fill:var(--surface);stroke:var(--ink-2)}
+.fnmap .t-fn{font:500 13px var(--f-mono);fill:var(--ink)}
+.fnmap .t-hd{font:600 11px var(--f-head);letter-spacing:.08em;text-transform:uppercase;fill:var(--muted)}
+.fnmap .t-in{font:600 12.5px var(--f-body);fill:var(--ink)}
+.fnmap .t-sub{font:11px var(--f-body);fill:var(--muted)}
+.fnmap .t-lb{font:italic 10.5px var(--f-body);fill:var(--muted)}
+.fnmap .ar{fill:none;stroke:currentColor;stroke-width:1.2}
+section.guide h3{scroll-margin-top:84px;padding-top:14px;border-top:1px solid var(--rule)}
 @media (max-width:980px){.grid2{grid-template-columns:1fr}}
 @media (max-width:860px){.shell{grid-template-columns:1fr}.rail{position:static;max-height:none;flex-direction:row;flex-wrap:wrap;gap:4px;padding-block:12px 0}.rail .lbl{width:100%;margin:4px 0}.rail a{background:var(--surface);border:1px solid var(--rule)}section.spec,section.live{padding:20px 18px}.kpis{margin-left:0}}
 @media (max-width:520px){.stage{grid-template-columns:78px minmax(0,1fr)}.stage .own{grid-column:2}.log li{grid-template-columns:1fr}}
@@ -124,6 +153,9 @@ html{scroll-behavior:smooth}
     <div class="lbl">Live</div>
     <a href="#status">Status board</a>
     <a href="#timeline">Timeline</a>
+    <div class="lbl">Stats modules</div>
+    <a href="#stats">Tracker and map</a>
+    {{GUIDE_NAV}}
     <div class="lbl">Specification</div>
     {{NAV}}
   </nav>
@@ -142,6 +174,100 @@ html{scroll-behavior:smooth}
       </div>
     </section>
     <section class="live" id="timeline"><h2>Timeline</h2><div class="tl" id="tl"></div></section>
+    <section class="live" id="stats">
+      <div class="live-head"><h2>Stats modules you write</h2><span class="src" id="stats-src">tracker</span></div>
+      <div class="st-lead">{{GUIDE_INTRO}}</div>
+      <div class="st-legend" aria-label="Status meanings">
+        <span><span class="pill planned">not started</span> function still raises NotImplementedError</span>
+        <span><span class="pill running">drafting</span> your code is in, its test is not green yet</span>
+        <span><span class="pill pass">tests pass</span> green on your Mac and rerun by Cowork</span>
+        <span><span class="pill done">reviewed</span> reviewed and explained back</span>
+      </div>
+      <div class="tw"><table class="st" id="statstrack"></table></div>
+      <figure class="fnmap">
+        <div class="fnwrap">
+        <svg viewBox="0 0 1040 416" role="img" aria-label="Where each tfs_stats function sits: ols_qr turns daily returns into factor residuals that feed B through mp_edges and ipr and C through monthly pair correlations; fama_macbeth, with vcov for its standard error, produces the C and E results; ledoit_wolf or clip_correlation estimate a covariance matrix that min_var_weights turns into D's portfolio.">
+          <defs><marker id="tfsArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+          <text class="t-hd" x="95" y="18" text-anchor="middle">Input</text>
+          <text class="t-hd" x="525" y="18" text-anchor="middle">Your functions (blue) · pipeline code (dashed)</text>
+          <text class="t-hd" x="950" y="18" text-anchor="middle">Result</text>
+          <!-- inputs -->
+          <rect class="b-data" x="10" y="34" width="170" height="146" rx="6"/>
+          <text class="t-in" x="95" y="96" text-anchor="middle">Daily excess returns</text>
+          <text class="t-in" x="95" y="113" text-anchor="middle">+ FF5 + momentum</text>
+          <text class="t-sub" x="95" y="131" text-anchor="middle">crsp_daily, ff_daily</text>
+          <rect class="b-data" x="10" y="214" width="170" height="56" rx="6"/>
+          <text class="t-in" x="95" y="238" text-anchor="middle">Monthly E panel</text>
+          <text class="t-sub" x="95" y="256" text-anchor="middle">returns, PEERMOM, controls</text>
+          <rect class="b-data" x="10" y="312" width="170" height="90" rx="6"/>
+          <text class="t-in" x="95" y="352" text-anchor="middle">Daily returns</text>
+          <text class="t-sub" x="95" y="370" text-anchor="middle">252-day windows, N = 500</text>
+          <!-- column 1 -->
+          <rect class="b-fn" x="240" y="34" width="150" height="146" rx="6"/>
+          <text class="t-fn" x="315" y="92" text-anchor="middle">ols_qr</text>
+          <text class="t-sub" x="315" y="111" text-anchor="middle">rolling FF6 betas:</text>
+          <text class="t-sub" x="315" y="126" text-anchor="middle">one regression per</text>
+          <text class="t-sub" x="315" y="141" text-anchor="middle">stock and window</text>
+          <rect class="b-fn" x="240" y="312" width="150" height="38" rx="6"/>
+          <text class="t-fn" x="315" y="336" text-anchor="middle">ledoit_wolf</text>
+          <rect class="b-fn" x="240" y="364" width="150" height="38" rx="6"/>
+          <text class="t-fn" x="315" y="388" text-anchor="middle">clip_correlation</text>
+          <!-- column 2 -->
+          <rect class="b-fn" x="450" y="34" width="150" height="56" rx="6"/>
+          <text class="t-fn" x="525" y="58" text-anchor="middle">mp_edges</text>
+          <text class="t-sub" x="525" y="76" text-anchor="middle">noise edge λ₊</text>
+          <rect class="b-pipe" x="450" y="124" width="150" height="56" rx="6"/>
+          <text class="t-in" x="525" y="148" text-anchor="middle">pair correlations z</text>
+          <text class="t-sub" x="525" y="166" text-anchor="middle">Fisher-z, monthly</text>
+          <rect class="b-fn" x="450" y="214" width="150" height="40" rx="6"/>
+          <text class="t-fn" x="525" y="232" text-anchor="middle">vcov</text>
+          <text class="t-sub" x="525" y="247" text-anchor="middle">NW SE of the mean</text>
+          <rect class="b-fn" x="450" y="332" width="150" height="50" rx="6"/>
+          <text class="t-fn" x="525" y="353" text-anchor="middle">min_var_weights</text>
+          <text class="t-sub" x="525" y="370" text-anchor="middle">GMV weights</text>
+          <!-- column 3 -->
+          <rect class="b-fn" x="660" y="34" width="150" height="56" rx="6"/>
+          <text class="t-fn" x="735" y="58" text-anchor="middle">ipr</text>
+          <text class="t-sub" x="735" y="76" text-anchor="middle">localisation per mode</text>
+          <rect class="b-fn" x="660" y="124" width="150" height="146" rx="6"/>
+          <text class="t-fn" x="735" y="184" text-anchor="middle">fama_macbeth</text>
+          <text class="t-sub" x="735" y="203" text-anchor="middle">ols_qr each period,</text>
+          <text class="t-sub" x="735" y="218" text-anchor="middle">mean slope + NW SE</text>
+          <!-- results -->
+          <rect class="b-out" x="870" y="34" width="160" height="56" rx="6"/>
+          <text class="t-in" x="950" y="58" text-anchor="middle">B · residual modes</text>
+          <text class="t-sub" x="950" y="76" text-anchor="middle">above the edge, text-aligned?</text>
+          <rect class="b-out" x="870" y="124" width="160" height="56" rx="6"/>
+          <text class="t-in" x="950" y="148" text-anchor="middle">C · mean slope, NW t</text>
+          <text class="t-sub" x="950" y="166" text-anchor="middle">Q1 comovement</text>
+          <rect class="b-out" x="870" y="214" width="160" height="56" rx="6"/>
+          <text class="t-in" x="950" y="238" text-anchor="middle">E · PEERMOM slope</text>
+          <text class="t-sub" x="950" y="256" text-anchor="middle">Q3 momentum</text>
+          <rect class="b-out" x="870" y="330" width="160" height="56" rx="6"/>
+          <text class="t-in" x="950" y="354" text-anchor="middle">D · out-of-sample vol</text>
+          <text class="t-sub" x="950" y="372" text-anchor="middle">Q2 covariance (stretch)</text>
+          <!-- arrows -->
+          <path class="ar" d="M180,107 H238" marker-end="url(#tfsArrow)"/><text class="t-lb" x="209" y="100" text-anchor="middle">r, f</text>
+          <path class="ar" d="M390,62 H448" marker-end="url(#tfsArrow)"/><text class="t-lb" x="419" y="55" text-anchor="middle">corr(ε)</text>
+          <path class="ar" d="M390,152 H448" marker-end="url(#tfsArrow)"/><text class="t-lb" x="419" y="145" text-anchor="middle">ε</text>
+          <path class="ar" d="M600,62 H658" marker-end="url(#tfsArrow)"/><text class="t-lb" x="629" y="55" text-anchor="middle">u above λ₊</text>
+          <path class="ar" d="M810,62 H868" marker-end="url(#tfsArrow)"/><text class="t-lb" x="839" y="55" text-anchor="middle">IPR</text>
+          <path class="ar" d="M600,152 H658" marker-end="url(#tfsArrow)"/><text class="t-lb" x="629" y="145" text-anchor="middle">z per month</text>
+          <path class="ar" d="M600,234 H658" marker-end="url(#tfsArrow)"/><text class="t-lb" x="629" y="227" text-anchor="middle">SE</text>
+          <path class="ar" d="M180,262 H658" marker-end="url(#tfsArrow)"/><text class="t-lb" x="315" y="255" text-anchor="middle">y, X per month</text>
+          <path class="ar" d="M810,152 H868" marker-end="url(#tfsArrow)"/><text class="t-lb" x="839" y="145" text-anchor="middle">b̄</text>
+          <path class="ar" d="M810,242 H868" marker-end="url(#tfsArrow)"/><text class="t-lb" x="839" y="235" text-anchor="middle">slope</text>
+          <path class="ar" d="M180,331 H238" marker-end="url(#tfsArrow)"/><text class="t-lb" x="209" y="324" text-anchor="middle">S</text>
+          <path class="ar" d="M180,383 H238" marker-end="url(#tfsArrow)"/><text class="t-lb" x="209" y="376" text-anchor="middle">C</text>
+          <path class="ar" d="M390,331 L448,346" marker-end="url(#tfsArrow)"/><text class="t-lb" x="419" y="327" text-anchor="middle">Σ̂</text>
+          <path class="ar" d="M390,383 L448,368" marker-end="url(#tfsArrow)"/>
+          <path class="ar" d="M600,357 H868" marker-end="url(#tfsArrow)"/><text class="t-lb" x="735" y="350" text-anchor="middle">weights w, held 21 days</text>
+        </svg>
+        </div>
+        <figcaption><code>ols_qr</code> is the root: its residuals feed B's spectrum and C's outcome, and it runs again inside <code>fama_macbeth</code> every month. <code>vcov</code> supplies the standard error that turns C's and E's mean slopes into t-statistics. D, the stretch goal, needs only the bottom row. <code>clip_correlation</code> calls <code>mp_edges</code> for its edge. E's monthly panel is still to be built.</figcaption>
+      </figure>
+    </section>
+    {{GUIDE}}
     <div class="intro">{{INTRO}}</div>
     {{SECTIONS}}
   </main>
@@ -155,7 +281,7 @@ window.MathJax={tex:{inlineMath:[["\\(","\\)"]],displayMath:[["\\[","\\]"]]},svg
 <script>
 (function(){
 const seed=JSON.parse(document.getElementById('seed').textContent);
-const S={summary:{updated:seed.updated,headline:seed.headline,next:seed.next},stages:seed.stages,tasks:seed.tasks,decisions:seed.decisions,log:seed.log,milestones:seed.milestones,live:false};
+const S={summary:{updated:seed.updated,headline:seed.headline,next:seed.next},stages:seed.stages,tasks:seed.tasks,decisions:seed.decisions,log:seed.log,milestones:seed.milestones,stats:seed.stats||[],live:false};
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 let dbRef=null;
@@ -168,6 +294,7 @@ function renderKpis(){
   k.push(`<span class="kpi">stages <b>${done}/${st.length}</b> done</span>`);
   if(run)k.push(`<span class="kpi">running <b>${run}</b></span>`);
   if(ts){const d=daysTo(ts.date);k.push(`<span class="kpi">${esc(ts.kpi)} <b>${d>0?d+'d':'today'}</b></span>`)}
+  if((S.stats||[]).length){const p=S.stats.filter(r=>PASSING.includes(r.status)).length;k.push(`<span class="kpi">tfs_stats <b>${p}/${S.stats.length}</b> passing</span>`)}
   k.push(`<span class="kpi">updated <b>${esc(S.summary.updated||'')}</b></span>`);
   $('kpis').innerHTML=k.join('');
 }
@@ -197,7 +324,22 @@ function renderSide(){
 function renderTl(){
   $('tl').innerHTML=(S.milestones||[]).map(m=>{const d=daysTo(m.date);return `<div class="${m.kind==='interview'?'interview':''} ${d<0?'past':''}"><div class="d">${esc(m.date)}${d>=0?' · in '+d+'d':''}</div><div class="l">${esc(m.label)}</div></div>`}).join('');
 }
-function renderAll(){renderKpis();renderStages();renderSide();renderTl()}
+const PASSING=['tests pass','reviewed'];
+const ST_CLS={'not started':'planned','drafting':'running','tests pass':'pass','reviewed':'done'};
+function renderStats(){
+  const el=$('statstrack');if(!el)return;
+  const rows=[...(S.stats||[])].sort((a,b)=>(a.order||0)-(b.order||0));
+  el.innerHTML=`<thead><tr><th>#</th><th>Function</th><th>Job in the project</th><th>Feeds</th><th>Test</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr>
+    <td class="num">${esc(r.order)}</td>
+    <td><a href="#${esc(r.anchor)}"><code>${esc(r.fn)}</code></a><div class="st-file">${esc(r.file)}</div></td>
+    <td>${esc(r.role)}</td>
+    <td>${(r.feeds||[]).map(f=>`<span class="chip">${esc(f)}</span>`).join('')}</td>
+    <td><code class="st-test">${esc(r.test)}</code></td>
+    <td><span class="pill ${ST_CLS[r.status]||'planned'}">${esc(r.status||'not started')}</span>${r.note?`<div class="st-note">${esc(r.note)}</div>`:''}</td></tr>`).join('')}</tbody>`;
+  const p=rows.filter(r=>PASSING.includes(r.status)).length;
+  $('stats-src').textContent=`${p} of ${rows.length} passing`+(S.live?' · live':'');
+}
+function renderAll(){renderKpis();renderStages();renderSide();renderTl();renderStats()}
 renderAll();
 // header mark: a block-structured correlation matrix (text clusters → blocks)
 (function(){const c=$('mark');const x=c.getContext('2d');const n=17,s=4;const blocks=[0,0,0,0,1,1,1,1,1,2,2,2,3,3,3,3,3];
@@ -221,7 +363,7 @@ document.addEventListener('click',async e=>{
   let db=null;try{db=await window.claude.use('db')}catch(e){db=null}
   if(!db)return;dbRef=db;
   const coll=(name,key)=>db.collection(name).onSnapshot(sn=>{if(sn.empty)return;S[key]=sn.docs.map(d=>({id:d.id,...d.data()}));S.live=true;renderAll()},()=>{});
-  coll('stages','stages');coll('tasks','tasks');coll('decisions','decisions');coll('milestones','milestones');
+  coll('stages','stages');coll('tasks','tasks');coll('decisions','decisions');coll('milestones','milestones');coll('stats','stats');
   db.doc('meta/summary').onSnapshot(d=>{if(d.exists){S.summary={...S.summary,...d.data()};S.live=true;renderAll()}},()=>{});
   db.doc('meta/log').onSnapshot(d=>{if(d.exists){S.log=d.data().entries||[];S.live=true;renderAll()}},()=>{});
 })();

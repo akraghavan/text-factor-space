@@ -17,8 +17,8 @@ def emit(op, coll, did, data):
     v = versions.get(f"{coll}/{did}")
     if v is not None: w["if_version"] = v
     writes.append(w)
-for coll in ("stages", "milestones"):
-    for d in seed[coll]:
+for coll in ("stages", "milestones", "stats"):
+    for d in seed.get(coll, []):
         did = d.get("id") or d.get("key"); data = {k: v for k, v in d.items() if k != "id"}
         if live(coll, did) != data: emit("set", coll, did, data)
 for d in seed["tasks"]:

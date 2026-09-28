@@ -1,0 +1,370 @@
+# Stats modules guide
+
+You write eight functions in `tfs_stats/`: three in `regression.py` and five in `rmt.py`. They are the only estimators `analysis/` is allowed to use (CLAUDE.md rule 3), so every coefficient, standard error and eigenvalue the project reports passes through your code. Each function has a test that compares it with statsmodels or scikit-learn. For each function this guide gives its job in the project, the math with the derivation, what the test checks, a plan in words, the traps, questions to answer before coding, and what to read. It does not give the code. Writing it is the point (rule 2).
+
+## How we work on these {#stats-workflow}
+
+Three of us, with different jobs:
+
+| Who | Does | Does not |
+|---|---|---|
+| You | Derive each function, write it, run its test, explain it back | Copy an implementation |
+| Claude Code (tutor, in the repo) | Reads your file, runs tests, explains errors and numpy behaviour, gives hints one level at a time, adds edge-case tests after you pass | Write or paste the function body (rule 2) |
+| Cowork (the dashboard session) | Goes through the math with you before you start, reviews your code on your Mac, runs your tests independently, keeps the tracker current | Edit `tfs_stats/` |
+
+The loop for each function:
+
+1. **Brief.** Read the function's card below. In the Cowork chat, explain the math back in a few lines. I correct anything that is off before you write code.
+2. **Plan in comments.** Inside the function, write the algorithm as 3–6 plain-English comment lines. Ask the tutor or me to check the plan.
+3. **First attempt.** Write the code under the comments and run only that function's test (commands in the next section).
+4. **Hints when stuck.** After about 15 minutes stuck, ask for one hint level at a time: **H1** names the idea you are missing, **H2** gives the next step, **H3** points at the line with the bug.
+5. **Review.** When the test passes, say "review `<function>`" in the Cowork chat. I read the code for edge cases, numerical problems and clarity, and rerun the tests on my side.
+6. **Explain it back.** Two minutes out loud: what it computes, why it is computed this way, one trap. Then answer one question from the card's "Check yourself" list. The tracker moves to "reviewed".
+
+Paste this into Claude Code once per function, with the name filled in:
+
+```text
+I'm writing tfs_stats.<function> myself (CLAUDE.md rule 2); its card is in docs/STATS_GUIDE.md.
+Be my tutor. Do not write or paste the function body or anything close to it.
+1. First ask me to explain the math in my own words, and correct me.
+2. Check my plan (the comment lines) before I write code.
+3. When I ask for a hint, give only the level I ask for: H1 the idea, H2 the next step, H3 the line with the bug.
+4. You may run the tests, read my code, and explain error messages and numpy behaviour.
+5. When the test passes, review for edge cases and numerical issues, then ask me one interview question about it.
+```
+
+**Order.** The sequence is deliberate: two one-line warm-ups to learn the loop, then the critical path.
+
+| # | Function | Why at this point | Size of a tidy solution |
+|---|---|---|---|
+| 1 | `ipr` | Warm-up. Learn write → test → review on one line of numpy | 1 line |
+| 2 | `mp_edges` | Second warm-up. The formula behind B's noise edge | 2 lines |
+| 3 | `ols_qr` | Every regression in the project. Blocks B, C and E | about 12 lines |
+| 4 | `vcov` | Every standard error. Reuses `ols_qr`'s triangular solve | about 30 lines |
+| 5 | `fama_macbeth` | The headline inference for C (Q1) and E (Q3) | about 20 lines |
+| 6 | `clip_correlation` | D's RMT estimator. Uses `mp_edges` | about 10 lines |
+| 7 | `min_var_weights` | D's portfolio | 3 lines |
+| 8 | `ledoit_wolf` | D's benchmark and the hardest algebra | about 15 lines |
+
+Line counts only calibrate scope. D is the stretch goal (SPEC §10), so 6–8 are the ones to drop if the week runs short.
+
+## Toolkit: numpy and the tests {#stats-toolkit}
+
+Run tests from the repo root with the virtual environment active:
+
+```text
+source .venv/bin/activate
+python -m pytest tests/test_rmt.py -k ipr -q                   # one test
+python -m pytest tests/test_regression.py -k "vcov and HC1" -q  # one case of a parametrised test
+python -m pytest tests/test_regression.py -k ill -q -s          # -s shows print() output
+make test                                                       # everything
+```
+
+In the output, `s` means skipped: the function still raises `NotImplementedError` (`tests/conftest.py` turns that into a skip). `F` means your code ran and disagreed with the reference, or crashed. `.` means passed.
+
+The numpy you need. Try each on a 4×3 example in a Python shell before using it:
+
+| Need | numpy | Note |
+|---|---|---|
+| Matrix product, transpose | `A @ B`, `A.T` | `X.T @ y` with a 1-D `y` returns a 1-D array |
+| Shapes | `X.shape`, `y.ndim` | Most bugs are shape bugs: `y` is `(n,)`, never `(n, 1)` |
+| QR factorisation | `np.linalg.qr(X)` | Default reduced mode: `Q` is n×k, `R` is k×k |
+| Scale each row | `X * e[:, None]` | Broadcasting: row i is multiplied by $e_i$ |
+| Labels to integers | `np.unique(g, return_inverse=True)` | Any labels become codes 0…G−1 |
+| Sum rows by group | `np.add.at` | Or sort by group and use `np.add.reduceat` |
+| Symmetric eigenproblem | `np.linalg.eigh(C)` | Eigenvalues ascending; eigenvectors are the columns |
+| Linear solve | `np.linalg.solve(A, b)` | Fine in `rmt.py`. In `regression.py` only `np.linalg.qr` is allowed (no `lstsq`, no `inv`) |
+| Compare arrays | `np.allclose(a, b, rtol=…, atol=…)` | What every test uses |
+
+Habits that save hours: build a case small enough to check by hand (n = 5, k = 2); print shapes at each step; loop over small dimensions (k columns, T months) freely, but never over n, which reaches hundreds of thousands of rows in C.
+
+## regression.py {#stats-regression}
+
+Numpy only: `np.linalg.qr` is allowed, `np.linalg.lstsq` and `np.linalg.inv` are not (the module docstring). The three functions build on each other: `vcov` reuses the triangular solve you write for `ols_qr`, and `fama_macbeth` calls both.
+
+### ols_qr(X, y) → (beta, resid) {#fn-ols_qr}
+
+**Job in the project.** The workhorse. `src/formation.residuals` already calls it once per stock per window: excess returns on $[1, f_t]$ with the six Fama–French and momentum factors over 252 trading days. Those residuals are B's correlation matrix and C's outcome variable. `fama_macbeth` calls it once per month for C and E. If `ols_qr` is wrong, everything downstream is wrong, which is why it comes first on the critical path.
+
+**The math.** Least squares minimises $\lVert y - X\beta\rVert^2$. Setting the gradient to zero gives the normal equations $X^\top X\hat\beta = X^\top y$. Solving those directly is the textbook route and the numerically bad one. Write the SVD $X = U\Sigma V^\top$. Then $X^\top X = V\Sigma^2 V^\top$, so its singular values are the squares of those of $X$ and
+
+$$\kappa(X^\top X) = \frac{\sigma_{\max}^2}{\sigma_{\min}^2} = \kappa(X)^2 .$$
+
+Float64 carries about 16 digits and a solve loses roughly $\log_{10}\kappa$ of them. In the test's ill-conditioned case $\kappa(X) \approx 1.8\times10^{7}$, so $\kappa(X^\top X) \approx 3\times10^{14}$: the normal equations keep about 2 digits and QR keeps about 9.
+
+QR avoids the squaring. Factor $X = QR$ with $Q$ (n×k) having orthonormal columns, $Q^\top Q = I_k$, and $R$ (k×k) upper triangular. Substitute into the normal equations:
+
+$$R^\top Q^\top Q R\,\beta = R^\top Q^\top y \;\Rightarrow\; R^\top R\,\beta = R^\top Q^\top y \;\Rightarrow\; R\beta = Q^\top y ,$$
+
+the last step because $R$ is invertible when $X$ has full column rank. The geometric view says the same thing. Split $y$ into its part in the column space of $X$ and the rest:
+
+$$\lVert y - X\beta\rVert^2 = \lVert Q^\top y - R\beta\rVert^2 + \lVert (I - QQ^\top)\,y\rVert^2 .$$
+
+The second term does not depend on $\beta$, and the first is zero at the solution. So the residual is $(I - QQ^\top)y$.
+
+$R\beta = c$ with $c = Q^\top y$ is solved from the bottom row up, by back-substitution:
+
+$$\beta_k = \frac{c_k}{R_{kk}}, \qquad \beta_i = \frac{1}{R_{ii}}\Big(c_i - \sum_{j>i} R_{ij}\,\beta_j\Big), \quad i = k-1, \dots, 1 .$$
+
+Residuals are $e = y - X\hat\beta$, which equals $y - Qc$ because $X\hat\beta = QR\hat\beta = Qc$.
+
+**What the test checks.** `test_beta`: n = 500, an intercept and three normal regressors, heteroskedastic noise; $\hat\beta$ must match statsmodels to `atol=1e-10`. `test_ill_conditioned`: the third column is the second plus $10^{-7}$ noise; $\hat\beta$ must match `np.linalg.lstsq` to `rtol=1e-3`. The normal equations usually fail this and QR passes. Run it with `-s` to see both errors printed.
+
+**Plan in words.** Factor $X$. Form $c$. Write back-substitution as its own small helper, because `vcov` needs it again. Compute residuals. Return two 1-D arrays.
+
+**Traps.**
+
+- numpy's QR can put negative numbers on the diagonal of $R$. That is fine; the solution is unchanged.
+- A zero or tiny $R_{ii}$ means a collinear column, such as two identical dummies. Raise a clear error when $|R_{ii}|$ is tiny relative to the largest $|R_{jj}|$, instead of dividing by almost zero.
+- If `y` arrives as `(n, 1)`, `Q.T @ y` becomes `(k, 1)` and later lines broadcast silently. Check `y.ndim`.
+
+**Check yourself.**
+
+- Why is $\kappa(X^\top X) = \kappa(X)^2$?
+- $Q^\top$ is k×n. Why is $\lVert y - X\beta\rVert \neq \lVert Q^\top y - R\beta\rVert$ in general, and what is the missing piece?
+- What do QR and back-substitution cost in n and k? Which dominates for a 252×7 regression?
+
+**Read.** Trefethen & Bau, Lectures 7 (QR), 11 (least squares), 17 (back-substitution), 18–19 (conditioning and stability of least squares). The numpy `qr` docs. After your attempt: statsmodels `linear_model.py`, where `OLS.fit(method="qr")` does the same thing.
+
+### vcov(X, resid, kind, groups, lags) → V {#fn-vcov}
+
+**Job in the project.** The uncertainty of $\hat\beta$. Every t-statistic in the project divides a coefficient by the square root of a diagonal element of this matrix. `fama_macbeth` uses it for the standard error of the mean slope, which is the standard error on the headline numbers of C and E.
+
+**The math: one sandwich, four fillings.** From $\hat\beta = (X^\top X)^{-1}X^\top y$ and $y = X\beta + \varepsilon$,
+
+$$\hat\beta - \beta = (X^\top X)^{-1}X^\top\varepsilon \;\Rightarrow\; \operatorname{Var}(\hat\beta\mid X) = \underbrace{(X^\top X)^{-1}}_{\text{bread}}\;\underbrace{X^\top\Omega X}_{\text{meat}}\;\underbrace{(X^\top X)^{-1}}_{\text{bread}}, \qquad \Omega = \operatorname{E}[\varepsilon\varepsilon^\top\mid X] .$$
+
+Written out, the meat is $X^\top\Omega X = \sum_i\sum_j \omega_{ij}\,x_i x_j^\top$. The four kinds differ only in which $\omega_{ij}$ they allow to be non-zero, and each estimates $\omega_{ij}$ by $e_i e_j$:
+
+| kind | Assumption on $\Omega$ | Meat | Factor |
+|---|---|---|---|
+| `classical` | $\sigma^2 I$ | $s^2 X^\top X$, $s^2 = e^\top e/(n-k)$, so $V = s^2 (X^\top X)^{-1}$ | none |
+| `HC1` | diagonal, any values | $\sum_i e_i^2\, x_i x_i^\top$ | $n/(n-k)$ |
+| `cluster` | non-zero only within a group | $\sum_g u_g u_g^\top$, $u_g = \sum_{i\in g} x_i e_i$ | $\frac{G}{G-1}\cdot\frac{n-1}{n-k}$ |
+| `NW` | non-zero only for $\lvert t-s\rvert \le L$ | $\Gamma_0 + \sum_{l=1}^{L} w_l(\Gamma_l + \Gamma_l^\top)$ | none |
+
+For the cluster row, keeping only same-group pairs gives $\sum_g\sum_{i,j\in g} e_i e_j\, x_i x_j^\top = \sum_g \big(\sum_{i\in g} x_i e_i\big)\big(\sum_{j\in g} x_j e_j\big)^\top$, which is the $u_g u_g^\top$ form. For Newey–West, $\Gamma_l = \sum_{t=l+1}^{n} e_t e_{t-l}\, x_t x_{t-l}^\top$ and $w_l = 1 - \frac{l}{L+1}$. The Bartlett weights are what make the estimate positive semi-definite (Newey & West 1987). The unweighted sum can produce negative variances.
+
+One object unifies all four. Stack the **scores** $g_i = e_i x_i$ as rows of an n×k matrix $G$. Then the HC meat is $G^\top G$; the cluster meat is the same product after first summing the rows of $G$ within each group; and $\Gamma_l$ is $G^\top G$ between $G$ and itself shifted by $l$ rows. Once you see that, each kind is a few lines.
+
+**The bread without `inv`.** $X^\top X = R^\top Q^\top Q R = R^\top R$, so $(X^\top X)^{-1} = R^{-1}R^{-\top}$. Get $R^{-1}$ by running your back-substitution against each column of the identity.
+
+**What the test checks.** n = 500, k = 4, errors scaled by $1 + \lvert x_1\rvert$ (so the classical formula is wrong for this data, which is the point), 40 random clusters, and NW with 5 lags. Each kind must match statsmodels to `rtol=1e-8`. That is effectively exact, so the finite-sample factors must be exactly the ones in the table and the docstring. The NW case matches statsmodels' `HAC` with `use_correction=False`, meaning no factor at all.
+
+**Plan in words.** QR of $X$ and the bread. Build the score matrix. Branch on `kind` for the meat and the factor. Multiply bread × meat × bread. Validate the inputs: `groups` is required for `cluster`, `lags` for `NW`, and an unknown `kind` raises `ValueError`.
+
+**Traps.**
+
+- Group labels can be anything (strings, non-contiguous integers). Map them to codes first.
+- NW assumes rows are in time order. An off-by-one in the shift is the classic bug, and so is writing $L$ instead of $L+1$ in the Bartlett denominator.
+- $G$ in the cluster factor is the number of groups, not the score matrix.
+
+**Check yourself.**
+
+- In the test data, the noise grows with $\lvert x_1\rvert$. Which kinds are valid and which is not? Which standard error do you expect to be most wrong?
+- If every observation is its own cluster, what does the cluster estimator become?
+- With $L = 0$, what is NW?
+- Why are Bartlett weights needed?
+
+**Read.** Cameron & Miller (2015) is the best single read: a practitioner's guide with a free PDF. Also White (1980), MacKinnon & White (1985) for HC0–HC3, and Newey & West (1987, 1994). Petersen (2009) has a web page with test data and reference standard errors you can reproduce. After your attempt: statsmodels `sandwich_covariance.py` and the `get_robustcov_results` docs.
+
+### fama_macbeth(y, X, t, nw_lags) → dict {#fn-fama_macbeth}
+
+**Job in the project.** The headline inference. C (Q1): each month, regress the pair outcome $z_{ij,t}$ on text similarity and controls; the average monthly slope on similarity is $\bar b$. E (Q3): each month, regress stock returns on PEERMOM and controls. Returns within a month share market shocks, so observations inside a month are strongly correlated. Fama–MacBeth sidesteps that by letting each month contribute a single estimate, then doing inference on the time series of those estimates.
+
+**The math.** For each period $t$, run OLS of $y$ on $[1, X]$ using that period's rows to get $\hat\lambda_t$ (length k+1). The estimate is $\bar\lambda = \frac1T\sum_t \hat\lambda_t$. Its variance is
+
+$$\operatorname{Var}(\bar\lambda) = \frac{1}{T^2}\sum_{s}\sum_{u}\operatorname{Cov}(\lambda_s,\lambda_u) = \frac1T\Big[\gamma_0 + 2\sum_{l=1}^{T-1}\Big(1-\frac{l}{T}\Big)\gamma_l\Big],$$
+
+with $\gamma_l$ the lag-$l$ autocovariance of the slope series. If the slopes are uncorrelated over time, the standard error is $\operatorname{sd}(\lambda)/\sqrt T$. If they are persistent, Newey–West truncates the sum at $L$ with Bartlett weights. The project uses the rule $L = \lfloor 4(T/100)^{2/9}\rfloor$: $L = 3$ at $T = 91$ (E's test period) and $L = 4$ at $T = 165$.
+
+The trick that makes this short: **a mean is OLS on a constant.** Regress the slope series on a column of ones. The coefficient is $\bar\lambda$, the residuals are $\hat\lambda_t - \bar\lambda$, and `vcov` with `kind='NW'` returns exactly the Newey–West variance of the mean. So `fama_macbeth` is a loop of `ols_qr` calls followed by `vcov`.
+
+**A convention to settle (talk to me about it).** With `nw_lags=0` the test expects $\operatorname{sd}(\lambda)$ with `ddof=1`, divided by $\sqrt T$. That equals `vcov(ones, λ − λ̄, 'classical')`. `vcov` with `'NW'` and $L = 0$ divides by $T$ instead of $T-1$, so it is smaller by the factor $(T-1)/T$. Two consistent options: use `classical` at $L = 0$ and `NW` above it, or multiply NW by $T/(T-1)$ at every $L$. The second is what Stata's `newey` does (its $n/(n-k)$ with $k = 1$) and makes $L = 0$ reproduce the test exactly. Apply the factor inside `fama_macbeth`; `vcov`'s own NW must stay uncorrected to pass its test.
+
+**What the test checks.** T = 120 months, N = 300 observations a month, one regressor, true slopes $0.02 + 0.05\,\eta_t$. `coef[1]` must equal the mean of the per-month `np.polyfit` slopes, and `se[1]` must equal `std(ddof=1)/sqrt(T)` to `rtol=1e-6`. The output is a dict with `coef`, `se`, `tstat` (each k+1) and `lambdas` (T×(k+1)).
+
+**Plan in words.** Find the distinct periods. For each, take its rows, prepend a column of ones, call `ols_qr`, store the slopes. Average. Get standard errors from `vcov` on a column of ones, one coefficient at a time or all at once, with the $T/(T-1)$ decision applied. Compute t-statistics. Return the dict.
+
+**Traps.**
+
+- The panel is unbalanced: the number of rows per period varies.
+- A period with fewer rows than k+1 cannot be estimated. Skip it and report how many were skipped.
+- `X` may arrive 1-D. The intercept is added inside, so callers must not include one.
+- Period labels need not be contiguous integers.
+
+**Scale note for C.** C has 499,500 pairs a month over about 165 months. Stacked, that is about 82 million rows × roughly 15 columns, around 10 GB in float64, too much to pass as one array next to everything else in 24 GB. C will probably run `ols_qr` month by month and then only needs the "mean and NW standard error of a slope series" step. That argues for splitting `fama_macbeth` into two pieces: the per-period slopes, and the inference on a slope series. Decide it together when you get there.
+
+**Check yourself.**
+
+- Which correlation does Fama–MacBeth fix, and which does it not? Petersen (2009): a persistent firm or pair effect biases FM standard errors down, and NW on the slopes only partly repairs it.
+- Why is the lag $L = 4$ at $T = 165$?
+- Why does E report NW(2) at all? (For comparability with Hoberg & Phillips.)
+
+**Read.** Fama & MacBeth (1973). Cochrane, *Asset Pricing*, ch. 12, §12.3. Petersen (2009), on why FM standard errors can still be too small. Newey & West (1994), on the lag rule. After your attempt: linearmodels' `FamaMacBeth` docs.
+
+## rmt.py {#stats-rmt}
+
+Random-matrix tools for B and the covariance estimators for D. `np.linalg.eigh` and `np.linalg.solve` are fine here.
+
+### ipr(V) → array {#fn-ipr}
+
+**Job in the project.** B's localisation measure. Is an eigenvector spread over the whole market (the market mode, or noise) or concentrated on a few stocks (a sector, or a cluster that text finds)?
+
+**The math.** For a unit column $v$, $\text{IPR} = \sum_i v_i^4$, and $1/\text{IPR}$ is the effective number of stocks in the mode. A vector concentrated on one stock gives 1. One spread evenly over $m$ stocks, each component $\pm 1/\sqrt m$, gives $m\cdot 1/m^2 = 1/m$. So a perfectly flat vector over all $N$ gives $1/N$.
+
+A *random* unit vector gives about $3/N$, not $1/N$. Write $v = g/\lVert g\rVert$ with $g$ standard normal in $\mathbb R^N$. The length $\lVert g\rVert$ is independent of the direction $v$, so $\operatorname{E} g_i^4 = \operatorname{E}\lVert g\rVert^4\cdot\operatorname{E} v_i^4$, which reads $3 = N(N+2)\,\operatorname{E} v_i^4$. Summing over $i$:
+
+$$\operatorname{E}[\text{IPR}] = \frac{3}{N+2} \approx \frac3N .$$
+
+Plerou et al. (2002) report an average IPR of about $3\times10^{-3}$ at $N = 1{,}000$ and describe it as "≈ 1/N"; the value is $3/N$. The SPEC repeated "≈ 1/N" and was corrected on 27 Sep. This $3/N$ is the noise baseline B compares its modes against.
+
+**What the test checks.** The columns of a 5×5 identity each give 1; a flat vector of length 100 gives 0.01.
+
+**Traps.** `eigh` returns eigenvectors as columns (`V[:, k]`), so sum over the right axis and return one value per column.
+
+**Check yourself.** What IPR does the market mode have if every stock loads about equally? Derive $\operatorname{E} g^4 = 3$ for a standard normal.
+
+**Read.** Plerou et al. (2002), eq. (20) and the surrounding discussion.
+
+### mp_edges(q, sigma2) → (λ₋, λ₊) {#fn-mp_edges}
+
+**Job in the project.** B's noise line. A correlation matrix estimated from $T$ days is noisy: even when every true correlation is zero, its eigenvalues spread out. Marčenko–Pastur says how far. Eigenvalues above $\lambda_+$ are candidate structure (the market, sectors, perhaps text modes); the bulk below is indistinguishable from noise. `clip_correlation` uses the same edge.
+
+**The math.** Let $X$ be T×N with independent entries of variance $\sigma^2$ and $C = X^\top X/T$. As $N, T\to\infty$ with $q = N/T \le 1$ fixed, the eigenvalues of $C$ fill $[\lambda_-, \lambda_+]$ with density
+
+$$\rho(\lambda) = \frac{\sqrt{(\lambda_+ - \lambda)(\lambda - \lambda_-)}}{2\pi q\sigma^2\lambda}, \qquad \lambda_\pm = \sigma^2\big(1 \pm \sqrt q\big)^2 .$$
+
+You can check the spread from the first two moments without the full derivation. The mean eigenvalue is $\operatorname{tr}(C)/N = \sigma^2$. For the second moment, $\operatorname{tr}(C^2)/N = \frac1N\sum_{ij} C_{ij}^2$. The $N$ diagonal terms are each about $\sigma^4$. Each of the $N(N-1)$ off-diagonal terms is an average of $T$ independent products, with variance $\sigma^4/T$. So $\operatorname{tr}(C^2)/N \approx \sigma^4\big(1 + \tfrac{N-1}{T}\big) \approx \sigma^4(1+q)$, and the variance of the eigenvalues is $\sigma^4 q$: the spread grows like $\sqrt q$. The edges themselves come from the Stieltjes transform (Potters & Bouchaud 2020, ch. 4).
+
+The function is one line. The understanding is the work. SPEC §6's table follows from it: $N = 500$, $T = 756$ gives $q = 0.661$ and $\lambda_+ = 3.288$.
+
+**What the test checks.** $N = 400$, $T = 1{,}600$ ($q = 0.25$): $\lambda_+$ must be exactly 2.25, and on pure noise the largest sample eigenvalue must stay below $1.05\,\lambda_+$ and the smallest above $0.9\,\lambda_-$.
+
+**Where the project goes further.** In B the caller adjusts two inputs: $\sigma^2 = 1 - \lambda_{\max}/N$, iterated, because the market mode takes $\lambda_{\max}$ of the trace; and $q_{\text{eff}} = N/(T-K-1)$ for residuals from a K-factor regression.
+
+**Traps.** $q > 1$ (more stocks than days): $N - T$ eigenvalues are exactly zero and the formula for $\lambda_-$ no longer describes the smallest eigenvalue. Decide whether to raise an error.
+
+**Check yourself.** Why is $\sigma^2 = 1 - \lambda_1/N$ the right variance once the market mode is removed? Why do heteroskedasticity and autocorrelation widen the bulk?
+
+**Read.** Laloux, Cizeau, Bouchaud & Potters (1999): four pages, read it whole. Potters & Bouchaud (2020), ch. 4. Bouchaud & Potters (2009) for the finance applications. Marčenko & Pastur (1967) is the original.
+
+### clip_correlation(C, T) → C̃ {#fn-clip_correlation}
+
+**Job in the project.** D's RMT estimator (SPEC §8, estimator 5), and a cleaned matrix for B: keep the eigen-directions above the noise edge and flatten the rest.
+
+**The math.** Decompose $C = V\Lambda V^\top$. Take $\lambda_+$ from `mp_edges(N/T)`. Keep every $\lambda_k > \lambda_+$. Replace every $\lambda_k \le \lambda_+$ by the average of those bulk eigenvalues. The trace is the sum of the eigenvalues, so replacing a group by its average keeps $\operatorname{tr} = N$. Rebuild $\tilde C = V\tilde\Lambda V^\top$. Its diagonal is no longer exactly 1, so rescale: $\tilde C \leftarrow D^{-1/2}\tilde C D^{-1/2}$ with $D = \operatorname{diag}(\tilde C)$.
+
+Why the average and not zero: zeros would make the matrix singular, and a minimum-variance portfolio would load on the zeroed directions without limit. Why rescale: a correlation matrix has a unit diagonal by definition.
+
+**What the test checks.** $N = 200$, $T = 500$, a one-factor model: the result must have a unit diagonal, be symmetric, and have a strictly positive smallest eigenvalue.
+
+**Plan in words.** Eigen-decompose, get the edge, split the eigenvalues, average the bulk, rebuild, rescale, then symmetrise to remove floating-point asymmetry.
+
+**Traps.** `eigh` sorts eigenvalues in ascending order. If no eigenvalue is above the edge the answer is essentially the identity, which is correct. For residual correlation matrices the caller should pass the effective sample size, $T-K-1$.
+
+**Check yourself.** Why is the result positive definite, and why does the rescaling keep it so? What does clipping do to a minimum-variance portfolio built on it?
+
+**Read.** Laloux et al. (1999; 2000). Bun, Bouchaud & Potters (2017), the clipping section. Bouchaud & Potters (2009).
+
+### min_var_weights(S) → w {#fn-min_var_weights}
+
+**Job in the project.** D's portfolio. For each covariance estimator, D forms the global minimum-variance portfolio and measures its realised out-of-sample volatility. GMV weights depend only on $\hat\Sigma$, so realised volatility isolates the quality of the covariance estimate (SPEC §8).
+
+**The math.** Minimise $w^\top S w$ subject to $\mathbf 1^\top w = 1$. With $\mathcal L = w^\top S w - 2\gamma(\mathbf 1^\top w - 1)$, the first-order condition is $2Sw - 2\gamma\mathbf 1 = 0$, so $Sw = \gamma\mathbf 1$ and $w = \gamma S^{-1}\mathbf 1$. The constraint fixes $\gamma = 1/(\mathbf 1^\top S^{-1}\mathbf 1)$. The minimum variance itself is $w^\top S w = \gamma^2\,\mathbf 1^\top S^{-1}\mathbf 1 = \gamma$.
+
+Compute it with one linear solve, $Sz = \mathbf 1$, then $w = z/\sum_i z_i$. Never form $S^{-1}$: a solve is cheaper and more accurate than an inverse followed by a product.
+
+**What the test checks.** $S = AA^\top + 50I$ with $N = 50$: the weights sum to 1, and every component of $Sw$ is equal (the first-order condition).
+
+**Traps.** A singular $S$ (a sample covariance with $N \ge T$) makes the solve fail or explode, which is exactly why D shrinks before it optimises. Weights can be negative: this is unconstrained GMV, with short positions allowed.
+
+**Check yourself.** What is the portfolio's variance in terms of $\gamma$? Why do long-only constraints act like shrinkage (Jagannathan & Ma 2003)?
+
+**Read.** Markowitz (1952). Jagannathan & Ma (2003). Engle, Ledoit & Wolf (2019) for the evaluation protocol D follows.
+
+### ledoit_wolf(X) → Σ̂ {#fn-ledoit_wolf}
+
+**Job in the project.** D's classic benchmark (SPEC §8, estimator 2), and the template for the project's own text-target shrinkage, which uses the same bias–variance logic with a different target.
+
+**The math (Ledoit & Wolf 2004).** Demean the columns of $X$ (T×N). The sample covariance is $S = X^\top X/T$, dividing by $T$ and not $T-1$. The target is $\mu I$ with $\mu = \operatorname{tr}(S)/N$. The estimator is
+
+$$\hat\Sigma = \delta\,\mu I + (1-\delta)\,S, \qquad \delta\in[0,1].$$
+
+Ledoit–Wolf measure matrices with the Frobenius norm scaled by $N$: $\langle A, B\rangle = \operatorname{tr}(AB^\top)/N$ and $\lVert A\rVert^2 = \langle A, A\rangle$, so quantities stay of order one as $N$ grows. Three numbers:
+
+- $d^2 = \lVert S - \mu I\rVert^2$: how far the sample covariance is from the target.
+- $\bar b^2 = \frac{1}{T^2}\sum_t \lVert x_t x_t^\top - S\rVert^2$: how noisy $S$ is, and $b^2 = \min(\bar b^2, d^2)$.
+- $\delta = b^2/d^2$.
+
+This is the same trade-off as SPEC §8's one-entry derivation, $\delta^* = \operatorname{Var}(u)/[\operatorname{Var}(u) + (t-\rho)^2]$: $b^2$ plays the variance and $d^2 - b^2$ the squared distance between target and truth.
+
+**The computational trick.** Never build $T$ matrices of size N×N. Expand the sum, using $\sum_t x_t x_t^\top = TS$:
+
+$$\sum_t\lVert x_t x_t^\top - S\rVert^2 = \sum_t\lVert x_t x_t^\top\rVert^2 - 2\Big\langle\sum_t x_t x_t^\top, S\Big\rangle + T\lVert S\rVert^2 = \sum_t\lVert x_t x_t^\top\rVert^2 - T\lVert S\rVert^2 ,$$
+
+and $\lVert x_t x_t^\top\rVert^2 = (x_t^\top x_t)^2/N$. So $\bar b^2$ needs only the row sums of squares of $X$ and $\operatorname{tr}(S^2)$. Work this through yourself before coding; it is the whole trick.
+
+**What the test checks.** $T = 60$, $N = 100$, so $S$ is singular and shrinkage is essential; $\delta$ comes out close to 1. The result must equal scikit-learn's `LedoitWolf().fit(X).covariance_` to `rtol=1e-8`, so the conventions must match exactly: demean, divide by $T$, cap $b^2$ at $d^2$.
+
+**Traps.** `np.cov` divides by $T-1$ and fails the test. The "Honey, I shrunk the sample covariance matrix" paper shrinks towards a *constant-correlation* target, which is a different estimator (SPEC §8, estimator 4). Here you implement the identity target from the 2004 JMVA paper.
+
+**Check yourself.** Why is $\delta$ near 1 when $N > T$? What happens to $\delta$ as $T\to\infty$ with $N$ fixed?
+
+**Read.** Ledoit & Wolf (2004, JMVA; free PDF), the section that defines the estimator. "Honey, I shrunk…" (2004) for intuition. After your attempt: scikit-learn's `ledoit_wolf_shrinkage` in `_shrunk_covariance.py`, to compare conventions line by line.
+
+## Not in tfs_stats yet {#stats-missing}
+
+The SPEC's inference also calls for estimators that have no function or test yet. Rule 3 means each one is either written in `tfs_stats/` or dropped:
+
+| Estimator | Used in | Size | Suggestion |
+|---|---|---|---|
+| EWC standard errors (Lazarus, Lewis, Stock & Watson 2018) | C and E, reported next to NW | small: a cosine-weighted long-run variance | Write it after `fama_macbeth` |
+| Dyadic-robust standard errors | C, robustness 2 | a variant of the cluster meat | After 8 Oct unless ahead of schedule |
+| MRQAP permutation test | C, robustness 1 | a permutation loop around `ols_qr` | After 8 Oct unless ahead of schedule |
+| Nonlinear shrinkage, text-target shrinkage, variance-difference test | D | large | Goes with D (stretch) |
+
+We settle this list with the PREREG review on Wed 30 Sep.
+
+## Reading list {#stats-reading}
+
+Read the papers and book chapters before or while you work. Read the reference implementations **after** your own attempt passes or stalls: they are for comparing conventions, and reading them first turns the exercise into transcription.
+
+| Topic | Source | Link |
+|---|---|---|
+| Least squares, QR, back-substitution | Trefethen & Bau, *Numerical Linear Algebra* (SIAM 1997), Lectures 7, 11, 17–19 | [doi:10.1137/1.9780898719574](https://doi.org/10.1137/1.9780898719574) |
+| Least squares and robust errors, textbook | Hansen, *Econometrics* (Princeton 2022), ch. 3–4 (§4.13–4.23 on covariance and clustering), §14.34–14.35 on HAC | [Princeton UP](https://press.princeton.edu/books/hardcover/9780691235899/econometrics) |
+| Heteroskedasticity-robust errors | White (1980), *Econometrica* 48(4):817–838 | [doi:10.2307/1912934](https://doi.org/10.2307/1912934) |
+| HC0–HC3 finite-sample versions | MacKinnon & White (1985), *J. Econometrics* 29(3):305–325 | [doi:10.1016/0304-4076(85)90158-7](https://doi.org/10.1016/0304-4076(85)90158-7) |
+| Newey–West | Newey & West (1987), *Econometrica* 55(3):703–708 | [doi:10.2307/1913610](https://doi.org/10.2307/1913610) |
+| NW lag selection | Newey & West (1994), *Rev. Econ. Studies* 61(4):631–653 | [doi:10.2307/2297912](https://doi.org/10.2307/2297912) |
+| Clustering, practical guide | Cameron & Miller (2015), *J. Human Resources* 50(2):317–372 | [free PDF](https://cameron.econ.ucdavis.edu/research/Cameron_Miller_JHR_2015_February.pdf) |
+| Standard errors in finance panels | Petersen (2009), *RFS* 22(1):435–480 | [doi:10.1093/rfs/hhn053](https://doi.org/10.1093/rfs/hhn053) |
+| Reference data to test your SEs | Petersen's test data and reference standard errors | [Kellogg page](https://www.kellogg.northwestern.edu/faculty/petersen/htm/papers/se/test_data.htm) |
+| Fama–MacBeth, original | Fama & MacBeth (1973), *JPE* 81(3):607–636 | [doi:10.1086/260061](https://doi.org/10.1086/260061) |
+| Fama–MacBeth, textbook | Cochrane, *Asset Pricing* (rev. ed. 2005), ch. 12, §12.3 | [Princeton UP](https://press.princeton.edu/books/hardcover/9780691121376/asset-pricing) |
+| EWC and why short NW lags over-reject | Lazarus, Lewis, Stock & Watson (2018), *JBES* 36(4):541–559 | [doi:10.1080/07350015.2018.1506926](https://doi.org/10.1080/07350015.2018.1506926) |
+| Marčenko–Pastur, original | Marčenko & Pastur (1967), *Math. USSR-Sbornik* 1(4):457–483 | [doi:10.1070/SM1967v001n04ABEH001994](https://doi.org/10.1070/SM1967v001n04ABEH001994) |
+| RMT in finance, the first paper | Laloux, Cizeau, Bouchaud & Potters (1999), *PRL* 83(7):1467 | [arXiv:cond-mat/9810255](https://arxiv.org/abs/cond-mat/9810255) |
+| Clipping | Laloux, Cizeau, Potters & Bouchaud (2000), *IJTAF* 3(3):391–397 | [doi:10.1142/S0219024900000255](https://doi.org/10.1142/S0219024900000255) |
+| IPR, deviating eigenvectors | Plerou et al. (2002), *Phys. Rev. E* 65:066126 | [arXiv:cond-mat/0108023](https://arxiv.org/abs/cond-mat/0108023) |
+| RMT review for finance | Bouchaud & Potters (2009), "Financial applications of random matrix theory: a short review" | [arXiv:0910.1205](https://arxiv.org/abs/0910.1205) |
+| Cleaning correlation matrices | Bun, Bouchaud & Potters (2017), *Physics Reports* 666:1–109 | [arXiv:1610.08104](https://arxiv.org/abs/1610.08104) |
+| RMT textbook | Potters & Bouchaud (2020), *A First Course in Random Matrix Theory*, ch. 4 (Marčenko–Pastur), ch. 20 (finance) | [doi:10.1017/9781108768900](https://doi.org/10.1017/9781108768900) |
+| Ledoit–Wolf identity target | Ledoit & Wolf (2004), *J. Multivariate Analysis* 88(2):365–411 | [free PDF](https://www.econ.uzh.ch/dam/jcr:ffffffff-935a-b0d6-ffff-ffffceb83f14/wellCond.pdf) |
+| Shrinkage intuition | Ledoit & Wolf (2004), "Honey, I Shrunk the Sample Covariance Matrix", *JPM* 30(4):110–119 | [free PDF](https://www.econ.uzh.ch/dam/jcr:8a18d37f-3238-4c14-a276-66392e82961b/jpm_2004..pdf) |
+| GMV evaluation protocol | Engle, Ledoit & Wolf (2019), *JBES* 37(2):363–375 | [doi:10.1080/07350015.2017.1345683](https://doi.org/10.1080/07350015.2017.1345683) |
+| Why constraints help | Jagannathan & Ma (2003), *J. Finance* 58(4):1651–1683 | [doi:10.1111/1540-6261.00580](https://doi.org/10.1111/1540-6261.00580) |
+| Mean–variance, original | Markowitz (1952), *J. Finance* 7(1):77–91 | [doi:10.1111/j.1540-6261.1952.tb01525.x](https://doi.org/10.1111/j.1540-6261.1952.tb01525.x) |
+
+Reference implementations, for after your attempt:
+
+| Function | Where to compare | Link |
+|---|---|---|
+| `ols_qr` | numpy `qr` docs; statsmodels `linear_model.py` (`OLS.fit(method="qr")`) | [numpy](https://numpy.org/doc/stable/reference/generated/numpy.linalg.qr.html) · [statsmodels](https://github.com/statsmodels/statsmodels/blob/main/statsmodels/regression/linear_model.py) |
+| back-substitution | SciPy's `solve_triangular` documents what yours does | [scipy](https://docs.scipy.org/doc/scipy/reference/generated/scipy.linalg.solve_triangular.html) |
+| `vcov` | statsmodels `sandwich_covariance.py`; `get_robustcov_results` docs | [source](https://github.com/statsmodels/statsmodels/blob/main/statsmodels/stats/sandwich_covariance.py) · [docs](https://www.statsmodels.org/stable/generated/statsmodels.regression.linear_model.RegressionResults.get_robustcov_results.html) |
+| `fama_macbeth` | linearmodels `FamaMacBeth` | [docs](https://bashtage.github.io/linearmodels/panel/panel/linearmodels.panel.model.FamaMacBeth.html) |
+| `clip_correlation`, `ipr` | numpy `eigh` docs | [numpy](https://numpy.org/doc/stable/reference/generated/numpy.linalg.eigh.html) |
+| `min_var_weights` | numpy `solve` docs | [numpy](https://numpy.org/doc/stable/reference/generated/numpy.linalg.solve.html) |
+| `ledoit_wolf` | scikit-learn `LedoitWolf` docs; `ledoit_wolf_shrinkage` in `_shrunk_covariance.py` | [docs](https://scikit-learn.org/stable/modules/generated/sklearn.covariance.LedoitWolf.html) · [source](https://github.com/scikit-learn/scikit-learn/blob/main/sklearn/covariance/_shrunk_covariance.py) |
