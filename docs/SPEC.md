@@ -186,7 +186,7 @@ Full-sample betas are rejected: they are look-ahead, and drifting betas leave $(
 
 For residuals the effective q is $N/(T-K-1)$: at $T = 504$, $K = 6$ it is $500/497 > 1$, so the residual sample matrix is singular, not merely ill-conditioned. Element B therefore uses $T = 756$ or $1{,}008$.
 
-5. **Localisation.** $\text{IPR}_k = \sum_i u_{ki}^4$ (Plerou et al. 2002, eq. 20); $1/\text{IPR}_k$ is the effective number of stocks in mode $k$. Random vectors give IPR ≈ 1/N.
+5. **Localisation.** $\text{IPR}_k = \sum_i u_{ki}^4$ (Plerou et al. 2002, eq. 20); $1/\text{IPR}_k$ is the effective number of stocks in mode $k$. A random unit vector gives IPR $= 3/(N+2) \approx 3/N$ (Plerou et al. find about $3\times10^{-3}$ at $N = 1{,}000$); a perfectly flat vector gives $1/N$ (corrected 27 Sep; derivation in `docs/STATS_GUIDE.md`).
 6. **Text alignment per mode.** $A_k = u_k^\top \tilde G\, u_k$ with $\tilde G$ the similarity matrix with zero diagonal; p-value from 1,000 relabellings of firms. Repeat with the SIC-3 co-membership matrix, and with text similarity residualised on industry dummies ("beyond industry").
 7. **Subspace overlap.** Principal angles between the span of residual modes above the edge and the top-K eigenvectors of the text Gram matrix; a random K-dimensional subspace has expected squared overlap K/N.
 
