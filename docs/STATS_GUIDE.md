@@ -235,7 +235,12 @@ The function is one line. The understanding is the work. SPEC §6's table follow
 
 **Where the project goes further.** In B the caller adjusts two inputs: $\sigma^2 = 1 - \lambda_{\max}/N$, iterated, because the market mode takes $\lambda_{\max}$ of the trace; and $q_{\text{eff}} = N/(T-K-1)$ for residuals from a K-factor regression.
 
-**Traps.** $q > 1$ (more stocks than days): $N - T$ eigenvalues are exactly zero and the formula for $\lambda_-$ no longer describes the smallest eigenvalue. Decide whether to raise an error.
+**Traps.** $q > 1$ (more stocks than days): $N - T$ eigenvalues are exactly zero and the formula for $\lambda_-$ no longer describes the smallest eigenvalue. `mp_edges` raises a `ValueError` (decided 28 Sep).
+
+**Two companions in `tfs_stats/rmt.py` (added 28 Sep).**
+
+- `mp_sigma2_iterated(eigs, q)` runs the iteration $\sigma^2 = 1 - \sum_{\lambda_k > \lambda_+(\sigma^2)}\lambda_k/N$. The map is monotone: a lower $\sigma^2$ lowers the edge, which lets more eigenvalues above it, which lowers $\sigma^2$ again. It converges when the bulk really is MP-shaped and runs away when the bulk is wider (heavy tails, volatility clustering): the edge walks into the bulk. On a runaway it returns Laloux's one-step value with `converged=False`. In B the iteration ran away in every year 2014–2025, on raw and residual spectra, which is the practical argument for the next function.
+- `circular_shift_edge(Z, draws, quantile)` builds the noise edge from the data: shift each stock's series in time by an independent random offset (wrapping around), recompute the top eigenvalue, repeat 200 times, take the 95th percentile. Each series keeps its own fat tails and autocorrelation; only the synchrony between stocks is destroyed. In B it comes out at 3.32–3.35 for N = 500, T = 756, a little above the MP edge 3.29. Test: on iid data it lands between $\lambda_+$ and $1.15\lambda_+$.
 
 **Check yourself.** Why is $\sigma^2 = 1 - \lambda_1/N$ the right variance once the market mode is removed? Why do heteroskedasticity and autocorrelation widen the bulk?
 
