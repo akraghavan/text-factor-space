@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Sun 27 Sep 2026, 20:20 ET (local Claude Code session)_
+_Last updated: Mon 28 Sep 2026, 13:14 ET (local Claude Code session)_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
@@ -23,6 +23,14 @@ _Last updated: Sun 27 Sep 2026, 20:20 ET (local Claude Code session)_
 
 ## Running
 - Nothing.
+
+## Done 28 Sep (D13: estimators on standard libraries)
+- **`tfs_stats/` written on standard libraries** (f3c5fc8, 5065c3a): `ols_qr` (numpy QR + SciPy triangular solve, many series at once, rank check); `vcov` (statsmodels sandwich; unchanged conventions); `fama_macbeth` = per-period `ols_qr` + `fm_inference` (NW × T/(T−1) at every lag, which is linearmodels' FamaMacBeth convention, tested at L = 0 and 3); `fm_from_moments` (per-month X'X, X'y → Cholesky slopes, for C at scale); `ewc` (LLSW 2018; AR(1) T = 165 coverage 94.7% vs NW(4) 89.2%); `rmt`: `mp_edges` (raises for q > 1), `mp_sigma2_iterated` (returns Laloux's one-step value with `converged=False` on a runaway), `circular_shift_edge`, `ipr`, `clip_correlation`, `ledoit_wolf` (sklearn), `min_var_weights`. Tests: **30 pass, 0 skipped**. Guide cards added: `#fn-ewc`, `#fn-fm_moments`, MP-card companions; FM convention marked settled.
+- **`practice/`** (326a733): OLS-by-hand stubs (`ols_1d_no_intercept`, `back_substitute`, `ols_qr_by_hand`, `StreamingOLS`, `RLS`) and tests; not collected by CI; tutor only.
+- **C panel** (56d8185): `formation.residuals` vectorised (one QR per window); `src/c_panel.py` builds an out-of-sample FF6 residual panel (betas on the 252 days before each month, ≥ 200 obs; 2011-01 → 2026-03 in 7 s) and `c_month(t)` adds z (within-month Fisher z, ≥ 15 days), z_lag (months t−12..t−1, ≥ 126 days) and |Δβ_k|. Checks on 2014-07, 2020-01, 2025-07 (`analysis/output/c_panel/`): SD(ρ) 0.24 (Antón–Polk ~0.25), same-SIC-3 mean z 0.14–0.27 vs ~0.01, corr(z, z_lag) ≈ 0.2, all-column coverage 86–89% of pairs. **No z–text statistic computed (b̄ is primary).**
+- **B inputs and spectra** (5065c3a; `analysis/output/b_spectra/`): 1 July 2014–2025, N = 500, T = 756, rolling-beta residuals: empirical edge 3.32–3.35 (MP 3.29); 20–25 residual eigenvalues above it; median IPR × N 3.0–3.7 (random 3); the σ² iteration runs away every year. Top residual modes are long-short sector-like modes, not leaked factor exposure (R² on FF6 0.01–0.15). **No alignment share computed.**
+- **E development period only** (ac30f3c; `analysis/output/e_dev/`): CRSP monthly truncated at Nov 2018 before any computation. 77 months, 163,941 firm-months. With all controls incl. TNIC momentum: PEERMOM 0.172%/month per SD, NW(3) t 3.23, EWC(7) t 4.75 (tuning period, not evidence for H3). Runtime 91 s.
+- **PREREG draft: 6 review flags** (section "Flags raised while building"): B starts 2014 (not 2013); B uses rolling betas (draft wording said in-window); C pairs with missing B/M ~10%; z_lag ≥ 126 days; peer returns ≥ 8/12 months; ~25% of firms have no text peer at SIC-3 density.
 
 ## D12 done (27 Sep, 20:15 ET)
 - Both daily price/volume files converted: 2010–2017 14,055,778 and 2018–2026 18,275,590 unique permno-dates (3,238 and 3,615 duplicate keys dropped); keys identical to the daily return files (0 unmatched either way). Merged into `crsp_daily` (16,093,352 rows; prc and vol present on 98.8%).
@@ -48,8 +56,8 @@ _Last updated: Sun 27 Sep 2026, 20:20 ET (local Claude Code session)_
 - Nothing.
 
 ## Next
-- Abhi: review `docs/PREREG.md` ([PROPOSED] items; [OPEN] delisting returns) for the Thu 1 Oct freeze; `ols_qr`, `vcov`, `fama_macbeth` (critical path for B, C, E).
-- Claude: `specs.yaml` + runner (SPEC §10.1) before the freeze; FF-48 industry map and E signal construction (no returns looked at in the test period).
+- Abhi: review the PREREG draft ([PROPOSED], [OPEN] delisting returns, the 6 flags) for the Thu 1 Oct freeze; practice/ OLS by hand.
+- Claude: `specs.yaml` + runner (SPEC §10.1); C monthly sufficient statistics for all 165 months (ready to run the moment PREREG is frozen); MRQAP / dyadic-robust after Fall Break per plan; D if it stays in.
 
 ## Requests for Cowork
 _(local Claude Code sessions add requests here)_
