@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.covariance import LedoitWolf
-from tfs_stats.rmt import mp_edges, ipr, clip_correlation, ledoit_wolf, min_var_weights
+from tfs_stats.rmt import mp_edges, ipr, clip_correlation, ledoit_wolf, min_var_weights, mp_sigma2_iterated, circular_shift_edge
 rng=np.random.default_rng(1)
 def test_mp_noise():
     N,T=400,1600; X=rng.normal(size=(T,N)); C=np.corrcoef(X,rowvar=False); lam=np.linalg.eigvalsh(C)
@@ -16,3 +16,17 @@ def test_lw():
 def test_minvar():
     A=rng.normal(size=(50,50)); S=A@A.T+50*np.eye(50); w=min_var_weights(S)
     assert np.isclose(w.sum(),1); g=S@w; assert np.allclose(g,g[0])   # first-order condition: S w proportional to 1
+
+def test_mp_q_above_one_raises():
+    import pytest
+    with pytest.raises(ValueError): mp_edges(1.2)
+def test_sigma2_iterated():
+    # pure noise: nothing above the edge, sigma2 stays 1; one strong factor: sigma2 = 1 - lambda_1/N (approximately)
+    N,T=200,800; X=rng.normal(size=(T,N)); lam=np.linalg.eigvalsh(np.corrcoef(X,rowvar=False))
+    s2,hi,k,ok=mp_sigma2_iterated(lam,N/T); assert ok and k==0 and s2==1.0
+    Y=X+rng.normal(size=(T,1))*0.8; lam=np.linalg.eigvalsh(np.corrcoef(Y,rowvar=False))
+    s2,hi,k,ok=mp_sigma2_iterated(lam,N/T); assert ok and k>=1 and np.isclose(s2,1-lam[lam>hi].sum()/N)
+def test_circular_shift_edge_on_noise():
+    # on iid data the shifted-null edge sits just above the MP edge (finite-N fluctuations)
+    N,T=100,400; X=rng.normal(size=(T,N)); e,_=circular_shift_edge(X,draws=100,seed=1)
+    assert mp_edges(N/T)[1] < e < 1.15*mp_edges(N/T)[1]
