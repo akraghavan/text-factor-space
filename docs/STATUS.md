@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Mon 28 Sep 2026, 13:14 ET_
+_Last updated: Tue 29 Sep 2026, 13:54 ET_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
@@ -21,7 +21,12 @@ _Last updated: Mon 28 Sep 2026, 13:14 ET_
 - **Element A validated (`analysis/a_text_layer.py`, `analysis/output/a_text_layer/`):** 1 July formations 2012–2026, 3,222–3,870 firms. Same-SIC-3 AUC: dense 0.864, BoW nouns 0.861, BoW 0.853 (0.873/0.870/0.862 excluding SIC 6799 blank-check firms). At SIC-3 density, 31–38% of text edges are same-SIC-3 pairs. TNIC-3 agreement (edge Jaccard): BoW nouns 0.616, BoW 0.606, dense 0.339, SIC-3 0.276; AUC for TNIC pairs 0.94–0.97. Same-firm year-on-year similarity median 0.90–0.93. π rises 2.1% → 3.3% (biotech growth). BoW has a strong length/hub effect (corr of log length with mean similarity +0.93); dense −0.23.
 
 ## Running
-- Nothing.
+- Nothing. Waiting on Abhi's go to freeze PREREG (target Thu 1 Oct) and on the reviewer's WRDS delisting-fields query (D14 item 1).
+
+## Done 29 Sep
+- **D14 applied to `docs/PREREG.md` (still DRAFT; fdcdeb9):** every [PROPOSED]/[OPEN] item and the six 28 Sep flags written into the specs; family {H1, H3} with Holm 0.025 / 0.05; D exploratory; disclosure paragraph updated to list what has been computed since 28 Sep (C construction checks, B spectra, E dev period) and what has not (b̄, alignment share, any test-period return, any D variance). SPEC §3 industry-code row aligned (CRSP `siccd` primary, `sich` robustness).
+- **`specs.yaml` + `src/runner.py` (SPEC §10.1; dbca50a):** 45 registered specs (2 confirmatory, 1 primary, 38 exploratory, 4 diagnostic); the runner refuses unregistered ids and guarded specs before the freeze / with uncommitted changes / edited after the freeze, and logs every attempt to `runs.log` (committed). Tests: 36 pass. Confirmatory entries stay `pending` until the freeze.
+- Pulled 170fec1 (D14 SPEC rows; D15: no numeric WRDS quota; queries one at a time, each for a stated need, never in a loop, all logged).
 
 ## Done 28 Sep (D13: estimators on standard libraries)
 - **`tfs_stats/` written on standard libraries** (f3c5fc8, 5065c3a): `ols_qr` (numpy QR + SciPy triangular solve, many series at once, rank check); `vcov` (statsmodels sandwich; unchanged conventions); `fama_macbeth` = per-period `ols_qr` + `fm_inference` (NW × T/(T−1) at every lag, which is linearmodels' FamaMacBeth convention, tested at L = 0 and 3); `fm_from_moments` (per-month X'X, X'y → Cholesky slopes, for C at scale); `ewc` (LLSW 2018; AR(1) T = 165 coverage 94.7% vs NW(4) 89.2%); `rmt`: `mp_edges` (raises for q > 1), `mp_sigma2_iterated` (returns Laloux's one-step value with `converged=False` on a runaway), `circular_shift_edge`, `ipr`, `clip_correlation`, `ledoit_wolf` (sklearn), `min_var_weights`. Tests: **30 pass, 0 skipped**. Guide cards added: `#fn-ewc`, `#fn-fm_moments`, MP-card companions; FM convention marked settled.
@@ -55,8 +60,8 @@ _Last updated: Mon 28 Sep 2026, 13:14 ET_
 - Nothing.
 
 ## Next
-- Abhi: review the PREREG draft ([PROPOSED], [OPEN] delisting returns, the 6 flags) for the Thu 1 Oct freeze; practice/ OLS by hand.
-- Assistant: `specs.yaml` + runner (SPEC §10.1); C monthly sufficient statistics for all 165 months (ready to run the moment PREREG is frozen); MRQAP / dyadic-robust after Fall Break per plan; D if it stays in.
+- Abhi: review the final PREREG diff; say "freeze" to record the freeze commit and date and remove the DRAFT box.
+- Assistant: when the delisting file lands, implement SPEC §3's imputation in E's returns; after the freeze, write the C (H1) and E (H3) entries and run them through the runner.
 
 ## Requests
 _(add requests here)_
