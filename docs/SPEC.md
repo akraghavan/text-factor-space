@@ -96,7 +96,7 @@ CIK → gvkey → PERMNO: CCM links with `LINKTYPE ∈ {LC, LU}`, `LINKPRIM ∈ 
 | A 10-K | the NYSE trading day after its **filing date** | Filings submitted after 5:30 pm ET are dated the next business day (17 CFR 232.13); `acceptanceDateTime` is genuine UTC (checked against index pages) and is used only for audit |
 | A text vintage | until the next 10-K; dropped if older than 15 months | 12 months + 90-day deadline + 15-day 12b-25 extension |
 | Book equity | Fama–French convention (fiscal year ending in t−1 used from June t) | at least a 6-month gap |
-| Industry codes | Compustat historical `sich`; GICS history if available | Header SIC/GICS are current snapshots and would leak reclassifications |
+| Industry codes | CRSP historical `siccd` of the prior month (primary, D14); Compustat historical `sich` as robustness; GICS history if available | Header SIC/GICS are current snapshots and would leak reclassifications |
 | Size, universe | end of the prior month | |
 | Bag-of-words vocabulary | filings available in the trailing 12 months at formation | a calendar-year vocabulary would include future filings |
 
