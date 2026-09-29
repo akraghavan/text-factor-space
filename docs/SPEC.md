@@ -49,7 +49,7 @@ Two WRDS rules govern how this project may use CRSP and Compustat. Both were che
 | Rule (verbatim) | Source | Status for this project |
 |---|---|---|
 | "loading Data retrieved from WRDS into LLMs and other Generative A.I. tools is prohibited" — except "protected" enterprise versions with a no-training data-protection agreement; CRSP and S&P are among the vendors covered | WRDS AI Policy page | **Cleared.** CMU's WRDS representative confirmed that the AI plan used here is an enterprise instance with a no-training agreement, which is the policy's exception. The assistant sessions may read and process WRDS data. |
-| "Users are not permitted to script or otherwise automate … the running of queries to download data from the website. Automation is permitted on the WRDS Cloud server." | WRDS Terms of Use §1 | **Cleared under a cap.** Scripted web queries are acceptable with a definitive limit; the clause targets continuous scraping. This project's cap: at most 10 submissions per calendar day and 30 per calendar month, one query running at a time, status checks no more than once a minute, never a loop that resubmits. Every submission is logged in `docs/WRDS_QUERIES.md` before it counts as done. |
+| "Users are not permitted to script or otherwise automate … the running of queries to download data from the website. Automation is permitted on the WRDS Cloud server." | WRDS Terms of Use §1 | **Cleared.** Scripted web queries are acceptable with a definitive limit; the clause targets continuous scraping. How this project runs them (D15, 29 Sep): one query at a time, each submitted for a stated data need, no tight status polling, never a loop that resubmits; no numeric daily or monthly quota. Every submission is logged in `docs/WRDS_QUERIES.md` before it counts as done. |
 | Redistribution: "you may not reproduce, distribute, modify, adapt, create derivative works of … the Proprietary Material" | WRDS Terms of Use §2 | **Binding, unchanged.** The public repo holds code, docs and non-invertible aggregates only (see below). |
 
 The operating rules for the assistant sessions are rules 0 and 1 in the project rules. Until 27 Sep this section recorded the question as open (decision D0) and the assistant paused all WRDS-data work; the pulls made before then, submitted by the assistant through the WRDS web interface with Abhi's approval, are logged in `docs/WRDS_QUERIES.md`.
@@ -397,13 +397,13 @@ text-factor-space/
 
 **Open**
 
-None as of 28 Sep.
+None as of 29 Sep.
 
 **Resolved**
 
 | ID | Decision | Outcome |
 |---|---|---|
-| D0 | How to handle WRDS data given the AI and automation terms (§2) | Cleared 27 Sep 2026: enterprise no-training plan confirmed by CMU's WRDS representative; scripted queries capped (§2) |
+| D0 | How to handle WRDS data given the AI and automation terms (§2) | Cleared 27 Sep 2026: enterprise no-training plan confirmed by CMU's WRDS representative; scripted queries run one at a time, never in a resubmitting loop (§2, D15) |
 | D1 | Repo name | `akraghavan/text-factor-space`, created 27 Sep |
 | D7 | Align this spec and the local permissions with the WRDS clearance | Done 27 Sep |
 | D2 | Primary similarity for the confirmatory tests | Adopted (27 Sep): dense embedding (centred, names masked) for H1, comovement, where pretraining leakage matters least; bag-of-words for H3, predictability, which must be leakage-free |
@@ -417,6 +417,8 @@ None as of 28 Sep.
 | D11 | Form of the BoW length correction (D9) | Null-mean subtraction $s_{ij} - m_i m_j/\mathrm{med}(m)$ adopted (27 Sep): removes the length term without inflating noise; best SIC-3 AUC (0.905) with TNIC-3 agreement kept (0.647), chosen on Element A diagnostics only (§5) |
 | D12 | Liquidity control for Element C | Daily Amihud illiquidity adopted (27 Sep): two WRDS web queries for daily price and volume (`dlyprc`, `dlyvol`), same product, dataset and date chunks as the daily return pull, logged in `docs/WRDS_QUERIES.md`; the monthly proxy stays only as a fallback |
 | D13 | Hand-write the estimators in `tfs_stats/`, or use standard libraries? | Libraries (28 Sep, Abhi): `tfs_stats/` stays the single estimator layer but the assistant writes it on statsmodels, linearmodels, scikit-learn, scipy and numpy; custom code only where no library exists (EWC, dyadic-robust, MRQAP, Fama–MacBeth on sufficient statistics, text-target shrinkage). Library code is at least as accurate and fast, and the hand-written dependency was blocking C and E. Condition: every element of the project is explained well enough for Abhi to defend it in an interview (`docs/STATS_GUIDE.md`, explain-back sessions). OLS by hand, batch and streaming, stays as tutored practice in `practice/`, off the critical path |
+| D14 | The PREREG items before the freeze: the delisting-returns question, the proposed specifications and the six flags raised on 28 Sep | Accepted as recommended (29 Sep, Abhi: "pick (a) … and accept all"). Delisting returns (E): one WRDS query for the CIZ delisting fields; a missing delisting return is imputed at −30% (NYSE/AMEX) or −55% (Nasdaq), with δ ∈ {0, −30%, −100%} as sensitivity (§3). C: pairs with no book-to-market drop out of the primary regression, and keeping them with a missing indicator is pre-listed as robustness; a firm needs ≥ 200 of 252 beta-window returns and ≥ 15 days in the month; z_lag needs ≥ 126 common residual days. E: the ≥ 1 text-peer filter stays (as in Hoberg–Phillips; about a quarter of firms have none, mostly short Item 1s), and a nearest-5 peer set is pre-listed as exploratory; a peer's R(t−12, t−1) needs ≥ 8 of 12 months; TNIC-3 (ends FY2023) is carried forward for Jul 2025 – Jun 2026 and flagged; NW L = 3 and EWC ν = 8 at T = 91. Industry codes: CRSP `siccd` primary, Compustat `sich` as robustness. B: annual end-June formations, N = 500, T = 756, empirical noise edge, rolling-beta residuals (§6.2), starting 2014 (12 formations). D: test period Dec 2018 – Mar 2026 with the dense network; if D is not built by the freeze, H2 leaves the confirmatory family (Holm 0.025 / 0.05 for H1, H3). Items other than the first three write down what the code already does |
+| D15 | Numeric limits on WRDS web queries | Dropped (29 Sep, Abhi): the 10-per-day and 30-per-month figures were a self-imposed choice, not a WRDS requirement. Queries still run one at a time, each for a stated data need, never in a resubmitting loop, and every one is logged in `docs/WRDS_QUERIES.md` (§2) |
 
 ## 14. References {#references}
 
