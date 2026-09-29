@@ -1,0 +1,2 @@
+{"time": "2026-09-29T17:53:37+00:00", "spec": "C_H1_dense_bbar", "commit": "170fec1afe31927afb44fab447762d26a1a6c400", "dirty": true, "prereg_frozen": false, "freeze_commit": null, "family": "confirmatory", "element": "C", "status": "refused", "reason": "confirmatory spec before the PREREG freeze"}
+{"time": "2026-09-29T17:53:37+00:00", "spec": "NOT_A_SPEC", "commit": "170fec1afe31927afb44fab447762d26a1a6c400", "dirty": true, "prereg_frozen": false, "freeze_commit": null, "status": "refused", "reason": "'NOT_A_SPEC' is not registered in specs.yaml"}

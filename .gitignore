@@ -29,3 +29,6 @@ hub/private/
 
 # analysis outputs with firm-level licensed data (TNIC peers, CRSP SIC marks) stay local
 analysis/output/**/*_full.md
+
+# runs.log is the spec-execution audit trail (SPEC §10.1): committed on purpose
+!runs.log
