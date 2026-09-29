@@ -1,6 +1,6 @@
 # WRDS query log
 
-Cap (CLAUDE.md rule 0): at most 10 web-query submissions per calendar day and 30 per calendar month, one running at a time, status checks at most once a minute, no resubmitting loops. Every submission is logged here.
+Rules (CLAUDE.md rule 0, D15): one query running at a time, no tight status polling, no resubmitting loops; no numeric daily or monthly quota (dropped 29 Sep). Every submission is logged here.
 
 | Date (ET) | Query id | Product | Content | Range | Result | Note |
 |---|---|---|---|---|---|---|
@@ -14,5 +14,5 @@ Cap (CLAUDE.md rule 0): at most 10 web-query submissions per calendar day and 30
 | 2026-09-27 | 11716335 | crsp_q_stock | Daily stock file: price/volume (dlyprc, dlyvol) for D12 daily Amihud | 2010-01-01 – 2017-12-31 | 14,059,016 rows | 18:20–18:34 ET; = row count of 11713727; saved as data/raw/crsp_dsf_pv_2010_2017.csv.gz |
 | 2026-09-27 | 11716454 | crsp_q_stock | Daily stock file: price/volume (dlyprc, dlyvol) for D12 daily Amihud | 2018-01-01 – 2026-03-31 | 18,279,205 rows | 19:07–19:37 ET; = row count of 11713729; saved as data/raw/crsp_dsf_pv_2018_2026.csv.gz |
 
-26 Sep total: 7 submissions (within the daily cap of 10).
-27 Sep total: 2 submissions. September: 9 of 30.
+26 Sep total: 7 submissions.
+27 Sep total: 2 submissions. September so far: 9.
