@@ -1,0 +1,472 @@
+# Specification registry (SPEC §10.1; docs/PREREG.md). Every analysis that produces a reported statistic is listed here
+# and run only through src/runner.py, which rejects ids not in this file and appends every attempt to runs.log.
+#
+# family:
+#   confirmatory  the Holm family (H1, H3). Runs only after PREREG is frozen, from a clean tree, with the entry unchanged
+#                 since the freeze commit.
+#   primary       a statistic PREREG names as primary outside the Holm family (B). Same guard as confirmatory.
+#   exploratory   pre-listed variants and robustness. Counted in runs.log for Benjamini-Hochberg (q = 0.10).
+#   diagnostic    construction checks and development-period runs that PREREG allows before the freeze; not tests.
+# predicted_sign: '+', '-', or 'none' (descriptive). period: full / dev / test / annual / na.
+# entry: 'script:<path>' (run as __main__) or '<module>:<function>'; 'pending' until the analysis code exists.
+# After the freeze: never edit a confirmatory or primary entry; new variants are added as exploratory (PREREG change log).
+version: 1
+prereg: docs/PREREG.md
+text_layer: text-layer-v1
+
+specs:
+  # ---------------------------------------------------------------- confirmatory (Holm: 0.025, 0.05)
+  - id: C_H1_dense_bbar
+    element: C
+    family: confirmatory
+    hypothesis: H1 — text similarity predicts residual comovement beyond industry, size, value, momentum, betas, liquidity and history
+    statistic: FM mean slope b-bar on the dense similarity (standardised within month); NW(4) t, one-sided
+    predicted_sign: '+'
+    period: full            # Jul 2012 - Mar 2026, T = 165
+    network: dense
+    prereg: "Element C"
+    entry: pending
+  - id: E_H3_bow_peermom_test
+    element: E
+    family: confirmatory
+    hypothesis: H3 — text-peer momentum predicts next-month returns out of sample, with SIC-3, TNIC-3 and FF-48 momentum controls
+    statistic: FM mean slope on PEERMOM (BoW nouns, null-corrected) in the test period; NW(3) t, one-sided; also HLZ t > 3
+    predicted_sign: '+'
+    period: test            # Dec 2018 - Jun 2026, T = 91
+    network: bow_null
+    prereg: "Element E"
+    entry: pending
+
+  # ---------------------------------------------------------------- primary, outside the Holm family
+  - id: B_primary_alignment_share
+    element: B
+    family: primary
+    hypothesis: residual modes carry text structure beyond industry
+    statistic: share of above-empirical-edge residual modes with beyond-industry dense alignment p < 0.05 (1,000 relabellings), pooled over 12 formations; one-sided binomial vs 5%
+    predicted_sign: '+'
+    period: annual          # 1 July 2014-2025
+    network: dense
+    prereg: "Element B"
+    entry: pending
+
+  # ---------------------------------------------------------------- diagnostic (allowed before the freeze)
+  - id: A_text_validation
+    element: A
+    family: diagnostic
+    hypothesis: none
+    statistic: same-SIC-3 AUC, TNIC-3 agreement, length correlations, neighbours
+    predicted_sign: none
+    period: annual
+    prereg: "Element A"
+    entry: script:analysis/a_text_layer.py
+  - id: B_inputs_spectra
+    element: B
+    family: diagnostic
+    hypothesis: none
+    statistic: raw and residual spectra, noise edges, IPR; no text alignment
+    predicted_sign: none
+    period: annual
+    prereg: "Element B"
+    entry: script:analysis/b_spectra.py
+  - id: C_panel_construction
+    element: C
+    family: diagnostic
+    hypothesis: none
+    statistic: outcome distribution, coverage, same-SIC-3 vs other, corr(z, z_lag); no z-text association
+    predicted_sign: none
+    period: na
+    prereg: "Element C"
+    entry: script:analysis/c_panel_check.py
+  - id: E_dev_period
+    element: E
+    family: diagnostic
+    hypothesis: none (development period, tuning allowed)
+    statistic: FM on Jul 2012 - Nov 2018 with CRSP truncated at Nov 2018
+    predicted_sign: none
+    period: dev
+    prereg: "Element E"
+    entry: script:analysis/e_dev.py
+
+  # ---------------------------------------------------------------- exploratory: B
+  - id: B_x_T1008
+    element: B
+    family: exploratory
+    hypothesis: primary B statistic with T = 1,008
+    statistic: alignment share
+    predicted_sign: +
+    period: annual
+    prereg: Element B
+    entry: pending
+  - id: B_x_sic3_share
+    element: B
+    family: exploratory
+    hypothesis: residual modes align with SIC-3 co-membership
+    statistic: alignment share with the SIC-3 matrix
+    predicted_sign: +
+    period: annual
+    prereg: Element B
+    entry: pending
+  - id: B_x_raw_dense_share
+    element: B
+    family: exploratory
+    hypothesis: residual modes align with raw dense similarity
+    statistic: alignment share with the unresidualised dense matrix
+    predicted_sign: +
+    period: annual
+    prereg: Element B
+    entry: pending
+  - id: B_x_subspace_overlap
+    element: B
+    family: exploratory
+    hypothesis: residual mode span overlaps the top-K text eigenvectors
+    statistic: squared principal-angle overlap vs K/N
+    predicted_sign: +
+    period: annual
+    prereg: Element B
+    entry: pending
+
+  # ---------------------------------------------------------------- exploratory: C (robustness to H1)
+  - id: C_x_missing_bm_indicator
+    element: C
+    family: exploratory
+    hypothesis: H1 with missing-B/M pairs kept (indicator, median rank distance)
+    statistic: b-bar NW(4)
+    predicted_sign: +
+    period: full
+    network: dense
+    prereg: Element C
+    entry: pending
+  - id: C_x_bow_null
+    element: C
+    family: exploratory
+    hypothesis: H1 with the BoW null-corrected network
+    statistic: b-bar NW(4)
+    predicted_sign: +
+    period: full
+    network: bow_null
+    prereg: Element C
+    entry: pending
+  - id: C_x_bow_raw
+    element: C
+    family: exploratory
+    hypothesis: H1 with the raw BoW network
+    statistic: b-bar NW(4)
+    predicted_sign: +
+    period: full
+    network: bow_raw
+    prereg: Element C
+    entry: pending
+  - id: C_x_binary_network
+    element: C
+    family: exploratory
+    hypothesis: H1 with the density-matched binary dense network
+    statistic: b-bar NW(4)
+    predicted_sign: +
+    period: full
+    network: dense_binary
+    prereg: Element C
+    entry: pending
+  - id: C_x_pc5
+    element: C
+    family: exploratory
+    hypothesis: H1 with residuals on FF6 + 5 principal components
+    statistic: b-bar NW(4)
+    predicted_sign: +
+    period: full
+    network: dense
+    prereg: Element C
+    entry: pending
+  - id: C_x_pc10
+    element: C
+    family: exploratory
+    hypothesis: H1 with residuals on FF6 + 10 principal components
+    statistic: b-bar NW(4)
+    predicted_sign: +
+    period: full
+    network: dense
+    prereg: Element C
+    entry: pending
+  - id: C_x_12m_windows
+    element: C
+    family: exploratory
+    hypothesis: H1 on 12-month non-overlapping windows
+    statistic: b-bar
+    predicted_sign: +
+    period: full
+    network: dense
+    prereg: Element C
+    entry: pending
+  - id: C_x_pre_fy2020
+    element: C
+    family: exploratory
+    hypothesis: H1 before the Item 101 change
+    statistic: b-bar NW
+    predicted_sign: +
+    period: full
+    network: dense
+    prereg: Element C
+    entry: pending
+  - id: C_x_post_fy2020
+    element: C
+    family: exploratory
+    hypothesis: H1 after the Item 101 change
+    statistic: b-bar NW
+    predicted_sign: +
+    period: full
+    network: dense
+    prereg: Element C
+    entry: pending
+  - id: C_x_dimson
+    element: C
+    family: exploratory
+    hypothesis: H1 with Dimson-lagged residuals
+    statistic: b-bar NW(4)
+    predicted_sign: +
+    period: full
+    network: dense
+    prereg: Element C
+    entry: pending
+  - id: C_x_sich
+    element: C
+    family: exploratory
+    hypothesis: H1 with Compustat sich industry codes
+    statistic: b-bar NW(4)
+    predicted_sign: +
+    period: full
+    network: dense
+    prereg: Element C
+    entry: pending
+  - id: C_x_mrqap
+    element: C
+    family: exploratory
+    hypothesis: H1 by MRQAP-DSP (999 relabellings, annual cross-sections)
+    statistic: permutation p of the text coefficient
+    predicted_sign: +
+    period: full
+    network: dense
+    prereg: Element C
+    entry: pending
+  - id: C_x_dyadic
+    element: C
+    family: exploratory
+    hypothesis: H1 by pooled OLS with dyadic-robust errors
+    statistic: text coefficient t with t_{G-1}
+    predicted_sign: +
+    period: full
+    network: dense
+    prereg: Element C
+    entry: pending
+
+  # ---------------------------------------------------------------- exploratory: E
+  - id: E_x_nearest5
+    element: E
+    family: exploratory
+    hypothesis: H3 with each firm's 5 nearest BoW-null peers
+    statistic: test-period FM slope NW(3)
+    predicted_sign: +
+    period: test
+    network: bow_null_k5
+    prereg: Element E
+    entry: pending
+  - id: E_x_delist_0
+    element: E
+    family: exploratory
+    hypothesis: H3 with delisting delta = 0
+    statistic: test-period FM slope NW(3)
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+  - id: E_x_delist_m100
+    element: E
+    family: exploratory
+    hypothesis: H3 with delisting delta = -100%
+    statistic: test-period FM slope NW(3)
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+  - id: E_x_sim_weighted
+    element: E
+    family: exploratory
+    hypothesis: similarity-weighted peer momentum predicts returns
+    statistic: test-period FM slope NW(3)
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+  - id: E_x_h_6_1
+    element: E
+    family: exploratory
+    hypothesis: peer momentum R(t-6, t-1)
+    statistic: test-period FM slope NW(3)
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+  - id: E_x_h_12_7
+    element: E
+    family: exploratory
+    hypothesis: peer momentum R(t-12, t-7)
+    statistic: test-period FM slope NW(3)
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+  - id: E_x_grundy_martin
+    element: E
+    family: exploratory
+    hypothesis: peer momentum R(t-12, t-2) with R(t-1) separate
+    statistic: test-period FM slopes NW(3)
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+  - id: E_x_placebo_24_13
+    element: E
+    family: exploratory
+    hypothesis: placebo peer momentum R(t-24, t-13)
+    statistic: test-period FM slope NW(3)
+    predicted_sign: none
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+  - id: E_x_idiosyncratic
+    element: E
+    family: exploratory
+    hypothesis: idiosyncratic peer returns predict
+    statistic: test-period FM slope NW(3)
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+  - id: E_x_text_only
+    element: E
+    family: exploratory
+    hypothesis: TEXT-only peers (text minus SIC-3)
+    statistic: test-period FM slope NW(3)
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+  - id: E_x_sic_only
+    element: E
+    family: exploratory
+    hypothesis: SIC-only peers
+    statistic: test-period FM slope NW(3)
+    predicted_sign: +
+    period: test
+    network: sic3
+    prereg: Element E
+    entry: pending
+  - id: E_x_both
+    element: E
+    family: exploratory
+    hypothesis: peers in both text and SIC-3
+    statistic: test-period FM slope NW(3)
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+  - id: E_x_dense_only
+    element: E
+    family: exploratory
+    hypothesis: DENSE-only peers (dense minus TNIC and SIC-3)
+    statistic: test-period FM slope NW(3)
+    predicted_sign: +
+    period: test
+    network: dense
+    prereg: Element E
+    entry: pending
+  - id: E_x_portfolios
+    element: E
+    family: exploratory
+    hypothesis: quintile and decile long-short alphas (FF3, FF3+UMD, FF5+UMD, +STR; EW/VW; price >= 1 and >= 5)
+    statistic: alphas and t
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+  - id: E_x_perm_stratified
+    element: E
+    family: exploratory
+    hypothesis: PEERMOM beats stratified peer substitution (FF-48 x NYSE size tercile)
+    statistic: one-sided permutation p over 999 draws
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+  - id: E_x_perm_matched
+    element: E
+    family: exploratory
+    hypothesis: PEERMOM beats past-return-matched random peers
+    statistic: permutation p
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+  - id: E_x_stale_y3
+    element: E
+    family: exploratory
+    hypothesis: stale network from year y-3
+    statistic: test-period FM slope NW(3)
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+  - id: E_x_hp_replication
+    element: E
+    family: exploratory
+    hypothesis: Hoberg-Phillips replication with TNIC-3 on the common sample
+    statistic: FM slope and quintile alpha
+    predicted_sign: +
+    period: full
+    network: tnic3
+    prereg: Element E
+    entry: pending
+  - id: E_x_post_sep2023
+    element: E
+    family: exploratory
+    hypothesis: H3 after the encoder's release (Sep 2023)
+    statistic: FM slope NW
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+  - id: E_x_sich
+    element: E
+    family: exploratory
+    hypothesis: H3 with Compustat sich industry codes
+    statistic: test-period FM slope NW(3)
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: pending
+
+  # ---------------------------------------------------------------- exploratory: D (deferred; H2 left the family, D14)
+  - id: D_x_text_vs_lwnl
+    element: D
+    family: exploratory
+    hypothesis: dense text target beats LW nonlinear shrinkage out of sample
+    statistic: log variance difference, LW (2011) HAC
+    predicted_sign: '-'
+    period: test
+    network: dense
+    prereg: Element D
+    entry: pending
