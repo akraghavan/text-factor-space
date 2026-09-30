@@ -77,6 +77,15 @@ specs:
     period: na
     prereg: "Element C"
     entry: script:analysis/c_panel_check.py
+  - id: E_delisting_coverage
+    element: E
+    family: diagnostic
+    hypothesis: none (coverage count)
+    statistic: number of E firm-months whose dependent return is imputed under SPEC §3 (count only, no return values)
+    predicted_sign: none
+    period: full
+    prereg: 'Element E / Common: delisting returns'
+    entry: script:analysis/e_delisting_coverage.py
   - id: E_dev_period
     element: E
     family: diagnostic

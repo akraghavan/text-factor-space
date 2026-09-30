@@ -1,5 +1,5 @@
 """Clean CRSP common-stock panels (monthly + daily) and Fama-French factors."""
-import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from paths import RAW, INTERIM, PROCESSED, SEC_UA; from universe import common_stock
+import sys, os; sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from paths import RAW, INTERIM, PROCESSED, SEC_UA; from universe import common_stock, add_exit_months
 import pandas as pd, zipfile, io, os, glob
 RAW=str(RAW); OUT=str(PROCESSED); os.makedirs(OUT,exist_ok=True)
 def ff(zipname):
@@ -18,9 +18,13 @@ ffm=f5m.merge(momm,on='date'); ffm['ym']=pd.PeriodIndex(pd.to_datetime(ffm.date,
 ffd.to_parquet(f'{OUT}/ff_daily.parquet'); ffm.to_parquet(f'{OUT}/ff_monthly.parquet')
 print('FF daily',ffd.date.min().date(),ffd.date.max().date(),ffd.columns.tolist()); print('FF monthly',ffm.ym.min(),ffm.ym.max())
 m=pd.read_parquet(f'{RAW}/crsp_msf.parquet')
-cs=common_stock(m).copy()
-cs['ym']=pd.PeriodIndex(pd.to_datetime(cs.mthcaldt),freq='M')
-cs=cs.rename(columns={'mthret':'ret','mthcap':'me','siccd':'sic'})[['permno','permco','ym','ret','me','mthprc','mthvol','shrout','sic','naics','primaryexch','ticker','issuernm','vwretd']]
+m['ym']=pd.PeriodIndex(pd.to_datetime(m.mthcaldt),freq='M')
+cs=common_stock(m).copy(); cs['in_universe']=True
+cs=cs.sort_values(['permno','ym']).drop_duplicates(['permno','ym'],keep='last')
+ex=add_exit_months(m,cs)   # SPEC §3: universe at formation only; keep the exit (e.g. delisting) month's return
+print('exit-month rows kept (in universe at t-1, not at t):',len(ex))
+cs=pd.concat([cs,ex],ignore_index=True)
+cs=cs.rename(columns={'mthret':'ret','mthcap':'me','siccd':'sic'})[['permno','permco','ym','ret','me','mthprc','mthvol','shrout','sic','naics','primaryexch','ticker','issuernm','vwretd','in_universe']]
 cs['me']=cs.me*1000   # CIZ MthCap is in $000s; panels carry market cap in dollars (SPEC §3)
 cs=cs.sort_values(['permno','ym']).drop_duplicates(['permno','ym'],keep='last')
 cs['me_lag']=cs.groupby('permno').me.shift(1)

@@ -40,7 +40,7 @@ NEIGHBOUR_T = pd.Timestamp('2024-07-01')          # latest formation with TNIC-3
 # ---------------------------------------------------------------- data
 def load():
     lk = pd.read_parquet(INTERIM / 'tenk_linked.parquet', columns=['accession', 'permno', 'gvkey', 'cik', 'filing_date'])
-    m = pd.read_parquet(PROCESSED / 'crsp_monthly.parquet', columns=['permno', 'permco', 'ym', 'me', 'sic'])
+    m = pd.read_parquet(PROCESSED / 'crsp_monthly.parquet', columns=['permno', 'permco', 'ym', 'me', 'sic', 'in_universe'])
     B = bow.load()
     e = pd.concat(pd.read_parquet(f) for f in sorted(glob.glob(str(INTERIM / 'emb' / 'shard_*.parquet'))))
     e = e.drop_duplicates('accession')
@@ -52,7 +52,7 @@ def load():
 
 def firms_at(D, t):
     ym = (t - pd.Timedelta(days=1)).to_period('M')
-    u = exclude_spacs(D['m'][(D['m'].ym == ym) & D['m'].me.notna()])     # D8
+    u = exclude_spacs(D['m'][(D['m'].ym == ym) & D['m'].me.notna() & D['m'].in_universe])     # D8; exit-month rows are not members
     u = u.sort_values('me', ascending=False).drop_duplicates('permco')
     f = D['lk'][(D['lk'].filing_date < t) & (D['lk'].filing_date >= t - pd.DateOffset(months=15))]
     f = f.sort_values('filing_date').drop_duplicates('permno', keep='last')

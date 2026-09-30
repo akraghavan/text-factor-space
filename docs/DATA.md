@@ -64,6 +64,17 @@ Common output settings for all four: output format **comma-delimited text (.csv)
 | Variables | `gvkey, lpermno, lpermco, linkprim, linktype, liid, datadate, fyear, cik, conm, tic, exchg, fyr, sich, naicsh, at, ceq, seq, pstk, pstkl, pstkrv, txditc, csho, prcc_f, sale, revt, ni, ib, lt, oancf, xrd, capx, emp, cogs, xsga, dvc` |
 | Result | 95,382 rows (FY2008 → FY2026) |
 
+### (e) CRSP delisting information → `data/raw/crsp_delist_2009_2026.csv.gz`
+
+| Setting | Value |
+|---|---|
+| Product | CRSP → Stock – Version 2 (CIZ), Quarterly Update (`crsp_q_stock`) |
+| Dataset | Stock Delisting Information (`stkdelists`) |
+| Date range | DelistingDt 2009-01-01 to 2026-06-29 |
+| Search | entire database, all action types, all 22 variables |
+| Result | 9,146 rows, one per PERMNO (WRDS query 11726815, 29 Sep 2026) |
+| Used by | `src/delisting.py` (Element E only; read directly, no conversion) |
+
 ### Converting the WRDS CSVs to parquet (P0)
 
 `build_filing_index.py`, `build_links.py` and `build_panel.py` read parquet, not the CSVs. `python src/convert_wrds.py` writes:
@@ -134,6 +145,8 @@ Run from the repo root with the venv active (`make setup && source .venv/bin/act
 | P6 v0 | `python src/tfidf.py` (superseded: calendar-year vocabulary, look-ahead) | `tenk_linked.parquet`, `item1/` shards | `data/interim/tfidf/{X,rows,vocab}_<year>.*` |
 
 Notes:
+- P4 keeps each firm's **exit month** (the month after its last universe month) with `in_universe = False` (`universe.add_exit_months`): SPEC §3 applies the universe at formation only, so the return a firm formed at t−1 realises in t must survive even if it leaves the universe in t. In the delisting month CIZ blanks ShareType/SecurityType/ConditionalType, so before 30 Sep 2026 87% of delisting-month returns were dropped. 4,306 exit rows (4,092 delisting months); `formation.universe_at` selects `in_universe` rows only.
+- E's monthly returns get the SPEC §3 delisting imputation (`src/delisting.py`): only performance-related delistings (CIZ action GDR) whose DelRet is missing; a present DelRet is already inside CIZ `MthRet` and is never added again.
 - P4 market cap is in **dollars**: `crsp_monthly.me` = CIZ `MthCap` × 1000 and `crsp_daily.cap` = `DlyCap` × 1000 (CRSP reports both in $000s; the `*.parquet` files in `data/raw/` keep CRSP's units). `me_lag` is the prior month's `me`.
 - The text layer is frozen at git tag `text-layer-v1` (27 Sep 2026): P2′/P2″ canonical Item 1 → P4b SPAC flags → P4c name masks → P5 (masked) → P6. P2/P2b are kept only to document how the first extraction was made.
 - P5 embeds every Item 1 shard not yet embedded and exits. With `--follow` it keeps polling for new shards until `data/interim/scrape.log` contains `DONE`, so it can run alongside P2 (whose log must then go to that file).
