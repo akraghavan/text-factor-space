@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Tue 29 Sep 2026, 13:54 ET (local Claude Code session)_
+_Last updated: Wed 30 Sep 2026, 18:25 ET (local Claude Code session)_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
@@ -22,7 +22,14 @@ _Last updated: Tue 29 Sep 2026, 13:54 ET (local Claude Code session)_
 - **Element A validated (`analysis/a_text_layer.py`, `analysis/output/a_text_layer/`):** 1 July formations 2012–2026, 3,222–3,870 firms. Same-SIC-3 AUC: dense 0.864, BoW nouns 0.861, BoW 0.853 (0.873/0.870/0.862 excluding SIC 6799 blank-check firms). At SIC-3 density, 31–38% of text edges are same-SIC-3 pairs. TNIC-3 agreement (edge Jaccard): BoW nouns 0.616, BoW 0.606, dense 0.339, SIC-3 0.276; AUC for TNIC pairs 0.94–0.97. Same-firm year-on-year similarity median 0.90–0.93. π rises 2.1% → 3.3% (biotech growth). BoW has a strong length/hub effect (corr of log length with mean similarity +0.93); dense −0.23.
 
 ## Running
-- Nothing. Waiting on Abhi's go to freeze PREREG (target Thu 1 Oct) and on Cowork's WRDS delisting-fields query (D14 item 1).
+- Nothing. Waiting on Abhi's go to freeze PREREG (target Thu 1 Oct).
+
+## Done 30 Sep: SPEC §3 delisting imputation (PREREG D14 item 1) and a panel fix it exposed
+- **Delisting file** (Cowork, WRDS query 11726815): 9,146 PERMNOs; DelRet missing for 298 (DelRetMissType DG/DM/DP), 212 of them performance-related (action GDR).
+- **No double counting, checked on this data:** when DelRet is present, CIZ puts it on the single daily row after DelistingDt (equal to DelRet in 91.5%) and the DelistingDt month's MthRet = (1 + return through the last trade)(1 + DelRet) − 1 (91.5%; most of the rest have DelRet = 0). So a present DelRet is already in MthRet and is never added. When DelRet is missing, MthRet is only the trading return through the last trade (95.1%).
+- **Rule (`src/delisting.py`):** performance-related (GDR) delistings with a missing DelRet: r = (1 + MthRet)(1 + δ) − 1, δ = −30% (N/A) or −55% (Q) by exchange at delisting; sensitivity δ ∈ {0, −30%, −100%}. Non-performance missing DelRets (GLI, MER, GEX) stay as CRSP has them. Tests: 3.
+- **E firm-months touched: 13** (dev 9, test 4; 8 Nasdaq, 5 NYSE American), out of 159 performance-related missing-DelRet delistings in Jul 2012 – Jun 2026 (90 not in the universe at t−1, 32 without a text vintage, 15 below $1, 9 with no text peer). Another 7 E firm-months have a missing DelRet on a non-performance delisting (left as is). Registered diagnostic `E_delisting_coverage` (`analysis/output/e_delisting/`), run through the runner; count only.
+- **Panel fix (SPEC §3: universe at formation only):** in the delisting month CIZ blanks ShareType/SecurityType/ConditionalType, so `build_panel`'s monthly universe filter was dropping 87% of delisting-month returns (3,146 of 3,620 in 2012–2026), DelRets included: a survivorship bias in E. `build_panel` now keeps each firm's exit month (`universe.add_exit_months`, `in_universe = False`; 4,306 rows); `universe_at`, Element A and B/M use `in_universe` rows only, so universe membership is unchanged. E dev rerun (diagnostic): +671 firm-months with a dependent return (163,941 → 164,612); PEERMOM 0.172 → 0.175 %/month per SD, NW(3) t 3.23 → 3.22.
 
 ## Done 29 Sep
 - **D14 applied to `docs/PREREG.md` (still DRAFT; fdcdeb9):** every [PROPOSED]/[OPEN] item and the six 28 Sep flags written into the specs; family {H1, H3} with Holm 0.025 / 0.05; D exploratory; disclosure paragraph updated to list what has been computed since 28 Sep (C construction checks, B spectra, E dev period) and what has not (b̄, alignment share, any test-period return, any D variance). SPEC §3 industry-code row aligned (CRSP `siccd` primary, `sich` robustness).

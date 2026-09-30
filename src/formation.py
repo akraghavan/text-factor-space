@@ -33,6 +33,7 @@ def universe_at(t, text=True):
     text vintage: accession, filing_date, fye_month (fiscal year end month of that 10-K), n_words."""
     t = pd.Period(t, 'M'); m = monthly()
     u = m[(m.ym == t - 1) & m.me.notna()]
+    if 'in_universe' in u: u = u[u.in_universe]                       # exit-month rows carry returns, not membership
     u = exclude_spacs(u).sort_values('me', ascending=False).drop_duplicates('permco')
     u = u[['permno', 'permco', 'me', 'sic', 'primaryexch']].reset_index(drop=True)
     if not text: return u
@@ -62,7 +63,7 @@ def book_to_market(t):
     over PERMCO-summed market equity in December y-1. Indexed by permno."""
     t = pd.Period(t, 'M'); y = t.year if t.month >= 7 else t.year - 1
     be = book_equity(); be = be[be.fy_cal == y - 1].set_index('lpermno').be
-    m = monthly(); d = m[m.ym == pd.Period(f'{y - 1}-12', 'M')]
+    m = monthly(); d = m[(m.ym == pd.Period(f'{y - 1}-12', 'M')) & m.in_universe]
     me = d.groupby('permco').me.transform('sum'); me.index = d.permno.to_numpy()
     bm = (be * 1e6) / me.reindex(be.index)                        # Compustat $ millions, CRSP me in dollars
     return bm.dropna()

@@ -5,6 +5,22 @@ def common_stock(m):
     return m[(m.sharetype=='NS')&(m.securitytype=='EQTY')&(m.securitysubtype=='COM')&(m.usincflg=='Y')
              &m.issuertype.isin(['ACOR','CORP'])&m.conditionaltype.isin(['RW','NW'])&m.primaryexch.isin(['N','A','Q'])]
 
+def add_exit_months(raw, members):
+    """Rows of `raw` (CRSP monthly, lower-case CIZ columns, with ym) for each permno's EXIT month: the month t after a
+    month t-1 in which it was in the universe (`members`, the common_stock rows) when it is not in the universe at t.
+    SPEC §3 applies the universe at formation only, so the return realised in month t by a firm formed at t-1 must be
+    kept even if the firm leaves the universe in t. It matters above all for delistings: in the DelistingDt month CIZ
+    blanks ShareType, SecurityType and ConditionalType (SecuritySubType UNK, USIncFlg N), so the month fails the
+    universe filter, and 87% of delisting-month returns (with any DelRet CRSP folded in) were being dropped before
+    30 Sep 2026. Returns rows flagged in_universe = False; universe_at selects in_universe rows only."""
+    import pandas as pd
+    raw = raw.sort_values(['permno', 'ym']).drop_duplicates(['permno', 'ym'], keep='last')
+    inu = pd.MultiIndex.from_frame(members[['permno', 'ym']])
+    nxt = pd.MultiIndex.from_arrays([members.permno.to_numpy(), (members.ym + 1).to_numpy()])
+    k = pd.MultiIndex.from_frame(raw[['permno', 'ym']])
+    out = raw[k.isin(nxt) & ~k.isin(inu)].copy(); out['in_universe'] = False
+    return out
+
 # D8 (SPEC §3): SPACs are excluded. A 10-K is a SPAC filing if its Item 1 describes a shell: "we are / is a blank check
 # company" in the first 500 words, or "initial business combination" at least 3 times in the first 2,000 words.
 # Checked against the company name at the filing date (SEC formerNames; "Acquisition"/"Merger"/"SPAC" = SPAC):

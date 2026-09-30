@@ -2,7 +2,8 @@
 untouched until the freeze). Before anything runs, the monthly CRSP panel held by src/formation.py is replaced by its
 rows up to 2018-11 and the factor file is cut at 2018-11, so no test-period return can enter any signal, control or
 dependent variable; the script asserts it.
-Specification (PREREG draft, Element E): src/e_signals.signals_at(t); dependent = month-t return minus the FF risk-free
+Specification (PREREG draft, Element E): src/e_signals.signals_at(t); monthly returns first get the SPEC §3 delisting
+imputation (src/delisting.adjust, exchange-specific delta); dependent = month-t return minus the FF risk-free
 rate; right-hand side winsorised at 1/99 and z-scored each month; Fama-MacBeth via tfs_stats.regression.fama_macbeth
 with NW(L = nw_lags_rule(77) = 3) x T/(T-1); NW(2) for comparability with Hoberg-Phillips; EWC via tfs_stats.ewc on the
 slope series (nu = ewc_nu_rule(77) = 7). Writes analysis/output/e_dev/README.md (aggregates only)."""
@@ -26,6 +27,9 @@ if __name__ == '__main__':
     full = pd.read_parquet(PROCESSED / 'crsp_monthly.parquet')
     F._cache['m'] = full[full.ym <= DEV_LAST].copy(); del full                    # hold back the test period
     assert F.monthly().ym.max() == DEV_LAST
+    import delisting
+    F._cache['m'], dstats = delisting.adjust(F.monthly())                        # SPEC §3 imputation (PREREG D14 item 1)
+    print('delisting imputation:', dstats, flush=True)
     import e_signals as E
     ffm = pd.read_parquet(PROCESSED / 'ff_monthly.parquet'); ffm = ffm[ffm.ym <= DEV_LAST].set_index('ym')
     rows = []
