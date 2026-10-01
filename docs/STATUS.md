@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Wed 30 Sep 2026, 20:03 ET (local Claude Code session)_
+_Last updated: Thu 1 Oct 2026, 15:38 ET (local Claude Code session)_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
@@ -23,6 +23,12 @@ _Last updated: Wed 30 Sep 2026, 20:03 ET (local Claude Code session)_
 
 ## Running
 - Nothing.
+
+## Registered results (1 Oct 2026; PREREG frozen at d1df5c7; all run through `src/runner.py`, logged in `runs.log`)
+- **H1 (C, `C_H1_dense_bbar`): supported.** b̄ = 0.0119 per SD of dense similarity (Fisher-z units), NW(4) t = 24.66, one-sided p = 1.5e-134; EWC(12) t = 21.74; lag-1 autocorrelation of b_t 0.29. 165 months, median 442,270 pairs a month (88.4% of pairs). For scale: same SIC-4 adds 0.064, z_lag slope 0.42. `analysis/output/c_h1/`.
+- **H3 (E, `E_H3_bow_peermom_test`): supported.** Test period Dec 2018 – Jun 2026 (T = 91): PEERMOM 0.262%/month per SD, NW(3) t = 2.81, one-sided p = 0.0025; NW(2) t 2.78; EWC(8) t 2.98; below the Harvey–Liu–Zhu t > 3 hurdle. Development 0.175 (t 3.22), full sample 0.222 (t 4.00); test − dev +0.087 (t 0.80): no decay. TNIC momentum 0.297 (t 2.51) alongside. `analysis/output/e_h3/`.
+- **Holm {H1, H3} at 5%: both nulls rejected** (thresholds 0.025, 0.05). `analysis/output/confirmatory/`.
+- **B primary (`B_primary_alignment_share`): text structure beyond industry.** 255 of 267 above-edge residual modes (95.5%) align with dense similarity residualised on SIC-3 at p < 0.05 (1,000 relabellings); binomial p < 1e-300 (overlapping windows: optimistic). Caveat: "beyond industry" = beyond SIC-3 only. `analysis/output/b_primary/`.
 
 ## PREREG frozen (30 Sep 2026, 20:03 ET, Abhi's go)
 - **Runner guard fixed after the freeze (1 Oct, before any registered run):** the guard compared the whole spec with its frozen copy, but the confirmatory entries were frozen as `entry: pending` (the code could only be written afterwards), so H1/H3 could never run. It now compares every field except `entry` (hypothesis, statistic, sign, period, network, family, element stay locked) and additionally refuses guarded runs from a tree with any uncommitted tracked change, so every registered result is tied to a code commit. No specification changed. Tests: 8 runner tests.
@@ -73,7 +79,7 @@ _Last updated: Wed 30 Sep 2026, 20:03 ET (local Claude Code session)_
 - Nothing.
 
 ## Next
-- Claude: write the H1 (C) and H3 (E) entries and the B primary entry exactly as registered, then run them through `src/runner.py` (the runner will check them against specs.yaml at d1df5c7). Exploratory specs after the confirmatory runs, each logged for the BH count.
+- Claude: exploratory specs by priority (C: BoW null/raw, missing-B/M kept, PC5/PC10; E: nearest-5, delisting delta 0/-100%; B: SIC-3 and raw-dense shares), each through the runner for the BH count; then `docs/RESULTS.md` (2 pages), résumé bullet and 2-minute pitch from these numbers. Hard stop on new project work Fri 2 Oct.
 - Abhi: practice/ OLS by hand.
 
 ## Requests for Cowork

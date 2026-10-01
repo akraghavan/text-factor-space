@@ -97,4 +97,5 @@ Count and list here as they are run (SPEC §10.3).
 
 ## Change log (after freeze only)
 
-- None yet.
+- 1 Oct 2026, before any registered run (46f1f40): `src/runner.py` compares each guarded spec with its frozen copy in every field except `entry`, which was frozen as `pending` because the code could only be written after the freeze; guarded runs also require a fully committed tree. No specification changed.
+- 1 Oct 2026: registry addition `Confirmatory_family_holm` (diagnostic: applies the Holm rule above to the logged H1 and H3 p-values; no new test).
