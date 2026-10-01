@@ -106,6 +106,16 @@ specs:
     prereg: Confirmatory family and multiple testing
     entry: confirmatory_family:run
 
+  - id: Exploratory_family_bh
+    element: B+C+E
+    family: diagnostic
+    hypothesis: none (family decision; reads runs.log)
+    statistic: Benjamini-Hochberg at q = 0.10 and Benjamini-Yekutieli over the latest one-sided p of every exploratory spec run (m from runner count)
+    predicted_sign: none
+    period: na
+    prereg: Confirmatory family and multiple testing
+    entry: exploratory_family:run
+
   # ---------------------------------------------------------------- exploratory: B
   - id: B_x_T1008
     element: B

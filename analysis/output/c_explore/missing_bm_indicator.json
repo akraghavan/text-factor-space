@@ -1,0 +1,17 @@
+{
+ "b_bar": 0.011850901402680521,
+ "se_nw": 0.0004665386567784484,
+ "t_nw": 25.40175659722088,
+ "nw_lags": 4,
+ "p_one_sided": 1.2058243020791027e-142,
+ "t_ewc": 22.05927693076605,
+ "ewc_nu": 12,
+ "months": 165,
+ "months_skipped": 0,
+ "median_pairs_used": 479710,
+ "share_pairs_used": 0.956358685958686,
+ "max_cond_XtX": 193559.82182503198,
+ "b_bar_last_regressor": 0.0007284717742864437,
+ "t_last_regressor": 1.0918612351814292,
+ "seconds": 143
+}
