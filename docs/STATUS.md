@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Wed 30 Sep 2026, 18:25 ET (local Claude Code session)_
+_Last updated: Wed 30 Sep 2026, 20:03 ET (local Claude Code session)_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
@@ -22,7 +22,11 @@ _Last updated: Wed 30 Sep 2026, 18:25 ET (local Claude Code session)_
 - **Element A validated (`analysis/a_text_layer.py`, `analysis/output/a_text_layer/`):** 1 July formations 2012–2026, 3,222–3,870 firms. Same-SIC-3 AUC: dense 0.864, BoW nouns 0.861, BoW 0.853 (0.873/0.870/0.862 excluding SIC 6799 blank-check firms). At SIC-3 density, 31–38% of text edges are same-SIC-3 pairs. TNIC-3 agreement (edge Jaccard): BoW nouns 0.616, BoW 0.606, dense 0.339, SIC-3 0.276; AUC for TNIC pairs 0.94–0.97. Same-firm year-on-year similarity median 0.90–0.93. π rises 2.1% → 3.3% (biotech growth). BoW has a strong length/hub effect (corr of log length with mean similarity +0.93); dense −0.23.
 
 ## Running
-- Nothing. Waiting on Abhi's go to freeze PREREG (target Thu 1 Oct).
+- Nothing.
+
+## PREREG frozen (30 Sep 2026, 20:03 ET, Abhi's go)
+- `docs/PREREG.md` frozen at commit `d1df5c795b83d7e1f3d04a23a31fe0174b6aa047`; tag `prereg-v1` marks the freeze-record commit. Primary specifications no longer change; new variants are exploratory (change log). Confirmatory family {H1 (C, dense b̄, NW(4)), H3 (E, BoW-null PEERMOM test period, NW(3))}, Holm 0.025 / 0.05. `python src/runner.py check` reports frozen = True.
+- Last pre-freeze change (d1df5c7): the delisting line names performance-related = CIZ GDR, the (1 + MthRet)(1 + δ) − 1 form, no re-adding of present DelRets, and the 7 non-performance E firm-months left as is.
 
 ## Done 30 Sep: SPEC §3 delisting imputation (PREREG D14 item 1) and a panel fix it exposed
 - **Delisting file** (Cowork, WRDS query 11726815): 9,146 PERMNOs; DelRet missing for 298 (DelRetMissType DG/DM/DP), 212 of them performance-related (action GDR).
@@ -68,8 +72,8 @@ _Last updated: Wed 30 Sep 2026, 18:25 ET (local Claude Code session)_
 - Nothing.
 
 ## Next
-- Abhi: review the final PREREG diff; say "freeze" to record the freeze commit and date and remove the DRAFT box.
-- Claude: when the delisting file lands, implement SPEC §3's imputation in E's returns; after the freeze, write the C (H1) and E (H3) entries and run them through the runner.
+- Claude: write the H1 (C) and H3 (E) entries and the B primary entry exactly as registered, then run them through `src/runner.py` (the runner will check them against specs.yaml at d1df5c7). Exploratory specs after the confirmatory runs, each logged for the BH count.
+- Abhi: practice/ OLS by hand.
 
 ## Requests for Cowork
 _(local Claude Code sessions add requests here)_
