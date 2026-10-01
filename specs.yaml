@@ -96,6 +96,16 @@ specs:
     prereg: "Element E"
     entry: script:analysis/e_dev.py
 
+  - id: Confirmatory_family_holm
+    element: C+E
+    family: diagnostic
+    hypothesis: none (family decision; reads runs.log)
+    statistic: Holm at 5% over the latest H1 and H3 one-sided p-values (thresholds 0.025, 0.05)
+    predicted_sign: none
+    period: na
+    prereg: Confirmatory family and multiple testing
+    entry: confirmatory_family:run
+
   # ---------------------------------------------------------------- exploratory: B
   - id: B_x_T1008
     element: B
