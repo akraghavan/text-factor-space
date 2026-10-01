@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Thu 1 Oct 2026, 15:38 ET (local Claude Code session)_
+_Last updated: Thu 1 Oct 2026, evening ET (local Claude Code session)_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
@@ -29,6 +29,26 @@ _Last updated: Thu 1 Oct 2026, 15:38 ET (local Claude Code session)_
 - **H3 (E, `E_H3_bow_peermom_test`): supported.** Test period Dec 2018 – Jun 2026 (T = 91): PEERMOM 0.262%/month per SD, NW(3) t = 2.81, one-sided p = 0.0025; NW(2) t 2.78; EWC(8) t 2.98; below the Harvey–Liu–Zhu t > 3 hurdle. Development 0.175 (t 3.22), full sample 0.222 (t 4.00); test − dev +0.087 (t 0.80): no decay. TNIC momentum 0.297 (t 2.51) alongside. `analysis/output/e_h3/`.
 - **Holm {H1, H3} at 5%: both nulls rejected** (thresholds 0.025, 0.05). `analysis/output/confirmatory/`.
 - **B primary (`B_primary_alignment_share`): text structure beyond industry.** 255 of 267 above-edge residual modes (95.5%) align with dense similarity residualised on SIC-3 at p < 0.05 (1,000 relabellings); binomial p < 1e-300 (overlapping windows: optimistic). Caveat: "beyond industry" = beyond SIC-3 only. `analysis/output/b_primary/`.
+
+## Exploratory results, tier 1 (1 Oct 2026; all through `src/runner.py`; m = 13 so far)
+- **B** (code 7a2237b; `analysis/output/b_explore/`). Aligned share of the 267 above-edge modes, p < 0.05 each:
+  - `B_x_nested_sic`: 241/267 = 90.3% (binomial p 6.5e-279). Dense similarity residualised on nested SIC-1..4, so this is the **"beyond industry"** number; the primary 95.5% means "beyond SIC-3".
+  - `B_x_ff48_share` 90.6%; `B_x_sic3_share` 99.3%; `B_x_raw_dense_share` 100%.
+  - `B_x_subspace_overlap`: mean overlap 0.272 vs K/N 0.0445 (6.2×); 12/12 formations p < 0.05; Fisher p 3.6e-23.
+- **C** (code b61d251; `analysis/output/c_explore/`). b̄ per SD of similarity, NW(4) t and EWC(12) t:
+  - `C_x_bow_null`: 0.0179 (t 24.6; EWC 20.2).
+  - `C_x_missing_bm_indicator`: 0.0119 (t 25.4; 95.6% of pairs used; indicator t 1.09).
+  - `C_x_pc5`: 0.0096 (t 24.1).
+  - `C_x_pc10`: 0.0078 (t 19.6).
+  - About 35% of the dense effect is absorbed by 10 statistical factors; the rest is not unmodelled macro betas.
+  - PC residuals: new `tfs_stats.rmt.pca_factors` (guide card `#fn-pca_factors`), loadings from the 252-day window only, built to `data/processed/ff6pc{5,10}_*` in about 30 s each.
+- **E** (code 1fa1d1a; `analysis/output/e_explore/`). Test-period slope (%/month per SD), NW(3) t:
+  - `E_x_delist_0`: 0.261 (t 2.81). `E_x_delist_m100`: 0.262 (t 2.81). Imputation touches only 4 test firm-months (3 in the regression sample).
+  - `E_x_nearest5`: 0.338 (t 4.00; 239,942 firm-months).
+  - `E_x_stale_y3`: 0.208 (t 2.24).
+- E README now carries the test-period counts: 214,916 before → 185,920 after the complete-case drop. log B/M is the main loss (19,472); then TNIC momentum (13,242).
+- **Interim BH/BY** (`Exploratory_family_bh`, a diagnostic added after the freeze and noted in the PREREG change log; `analysis/output/exploratory/`): 13/13 rejected at q = 0.10 under both BH and BY. Re-run after tier 2.
+- **Tier 2** (MRQAP-DSP, dyadic-robust, E portfolios, idiosyncratic peers, HP replication, matched-peer permutation): runtime estimates given to Abhi (~4 h code, ~35 min compute). **Waiting for his go.**
 
 ## PREREG frozen (30 Sep 2026, 20:03 ET, Abhi's go)
 - **Runner guard fixed after the freeze (1 Oct, before any registered run):** the guard compared the whole spec with its frozen copy, but the confirmatory entries were frozen as `entry: pending` (the code could only be written afterwards), so H1/H3 could never run. It now compares every field except `entry` (hypothesis, statistic, sign, period, network, family, element stay locked) and additionally refuses guarded runs from a tree with any uncommitted tracked change, so every registered result is tied to a code commit. No specification changed. Tests: 8 runner tests.
