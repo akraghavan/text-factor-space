@@ -8,8 +8,10 @@
 Rules enforced:
   1. Unregistered id -> refused (exit 2), and the refusal is logged.
   2. family confirmatory or primary -> refused unless docs/PREREG.md is frozen (a 40-hex commit in "Frozen at commit",
-     no DRAFT box), specs.yaml and PREREG.md have no uncommitted changes, and the spec's entry in specs.yaml is
-     identical to its entry at the freeze commit (primary specifications never change after the freeze).
+     no DRAFT box), the tracked tree has no uncommitted changes (runs.log excepted: the runner appends to it), so every
+     guarded result is tied to an exact code commit, and the spec in specs.yaml equals its entry at the freeze commit in
+     every field except `entry`. `entry` is the pointer to the code, frozen as 'pending' because the code could only be
+     written after the freeze; hypothesis, statistic, sign, period, network, family and element stay locked.
   3. Every attempt (ok, error, refused) is appended to runs.log as one JSON line: time (UTC), spec id, family, element,
      git commit, dirty flag, PREREG frozen flag and commit, status, reason, duration, and the small result summary the
      entry returns (aggregates only, never data rows). runs.log is append-only and committed.
@@ -56,6 +58,9 @@ def _dirty(paths, root):
     out = _git('status', '--porcelain', '--', *paths, root=root)
     return bool(out)
 
+def _frozen_fields(spec):
+    return {k: v for k, v in (spec or {}).items() if k != 'entry'}
+
 def _entry_at(commit, spec_id, registry_rel, root):
     txt = _git('show', f'{commit}:{registry_rel}', root=root)
     if txt is None: return None
@@ -79,8 +84,10 @@ def run(spec_id, registry='specs.yaml', log='runs.log', root=ROOT):
     s = specs[spec_id]; rec.update(family=s['family'], element=s['element'])
     if s['family'] in GUARDED:
         if not frozen: return refuse(f"{s['family']} spec before the PREREG freeze")
-        if _dirty([registry, str(prereg.relative_to(root))], root): return refuse('specs.yaml or PREREG.md has uncommitted changes')
-        if _entry_at(fcommit, spec_id, registry, root) != s: return refuse('the spec differs from its entry at the freeze commit')
+        dirty = [l for l in (_git('status', '--porcelain', '--untracked-files=no', root=root) or '').splitlines() if not l.endswith(log)]
+        if dirty: return refuse('uncommitted changes to tracked files (commit the code first): ' + '; '.join(l.strip() for l in dirty[:5]))
+        frozen_spec = _entry_at(fcommit, spec_id, registry, root)
+        if frozen_spec is None or _frozen_fields(frozen_spec) != _frozen_fields(s): return refuse('the spec differs from its entry at the freeze commit')
     entry = str(s['entry'])
     if entry == 'pending': return refuse('entry is pending (analysis code not written yet)', code=3)
     t0 = time.time()

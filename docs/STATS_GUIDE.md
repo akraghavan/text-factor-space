@@ -471,6 +471,20 @@ The SPEC's inference also needs estimators that no standard library provides. Th
 
 **Read.** Lazarus, Lewis, Stock & Watson (2018), JBES, "HAR Inference: Recommendations for Practice" (sections 2–3 and the recommendations). Müller (2007) for the fixed-b idea behind it.
 
+### mode_alignment(U, G, n_perm) and residualize_on_blocks(G, labels) {#fn-mode_alignment}
+
+**Job in the project.** B's primary statistic. Does a residual eigenmode $u_k$ (structure left after FF6) line up with the text network beyond what industry explains?
+
+**The math.** $A_k = u_k^\top \tilde G u_k = \sum_{i\ne j} u_{ki}u_{kj}\tilde g_{ij}$: large when stocks loading together on the mode are textually similar. $\tilde G$ is the dense similarity with the SIC-3 block structure regressed out (OLS of $g_{ij}$ on $[1, \mathbb 1(\text{same SIC-3})]$, residuals, zero diagonal), so what remains is similarity industry does not predict. Null: relabel firms by a random permutation $P$ applied to rows and columns together (QAP). That keeps $\tilde G$'s whole structure and breaks only who sits where. Since $u^\top P\tilde GP^\top u = (P^\top u)^\top\tilde G(P^\top u)$, permuting the entries of $u_k$ is the same thing and cheaper. $p_k = (1 + \#\{A_k(P)\ge A_k\})/(B+1)$, one-sided.
+
+**The share test.** Under the null each $p_k$ is uniform, so $P(p_k < 0.05) = 0.05$; the number of aligned modes out of $n$ is tested against Binomial($n$, 0.05), one-sided (`scipy.stats.binomtest`). Caveat to say out loud: modes from overlapping annual windows are not independent, so the binomial p is optimistic.
+
+**What the tests check.** A mode planted in $G$ gets $p < 0.01$ while 40 random unit vectors average $p \approx 0.5$; residualising removes the within- and between-block means exactly.
+
+### holm, bh, by {#fn-multitest}
+
+**Job in the project.** The confirmatory family {H1, H3} is corrected by Holm at 5% (thresholds 0.025 for the smaller p, 0.05 for the larger); the exploratory family by Benjamini–Hochberg at $q = 0.10$ with Benjamini–Yekutieli as the dependence-robust check. Library call: `statsmodels.stats.multitest.multipletests` (methods `holm`, `fdr_bh`, `fdr_by`). Why Holm and not Bonferroni: same family-wise error control, uniformly more power, because after the first rejection the next p only needs $\alpha/(m-1)$.
+
 ## Reading list {#stats-reading}
 
 Read the papers and book chapters alongside the cards. The reference implementations are what `tfs_stats/` calls; read them when you want to see a convention in code.

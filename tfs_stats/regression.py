@@ -7,7 +7,7 @@ import scipy.linalg as sla
 import statsmodels.api as sm
 from scipy import stats
 
-__all__ = ['ols_qr', 'vcov', 'fama_macbeth', 'fm_inference', 'fm_from_moments', 'ewc', 'nw_lags_rule', 'ewc_nu_rule']
+__all__ = ['ols_qr', 'vcov', 'fama_macbeth', 'fm_inference', 'fm_from_moments', 'ewc', 'nw_lags_rule', 'ewc_nu_rule', 'one_sided_p']
 
 def nw_lags_rule(T: int) -> int:
     """Newey-West lag rule used throughout the project: L = floor(4 (T/100)^(2/9)) (Newey & West 1994).
@@ -145,3 +145,10 @@ def ewc(u: np.ndarray, nu: int | None = None):
     pv = 2 * stats.t.sf(np.abs(ts), df=nu)
     f = (lambda a: a[0]) if one else (lambda a: a)
     return {'mean': f(ub), 'se': f(se), 'tstat': f(ts), 'df': nu, 'pvalue': f(pv), 'omega': f(omega)}
+
+def one_sided_p(t, df=None, direction: str = '+'):
+    """One-sided p-value of a t-statistic for H: effect > 0 (direction '+') or < 0 ('-'). Normal reference when df is
+    None (Newey-West Fama-MacBeth t-statistics, as registered), Student t_df otherwise (EWC: df = nu). scipy.stats.
+    Card: docs/STATS_GUIDE.md#fn-fama_macbeth"""
+    t = np.asarray(t, dtype=float); x = t if direction == '+' else -t
+    return stats.norm.sf(x) if df is None else stats.t.sf(x, df)

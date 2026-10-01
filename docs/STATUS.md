@@ -24,6 +24,7 @@ _Last updated: Wed 30 Sep 2026, 20:03 ET_
 - Nothing.
 
 ## PREREG frozen (30 Sep 2026, 20:03 ET, Abhi's go)
+- **Runner guard fixed after the freeze (1 Oct, before any registered run):** the guard compared the whole spec with its frozen copy, but the confirmatory entries were frozen as `entry: pending` (the code could only be written afterwards), so H1/H3 could never run. It now compares every field except `entry` (hypothesis, statistic, sign, period, network, family, element stay locked) and additionally refuses guarded runs from a tree with any uncommitted tracked change, so every registered result is tied to a code commit. No specification changed. Tests: 8 runner tests.
 - `docs/PREREG.md` frozen at commit `d1df5c795b83d7e1f3d04a23a31fe0174b6aa047`; tag `prereg-v1` marks the freeze-record commit. Primary specifications no longer change; new variants are exploratory (change log). Confirmatory family {H1 (C, dense b̄, NW(4)), H3 (E, BoW-null PEERMOM test period, NW(3))}, Holm 0.025 / 0.05. `python src/runner.py check` reports frozen = True.
 - Last pre-freeze change (d1df5c7): the delisting line names performance-related = CIZ GDR, the (1 + MthRet)(1 + δ) − 1 form, no re-adding of present DelRets, and the 7 non-performance E firm-months left as is.
 

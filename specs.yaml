@@ -25,7 +25,7 @@ specs:
     period: full            # Jul 2012 - Mar 2026, T = 165
     network: dense
     prereg: "Element C"
-    entry: pending
+    entry: c_h1:run
   - id: E_H3_bow_peermom_test
     element: E
     family: confirmatory
@@ -35,7 +35,7 @@ specs:
     period: test            # Dec 2018 - Jun 2026, T = 91
     network: bow_null
     prereg: "Element E"
-    entry: pending
+    entry: e_h3:run
 
   # ---------------------------------------------------------------- primary, outside the Holm family
   - id: B_primary_alignment_share
@@ -47,7 +47,7 @@ specs:
     period: annual          # 1 July 2014-2025
     network: dense
     prereg: "Element B"
-    entry: pending
+    entry: b_primary:run
 
   # ---------------------------------------------------------------- diagnostic (allowed before the freeze)
   - id: A_text_validation
