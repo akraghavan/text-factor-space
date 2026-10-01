@@ -6,7 +6,9 @@ For firms in formation.universe_at(t) (CRSP month t-1, SPAC months excluded, one
   peermom         equal-weighted mean of R_j(t-12, t-1) over i's text peers: networks.bow_sim (BoW nouns, null-corrected,
                   D11) cut at the SIC-3 density pi_t (networks.peers); self excluded; one PERMNO per PERMCO already
   sic3mom         the same over firms sharing i's historical SIC-3 (CRSP siccd at t-1)
-  tnicmom         the same over i's TNIC-3 peers, TNIC year Y used from July Y+1 to June Y+2 (unlagged file)
+  tnicmom         the same over i's TNIC-3 peers, TNIC year Y used from July Y+1 to June Y+2 (unlagged file); the file
+                  ends with FY2023, so for July 2025 - June 2026 the FY2023 network is carried forward (PREREG D14) and
+                  the rows are flagged tnic_carried = True
   indmom          value-weighted (ME at t-1) R(t-12, t-1) of i's Fama-French 48 industry (Ken French's Siccodes48
                   mapping, public), including i itself (Moskowitz-Grinblatt convention)
   own controls    log ME (t-1), log B/M (formation.book_to_market), r_{t-1}, R(t-12, t-2) (formation.momentum)
@@ -51,9 +53,12 @@ def _peer_mean(A, v):
     out[cnt == 0] = np.nan
     return out, cnt
 
-def tnic_pairs(year):
+def _tnic():
     if 'tnic' not in _cache: _cache['tnic'] = pd.read_parquet(INTERIM / 'tnic3.parquet')
-    return _cache['tnic'][_cache['tnic'].year == year]
+    return _cache['tnic']
+
+def tnic_pairs(year):
+    t = _tnic(); return t[t.year == year]
 
 def signals_at(t, monthly=None):
     """Firm-level signals and controls at formation month t (see module docstring). Returns a DataFrame."""
@@ -74,11 +79,13 @@ def signals_at(t, monthly=None):
     u['sic3mom'], _ = _peer_mean(As, R12)
     # TNIC-3: year Y from July Y+1
     Y = t.year - 1 if t.month >= 7 else t.year - 2
+    Ymax = int(_tnic().year.max())
+    carried = Y > Ymax; Y = min(Y, Ymax)
     lk = F.linked().set_index('accession').gvkey
     gv = lk.reindex(u.accession).to_numpy(); pos = pd.Series(np.arange(len(u)), index=gv); pos = pos[~pos.index.duplicated() & pd.notna(pos.index)]
     g = tnic_pairs(Y); g = g[g.gvkey1.isin(pos.index) & g.gvkey2.isin(pos.index)]
     At = np.zeros_like(A); a, b = pos[g.gvkey1].to_numpy(), pos[g.gvkey2].to_numpy(); At[a, b] = True; At[b, a] = True
-    u['tnicmom'], u['n_tnic'] = _peer_mean(At, R12)
+    u['tnicmom'], u['n_tnic'] = _peer_mean(At, R12); u['tnic_year'] = Y; u['tnic_carried'] = carried
     # FF-48 industry momentum, value-weighted by ME at t-1, including the firm itself
     u['ff48'] = ff48(u.sic.to_numpy(dtype=float))
     d = u[['ff48', 'me', 'R12']].dropna()

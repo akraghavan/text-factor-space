@@ -61,4 +61,23 @@ def test_pending_entry_refused(repo, monkeypatch):
 def test_real_registry_valid():
     d, specs, conf = runner.load_registry(Path(__file__).resolve().parents[1] / 'specs.yaml')
     assert sorted(conf) == ['C_H1_dense_bbar', 'E_H3_bow_peermom_test']
-    assert all(specs[i]['entry'] == 'pending' for i in conf)   # no confirmatory code before the freeze
+    # after the freeze only `entry` may differ from the frozen registry (d1df5c7)
+    import subprocess, yaml
+    old = subprocess.run(['git', 'show', 'd1df5c795b83d7e1f3d04a23a31fe0174b6aa047:specs.yaml'], capture_output=True, text=True,
+                         cwd=Path(__file__).resolve().parents[1])
+    if old.returncode == 0:
+        frozen = {s['id']: s for s in yaml.safe_load(old.stdout)['specs']}
+        for i in conf + ['B_primary_alignment_share']:
+            assert runner._frozen_fields(frozen[i]) == runner._frozen_fields(specs[i])
+
+def test_filling_a_pending_entry_is_allowed_after_freeze(repo, monkeypatch):
+    """The code pointer may go from 'pending' to real code after the freeze; nothing else may change."""
+    monkeypatch.chdir(repo); freeze(repo)
+    (repo / 'specs.yaml').write_text(REG.replace('prereg: X, entry: pending}', 'prereg: X, entry: "script:job.py"}'))
+    git(repo, '-c', 'user.email=t@t', '-c', 'user.name=t', 'commit', '-qam', 'write P1 code')
+    assert runner.run('P1', root=repo) == 0
+
+def test_dirty_code_refused_for_guarded(repo, monkeypatch):
+    monkeypatch.chdir(repo); freeze(repo)
+    (repo / 'job.py').write_text("open('ran.txt','a').write('y')\n")
+    assert runner.run('H1', root=repo) == 2 and 'uncommitted' in log(repo)[-1]['reason']
