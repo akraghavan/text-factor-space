@@ -307,7 +307,7 @@ specs:
     period: test
     network: bow_null_k5
     prereg: Element E
-    entry: pending
+    entry: e_explore:nearest5
   - id: E_x_delist_0
     element: E
     family: exploratory
@@ -317,7 +317,7 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore:delist_0
   - id: E_x_delist_m100
     element: E
     family: exploratory
@@ -327,7 +327,7 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore:delist_m100
   - id: E_x_sim_weighted
     element: E
     family: exploratory
@@ -467,7 +467,7 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore:stale_y3
   - id: E_x_hp_replication
     element: E
     family: exploratory
