@@ -32,3 +32,14 @@ def test_holm_and_bh_match_statsmodels():
 
 def test_one_sided_p():
     assert np.isclose(one_sided_p(1.6448536), 0.05) and np.isclose(one_sided_p(-1.6448536, direction='-'), 0.05)
+
+def test_residualize_on_dummies_nested():
+    from tfs_stats.network import residualize_on_dummies, subspace_overlap
+    n = 80; sic4 = rng.integers(0, 16, n) * 1.0; sic2 = np.floor(sic4 / 4)          # 4 SIC-2 sectors, 16 SIC-4
+    G = 0.2 * (sic2[:, None] == sic2[None, :]) + 0.3 * (sic4[:, None] == sic4[None, :]) + rng.normal(0, 0.02, (n, n))
+    G = (G + G.T) / 2; np.fill_diagonal(G, 0)
+    R1 = residualize_on_blocks(G, sic4); R2 = residualize_on_dummies(G, [sic2, sic4]); i, j = np.triu_indices(n, 1)
+    same2 = (sic2[i] == sic2[j]) & (sic4[i] != sic4[j])
+    assert R1[i, j][same2].mean() > 0.1 and abs(R2[i, j][same2].mean()) < 1e-10   # only the nested version removes SIC-2
+    Q, _ = np.linalg.qr(rng.normal(size=(n, 5))); ov, base, p = subspace_overlap(Q, Q, n_perm=200)
+    assert np.isclose(ov, 1) and np.isclose(base, 5 / n) and p < 0.01

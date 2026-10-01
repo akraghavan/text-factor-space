@@ -124,7 +124,7 @@ specs:
     predicted_sign: +
     period: annual
     prereg: Element B
-    entry: pending
+    entry: b_explore:sic3_share
   - id: B_x_raw_dense_share
     element: B
     family: exploratory
@@ -133,7 +133,7 @@ specs:
     predicted_sign: +
     period: annual
     prereg: Element B
-    entry: pending
+    entry: b_explore:raw_dense_share
   - id: B_x_subspace_overlap
     element: B
     family: exploratory
@@ -142,7 +142,28 @@ specs:
     predicted_sign: +
     period: annual
     prereg: Element B
-    entry: pending
+    entry: b_explore:overlap
+
+  - id: B_x_nested_sic
+    element: B
+    family: exploratory
+    hypothesis: residual modes align with dense similarity beyond nested SIC-1..4 co-membership (the "beyond industry" number); added after the freeze (1 Oct)
+    statistic: share of above-edge modes with alignment p < 0.05 (1,000 relabellings), binomial vs 5%
+    predicted_sign: +
+    period: annual
+    network: dense
+    prereg: Element B (post-freeze exploratory)
+    entry: b_explore:nested_sic
+  - id: B_x_ff48_share
+    element: B
+    family: exploratory
+    hypothesis: residual modes align with dense similarity beyond Fama-French 48 industry co-membership; added after the freeze (1 Oct)
+    statistic: share of above-edge modes with alignment p < 0.05 (1,000 relabellings), binomial vs 5%
+    predicted_sign: +
+    period: annual
+    network: dense
+    prereg: Element B (post-freeze exploratory)
+    entry: b_explore:ff48_share
 
   # ---------------------------------------------------------------- exploratory: C (robustness to H1)
   - id: C_x_missing_bm_indicator

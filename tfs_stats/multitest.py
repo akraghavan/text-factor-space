@@ -3,7 +3,7 @@ Library call: statsmodels.stats.multitest.multipletests. Card: docs/STATS_GUIDE.
 import numpy as np
 from statsmodels.stats.multitest import multipletests
 
-__all__ = ['holm', 'bh', 'by']
+__all__ = ['holm', 'bh', 'by', 'fisher_combine']
 
 def holm(pvals, alpha: float = 0.05):
     """Holm (1979) step-down for the confirmatory family. Sort the m p-values; the k-th smallest is compared with
@@ -25,3 +25,10 @@ def by(pvals, q: float = 0.10):
     """Benjamini-Yekutieli (2001): FDR under arbitrary dependence (the check next to BH): multipletests(method='fdr_by')."""
     reject, padj, _, _ = multipletests(np.asarray(pvals, dtype=float), alpha=q, method='fdr_by')
     return {'reject': reject, 'p_adjusted': padj}
+
+def fisher_combine(pvals):
+    """Fisher's method for one overall p from independent tests: X = -2 sum log p ~ chi^2(2k) under the joint null
+    (scipy.stats.combine_pvalues(method='fisher')). Used to pool B's per-formation subspace-overlap p-values; the annual
+    windows overlap, so the combined p is optimistic in the same way as B's binomial share test."""
+    from scipy import stats
+    return float(stats.combine_pvalues(np.asarray(pvals, dtype=float), method='fisher').pvalue)

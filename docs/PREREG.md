@@ -99,3 +99,4 @@ Count and list here as they are run (SPEC §10.3).
 
 - 1 Oct 2026, before any registered run (46f1f40): `src/runner.py` compares each guarded spec with its frozen copy in every field except `entry`, which was frozen as `pending` because the code could only be written after the freeze; guarded runs also require a fully committed tree. No specification changed.
 - 1 Oct 2026: registry addition `Confirmatory_family_holm` (diagnostic: applies the Holm rule above to the logged H1 and H3 p-values; no new test).
+- 1 Oct 2026: two exploratory B specs added after the freeze (not pre-listed; counted in the exploratory BH family): `B_x_nested_sic` (dense similarity residualised on nested SIC-1..4 co-membership, the "beyond industry" version of B's share) and `B_x_ff48_share` (residualised on Fama–French 48 industry). The primary B statistic is unchanged and still reads "beyond SIC-3 co-membership".
