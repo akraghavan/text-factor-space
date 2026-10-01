@@ -175,7 +175,7 @@ specs:
     period: full
     network: dense
     prereg: Element C
-    entry: pending
+    entry: c_explore:missing_bm_indicator
   - id: C_x_bow_null
     element: C
     family: exploratory
@@ -185,7 +185,7 @@ specs:
     period: full
     network: bow_null
     prereg: Element C
-    entry: pending
+    entry: c_explore:bow_null
   - id: C_x_bow_raw
     element: C
     family: exploratory
@@ -215,7 +215,7 @@ specs:
     period: full
     network: dense
     prereg: Element C
-    entry: pending
+    entry: c_explore:pc5
   - id: C_x_pc10
     element: C
     family: exploratory
@@ -225,7 +225,7 @@ specs:
     period: full
     network: dense
     prereg: Element C
-    entry: pending
+    entry: c_explore:pc10
   - id: C_x_12m_windows
     element: C
     family: exploratory
