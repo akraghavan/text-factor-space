@@ -1,9 +1,7 @@
 # Pre-registration
 
-> **DRAFT, NOT FROZEN (drafted 27 Sep 2026; D14 applied 29 Sep; freeze target Thu 1 Oct, on Abhi's go).**
-> Nothing below binds yet. Every item previously marked [PROPOSED] or [OPEN] was accepted as recommended on 29 Sep (D14). Remove this box when freezing.
-
-**Frozen at commit:** `TODO (full commit hash)` on `TODO (date, ET)`
+**Frozen at commit:** `d1df5c795b83d7e1f3d04a23a31fe0174b6aa047` on 2026-09-30, 20:03 ET (Abhi's go)
+The hash is the commit whose PREREG.md and specs.yaml are frozen; the freeze commit itself only records it, removes the draft box and ticks the checklist. `src/runner.py` checks every confirmatory and primary spec against specs.yaml at this hash.
 **Text layer:** git tag `text-layer-v1` = commit `34d722ce383e5e55c0cb01099e542818c11e78f8` (27 Sep 2026). No extractor, vocabulary, masking or SPAC-rule change after it.
 
 Protocol (SPEC §10): every reported statistic is a registered spec in `specs.yaml`, executed only through `src/runner.py` and logged in `runs.log`; the Benjamini–Hochberg count comes from that log (`python src/runner.py count`). Freeze this file before running any confirmatory test (H1, H3) and before looking at any test-period result in Element D or E. After the freeze the primary specifications below do not change; every other specification, variant or subsample is reported as **exploratory**, counted in the log at the bottom, and corrected across with Benjamini–Hochberg (q = 0.10; Benjamini–Yekutieli as a check). Changes after the freeze go in the change log, never in place.
@@ -88,8 +86,8 @@ The delisting-returns question (option a), every item previously marked [PROPOSE
 - [x] D12 daily price/volume converted and merged; daily Amihud coverage 99.8% of C's top 1,000 (27 Sep).
 - [x] `specs.yaml` registry (45 specs: 2 confirmatory, 1 primary, 38 exploratory, 4 diagnostic) and `src/runner.py`, which rejects unregistered specs, refuses confirmatory and primary specs before the freeze or if edited after it, and appends every attempt to `runs.log` (SPEC §10.1; 29 Sep).
 - [x] SPEC §3 industry-code row aligned with the choice above (29 Sep).
-- [ ] Delisting fields pulled from WRDS and SPEC §3's imputation implemented in E's returns.
-- [ ] Record the freeze commit hash and date above; remove the DRAFT box.
+- [x] Delisting fields pulled from WRDS and SPEC §3's imputation implemented in E's returns (30 Sep; 13 E firm-months touched).
+- [x] Record the freeze commit hash and date above; remove the DRAFT box (30 Sep 2026, 20:03 ET).
 
 ## Exploratory specifications run
 
