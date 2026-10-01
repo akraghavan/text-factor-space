@@ -3,7 +3,7 @@
 import numpy as np
 from sklearn.covariance import LedoitWolf
 
-__all__ = ['mp_edges', 'mp_sigma2_iterated', 'circular_shift_edge', 'ipr', 'clip_correlation', 'ledoit_wolf', 'min_var_weights']
+__all__ = ['mp_edges', 'mp_sigma2_iterated', 'circular_shift_edge', 'ipr', 'clip_correlation', 'ledoit_wolf', 'min_var_weights', 'pca_factors']
 
 def mp_edges(q: float, sigma2: float = 1.0):
     """Marchenko-Pastur support of the eigenvalues of a sample correlation matrix of N iid series over T observations,
@@ -93,3 +93,12 @@ def min_var_weights(S: np.ndarray):
     S = np.asarray(S, dtype=np.float64)
     z = np.linalg.solve(S, np.ones(S.shape[0]))
     return z / z.sum()
+
+def pca_factors(Z: np.ndarray, k: int):
+    """First k principal components of a T x N panel Z (columns standardised by the caller): thin SVD Z = U S V'
+    (np.linalg.svd). Returns (loadings V_k [N x k], factor series Z V_k [T x k], share of variance of each component).
+    Used for C's statistical-factor robustness (SPEC §7.7: FF6 plus 5 or 10 PCs of the FF6 residuals): a month's
+    factor returns are that month's standardised residuals times the window's loadings, so no future data enter.
+    Card: docs/STATS_GUIDE.md#fn-pca_factors"""
+    Z = np.asarray(Z, dtype=np.float64); U, S, Vt = np.linalg.svd(Z, full_matrices=False)
+    V = Vt[:k].T; return V, Z @ V, (S[:k] ** 2) / np.sum(S ** 2)

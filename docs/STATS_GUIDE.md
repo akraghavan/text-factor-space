@@ -314,6 +314,20 @@ and $\lVert x_t x_t^\top\rVert^2 = (x_t^\top x_t)^2/N$. So $\bar b^2$ needs only
 
 **Read.** Ledoit & Wolf (2004, JMVA; free PDF), the section that defines the estimator. "Honey, I shrunk…" (2004) for intuition. To see a production implementation: scikit-learn's `ledoit_wolf_shrinkage` in `_shrunk_covariance.py`, to compare conventions line by line.
 
+### pca_factors(Z, k) → (V, f, share) {#fn-pca_factors}
+
+**Job in the project.** C's "beyond statistical factors" robustness (SPEC §7.7; specs `C_x_pc5`, `C_x_pc10`, code in `analysis/c_explore.py`). If text similarity only picked up exposure to macro shocks that FF6 misses (oil, rates, the dollar), adding the first 5 or 10 principal components of the FF6 residuals as extra factors should absorb it and shrink b̄.
+
+**The math.** $Z$ is T×N (days × stocks), columns standardised. Thin SVD $Z = U S V^\top$. The first $k$ columns of $V$ are the loadings (eigenvectors of the correlation matrix $Z^\top Z/T$); the factor series are $f = Z V_k = U_k S_k$; component $j$ explains $s_j^2/\sum s^2$ of the total variance. Library call: `np.linalg.svd(Z, full_matrices=False)`.
+
+**Out of sample, month by month.** Loadings come from the 252-day window before month $m$ only. Month $m$'s factor returns are month $m$'s standardised FF6 residuals (window betas, window mean and SD) times those loadings, so nothing from month $m$ enters a loading or a beta. Each stock is then regressed on [1, FF6, $f_{\text{win}}$] in the window and its month-$m$ residual is $x_m - [1, F_m, f_m]\hat B^\top$.
+
+**Why the FF6 betas don't move.** $f_{\text{win}}$ is a linear combination of FF6 residuals, which are orthogonal to [1, FF6] in the window. Adding regressors orthogonal to the existing ones leaves the existing coefficients unchanged (Frisch–Waugh–Lovell). Checked numerically: max difference 3e-15 for complete-window stocks.
+
+**What the test checks.** Plant 2 factors in a 300×80 panel with noise; the loadings must be orthonormal, the 2 components must explain over 60% of the variance, and the component series must lie in the span of the planted factors (regressing them on the true factors leaves under 5% of their variance).
+
+**Check yourself.** Why standardise before the SVD? (Otherwise high-volatility stocks dominate the components.) Why are the factors built from the same stocks whose residual correlations form C's outcome, and why doesn't that matter much with 3,000+ stocks?
+
 ## Practice: OLS by hand {#stats-practice}
 
 Two Sigma's later coding round reportedly asks candidates to implement linear regression efficiently, including a streaming version (Glassdoor and WSO reports, not the firm's own words). This is the one piece worth writing yourself. Claude Code puts stubs and tests in `practice/ols_by_hand.py` and `practice/test_ols_by_hand.py`; you fill them in. For each step: try it first, then open the walkthrough. Run the tests with `python -m pytest practice -q`.

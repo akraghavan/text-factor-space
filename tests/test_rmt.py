@@ -1,6 +1,6 @@
 import numpy as np
 from sklearn.covariance import LedoitWolf
-from tfs_stats.rmt import mp_edges, ipr, clip_correlation, ledoit_wolf, min_var_weights, mp_sigma2_iterated, circular_shift_edge
+from tfs_stats.rmt import mp_edges, ipr, clip_correlation, ledoit_wolf, min_var_weights, mp_sigma2_iterated, circular_shift_edge, pca_factors
 rng=np.random.default_rng(1)
 def test_mp_noise():
     N,T=400,1600; X=rng.normal(size=(T,N)); C=np.corrcoef(X,rowvar=False); lam=np.linalg.eigvalsh(C)
@@ -30,3 +30,9 @@ def test_circular_shift_edge_on_noise():
     # on iid data the shifted-null edge sits just above the MP edge (finite-N fluctuations)
     N,T=100,400; X=rng.normal(size=(T,N)); e,_=circular_shift_edge(X,draws=100,seed=1)
     assert mp_edges(N/T)[1] < e < 1.15*mp_edges(N/T)[1]
+
+def test_pca_factors_recovers_planted_factors():
+    T, N = 300, 80; f = rng.normal(size=(T, 2)); L = rng.normal(size=(N, 2)); Z = f @ L.T + 0.3 * rng.normal(size=(T, N))
+    Z = (Z - Z.mean(0)) / Z.std(0); V, F, share = pca_factors(Z, 2)
+    _, s, _ = np.linalg.svd(np.linalg.lstsq(f, F, rcond=None)[0]); assert np.allclose(V.T @ V, np.eye(2)) and share.sum() > 0.6
+    resid = F - f @ np.linalg.lstsq(f, F, rcond=None)[0]; assert resid.var() / F.var() < 0.05   # PCs span the true factors

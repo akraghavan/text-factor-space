@@ -1,0 +1,15 @@
+{
+ "test_firm_months_before_complete_case": 214916,
+ "test_firm_months_after_complete_case": 185920,
+ "dropped_missing_by_column": {
+  "exret": 189,
+  "peermom": 0,
+  "log_me": 0,
+  "log_bm": 19472,
+  "r_1": 1,
+  "r12_2": 2712,
+  "indmom": 293,
+  "sic3mom": 3003,
+  "tnicmom": 13242
+ }
+}
