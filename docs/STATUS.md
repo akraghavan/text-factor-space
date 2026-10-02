@@ -29,6 +29,11 @@ _Last updated: Fri 2 Oct 2026, early morning ET_
 - **Holm {H1, H3} at 5%: both nulls rejected** (thresholds 0.025, 0.05). `analysis/output/confirmatory/`.
 - **B primary (`B_primary_alignment_share`): text structure beyond industry.** 255 of 267 above-edge residual modes (95.5%) align with dense similarity residualised on SIC-3 at p < 0.05 (1,000 relabellings); binomial p < 1e-300 (overlapping windows: optimistic). Caveat: "beyond industry" = beyond SIC-3 only. `analysis/output/b_primary/`.
 
+## Write-up (2 Oct 2026)
+- **`docs/RESULTS.md`** (about 2 pages): question and data; one method paragraph each for A, B, C and E; the registered table (H1, H3, Holm, B primary); the exploratory table with BH and BY q-values (m = 19) and the 21 specs not run; the caveats Abhi listed plus two from tier 2 (E lives in small stocks; the matched-peer null does not reject); and what the results mean.
+- PREREG "Exploratory specifications run" log filled (m = 19). the reviewer's 16:37 entry is marked done.
+- Next: `docs/private/PITCH.md` (résumé bullet and 2-minute pitch; private, not committed). Then the hard stop.
+
 ## Exploratory results, tier 2 (2 Oct 2026; Abhi's go; all through `src/runner.py`) and the final BH/BY
 - **C, the two H1 "reported beside" items** (code 42f90a5; new `tfs_stats/pairs.py`, guide card `#fn-pairs`, tests 3):
   - `C_x_mrqap` (MRQAP-DSP; annual Jul–Jun cross-sections 2012/13–2024/25; 999 relabellings): every year's text t (26–106) exceeds the largest relabelled t in any year (4.6), so the pooled p sits at its 1/1000 floor.
