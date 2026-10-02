@@ -32,7 +32,8 @@ _Last updated: Fri 2 Oct 2026, early morning ET_
 ## Write-up (2 Oct 2026)
 - **`docs/RESULTS.md`** (about 2 pages): question and data; one method paragraph each for A, B, C and E; the registered table (H1, H3, Holm, B primary); the exploratory table with BH and BY q-values (m = 19) and the 21 specs not run; the caveats Abhi listed plus two from tier 2 (E lives in small stocks; the matched-peer null does not reject); and what the results mean.
 - PREREG "Exploratory specifications run" log filled (m = 19). the reviewer's 16:37 entry is marked done.
-- Next: `docs/private/PITCH.md` (résumé bullet and 2-minute pitch; private, not committed). Then the hard stop.
+- `docs/private/PITCH.md` written (private; résumé bullet plus a 313-word spoken pitch).
+- **Hard stop on new project work.** Interview prep from 3 Oct. Open items for after Fall Break: the 21 exploratory specs not run (stratified-substitution null first: it is the one that tests whether the peer link matters at all) and Element D.
 
 ## Exploratory results, tier 2 (2 Oct 2026; Abhi's go; all through `src/runner.py`) and the final BH/BY
 - **C, the two H1 "reported beside" items** (code 42f90a5; new `tfs_stats/pairs.py`, guide card `#fn-pairs`, tests 3):
