@@ -1,0 +1,12 @@
+{
+ "t_obs": 2.8092657654378175,
+ "p_one_sided": 0.355,
+ "mean_t_perm": 2.6971073143150033,
+ "sd_t_perm": 0.35191366887304937,
+ "p95_t_perm": 3.350650945225052,
+ "n_perm": 999,
+ "nw_lags": 3,
+ "mean_corr_random_vs_true_peermom": 0.5333605842427418,
+ "firm_months": 185920,
+ "seconds": 548
+}

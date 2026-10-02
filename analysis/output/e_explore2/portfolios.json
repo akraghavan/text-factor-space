@@ -1,0 +1,11 @@
+{
+ "alpha": 0.011439110041362595,
+ "t": 2.886838613080687,
+ "nw_lags": 3,
+ "p_one_sided": 0.0019456688697032684,
+ "headline": "quintile EW price>=1 FF5+UMD",
+ "mean_ls": 0.013055089690145846,
+ "umd_loading": 0.6582205897164415,
+ "months": 91,
+ "seconds": 141
+}
