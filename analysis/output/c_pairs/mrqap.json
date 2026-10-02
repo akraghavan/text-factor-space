@@ -1,0 +1,12 @@
+{
+ "pooled_T": 248.80352192695526,
+ "p_one_sided": 0.001,
+ "p_two_sided": 0.001,
+ "mean_b": 0.011003371408500728,
+ "min_t_year": 25.65674540619596,
+ "max_t_perm_any_year": 4.587844215447827,
+ "years": 13,
+ "years_p_le_001": 13,
+ "n_perm": 999,
+ "seconds": 76
+}
