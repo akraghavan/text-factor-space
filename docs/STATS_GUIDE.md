@@ -499,6 +499,18 @@ The SPEC's inference also needs estimators that no standard library provides. Cl
 
 **Job in the project.** The confirmatory family {H1, H3} is corrected by Holm at 5% (thresholds 0.025 for the smaller p, 0.05 for the larger); the exploratory family by Benjamini–Hochberg at $q = 0.10$ with Benjamini–Yekutieli as the dependence-robust check. Library call: `statsmodels.stats.multitest.multipletests` (methods `holm`, `fdr_bh`, `fdr_by`). Why Holm and not Bonferroni: same family-wise error control, uniformly more power, because after the first rejection the next p only needs $\alpha/(m-1)$.
 
+### mrqap_dsp and DyadicMeat (tfs_stats/pairs.py) {#fn-pairs}
+
+**Job in the project.** C has half a million pairs a month, but they are not half a million independent observations: pairs (i, j) and (i, k) share firm i's shocks. Fama–MacBeth handles this by using only the time series of monthly slopes. The two checks registered beside H1 handle it in the cross-section directly (`C_x_mrqap`, `C_x_dyadic`; code in `analysis/c_pairs.py`).
+
+**MRQAP-DSP (Dekker, Krackhardt & Snijders 2007).** A permutation test. Relabel the firms, moving rows and columns of the similarity matrix together. That keeps everything about the network (degrees, clusters, spectrum) and only breaks *which* firm sits where, so under the null that s does not matter, the observed t looks like a relabelled one. Double semi-partialling: first residualise s on the controls, then permute only that residual and refit the full regression. Permuting raw s would also scramble its correlation with the controls (s is strongly related to same-SIC), which makes the test invalid when the controls are collinear with s. Record the OLS t, not b, because the t is pivotal. Then $p = (1 + \#\{t_b \ge t\})/(B+1)$.
+
+*Fast form.* With $Q$ an orthonormal basis of the controls (QR), $r_y = M_C y$, and the permuted residual $v$: $m = v^\top v - \lVert Q^\top v\rVert^2$, $b = v^\top r_y/m$, $\text{SSR} = r_y^\top r_y - b^2 m$, $t = b/\sqrt{\text{SSR}/(N-k-1)/m}$. That is Frisch–Waugh–Lovell, so each draw costs one $Q^\top v$ rather than a full regression. *Test:* the observed t equals statsmodels' OLS t. In a simulation with firm effects in both y and s and no true link, naive OLS rejects 25.5% of the time at a nominal 5% (one-sided) and MRQAP-DSP rejects 6.5%.
+
+**Dyadic-robust errors (Aronow, Samii & Assenova 2015; Cameron & Miller 2014).** A sandwich whose meat counts every pair of observations that share a firm: $\sum_{p,q:\ \text{share a firm}} s_p s_q^\top$, with $s_p = x_p e_p$. Inclusion–exclusion makes it computable: $\sum_i g_i g_i^\top$ (with $g_i$ the sum of scores of firm $i$'s observations) counts each such pair once, except pairs of observations of the *same* dyad, which share two firms and are counted twice. So subtract $\sum_d h_d h_d^\top$, with $h_d$ the dyad's score sum. Firms are the clusters across all months, so a firm's persistence over time is covered as well. Finite-sample factor $G/(G-1)\cdot n/(n-k)$, critical values from $t_{G-1}$. *Test:* equals the brute-force double sum on a small panel.
+
+**Check yourself.** Why does relabelling firms, rather than shuffling pair values, keep the null realistic? Why does the dyadic SE shrink only like $1/\sqrt{G}$ (firms), not $1/\sqrt{n}$ (pairs)?
+
 ## Reading list {#stats-reading}
 
 Read the papers and book chapters alongside the cards. The reference implementations are what `tfs_stats/` calls; read them when you want to see a convention in code.
