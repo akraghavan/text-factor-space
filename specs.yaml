@@ -295,7 +295,7 @@ specs:
     period: full
     network: dense
     prereg: Element C
-    entry: pending
+    entry: c_pairs:mrqap
   - id: C_x_dyadic
     element: C
     family: exploratory
@@ -305,7 +305,7 @@ specs:
     period: full
     network: dense
     prereg: Element C
-    entry: pending
+    entry: c_pairs:dyadic
 
   # ---------------------------------------------------------------- exploratory: E
   - id: E_x_nearest5
