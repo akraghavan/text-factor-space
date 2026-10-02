@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Thu 1 Oct 2026, evening ET_
+_Last updated: Fri 2 Oct 2026, early morning ET_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
@@ -29,6 +29,19 @@ _Last updated: Thu 1 Oct 2026, evening ET_
 - **Holm {H1, H3} at 5%: both nulls rejected** (thresholds 0.025, 0.05). `analysis/output/confirmatory/`.
 - **B primary (`B_primary_alignment_share`): text structure beyond industry.** 255 of 267 above-edge residual modes (95.5%) align with dense similarity residualised on SIC-3 at p < 0.05 (1,000 relabellings); binomial p < 1e-300 (overlapping windows: optimistic). Caveat: "beyond industry" = beyond SIC-3 only. `analysis/output/b_primary/`.
 
+## Exploratory results, tier 2 (2 Oct 2026; Abhi's go; all through `src/runner.py`) and the final BH/BY
+- **C, the two H1 "reported beside" items** (code 42f90a5; new `tfs_stats/pairs.py`, guide card `#fn-pairs`, tests 3):
+  - `C_x_mrqap` (MRQAP-DSP; annual Jul–Jun cross-sections 2012/13–2024/25; 999 relabellings): every year's text t (26–106) exceeds the largest relabelled t in any year (4.6), so the pooled p sits at its 1/1000 floor.
+  - `C_x_dyadic` (pooled OLS with month FE, dyadic-robust SE, 2,161 firm clusters, 72.8M pair-months): b = 0.0122, t = 37.6. This is larger than the FM t of 24.7, because dyadic SEs ignore month-to-month variation in the slope; FM is the binding test.
+- **E** (code fa5af5f; `analysis/output/e_explore2/`):
+  - `E_x_portfolios`: quintile EW, price ≥ $1, FF5+UMD alpha 1.14%/month (t 2.89; UMD loading 0.66); decile EW 1.87% (t 4.14). **Value-weighted alphas are ≈ 0** (|t| < 0.6), and price ≥ $5 weakens the quintile (t 1.53). A small-stock effect.
+  - `E_x_idiosyncratic`: 0.163 (t 1.81).
+  - `E_x_hp_replication` (full period, common sample): TNIC-3 raw slope 0.0163 (t 4.94) vs HP's 0.008 (t 4.36); quintile EW FF3 alpha 1.42% (t 3.37) vs HP's 1.7% (t 3.30). Ours on the same rows: t 5.13, alpha 1.24% (t 3.52).
+  - `E_x_perm_matched`: **p = 0.355**. Random peers drawn from the true peers' past-return deciles predict about as well (mean t 2.70 vs 2.81).
+  - ST_Rev factor downloaded (Ken French; `src/ff_extra.py`, DATA.md).
+- **Final `Exploratory_family_bh`, m = 19:** BH (q = 0.10) rejects 18 of 19 (not perm_matched); BY rejects 17 of 19 (also not idiosyncratic, q 0.13). `analysis/output/exploratory/README.md`.
+- Not run (stay in `specs.yaml` as pending; not in m): the other 21 exploratory specs, D included.
+
 ## Exploratory results, tier 1 (1 Oct 2026; all through `src/runner.py`; m = 13 so far)
 - **B** (code 7a2237b; `analysis/output/b_explore/`). Aligned share of the 267 above-edge modes, p < 0.05 each:
   - `B_x_nested_sic`: 241/267 = 90.3% (binomial p 6.5e-279). Dense similarity residualised on nested SIC-1..4, so this is the **"beyond industry"** number; the primary 95.5% means "beyond SIC-3".
@@ -47,7 +60,7 @@ _Last updated: Thu 1 Oct 2026, evening ET_
   - `E_x_stale_y3`: 0.208 (t 2.24).
 - E README now carries the test-period counts: 214,916 before → 185,920 after the complete-case drop. log B/M is the main loss (19,472); then TNIC momentum (13,242).
 - **Interim BH/BY** (`Exploratory_family_bh`, a diagnostic added after the freeze and noted in the PREREG change log; `analysis/output/exploratory/`): 13/13 rejected at q = 0.10 under both BH and BY. Re-run after tier 2.
-- **Tier 2** (MRQAP-DSP, dyadic-robust, E portfolios, idiosyncratic peers, HP replication, matched-peer permutation): runtime estimates given to Abhi (~4 h code, ~35 min compute). **Waiting for his go.**
+- Tier 2: see above (run 2 Oct).
 
 ## PREREG frozen (30 Sep 2026, 20:03 ET, Abhi's go)
 - **Runner guard fixed after the freeze (1 Oct, before any registered run):** the guard compared the whole spec with its frozen copy, but the confirmatory entries were frozen as `entry: pending` (the code could only be written afterwards), so H1/H3 could never run. It now compares every field except `entry` (hypothesis, statistic, sign, period, network, family, element stay locked) and additionally refuses guarded runs from a tree with any uncommitted tracked change, so every registered result is tied to a code commit. No specification changed. Tests: 8 runner tests.
