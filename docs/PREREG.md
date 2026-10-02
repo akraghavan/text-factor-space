@@ -93,7 +93,13 @@ The delisting-returns question (option a), every item previously marked [PROPOSE
 
 Count and list here as they are run (SPEC §10.3).
 
-- None yet.
+- **m = 19** (1–2 Oct 2026; `python src/runner.py count`), all through `src/runner.py`:
+  - B: `B_x_sic3_share`, `B_x_raw_dense_share`, `B_x_subspace_overlap`, `B_x_nested_sic`\*, `B_x_ff48_share`\*.
+  - C: `C_x_bow_null`, `C_x_missing_bm_indicator`, `C_x_pc5`, `C_x_pc10`, `C_x_mrqap`, `C_x_dyadic`.
+  - E: `E_x_delist_0`, `E_x_delist_m100`, `E_x_nearest5`, `E_x_stale_y3`, `E_x_portfolios`, `E_x_idiosyncratic`, `E_x_hp_replication`, `E_x_perm_matched`.
+  - \* = added after the freeze.
+- BH at q = 0.10 rejects 18 of 19 (not `E_x_perm_matched`); BY rejects 17 of 19 (also not `E_x_idiosyncratic`). Table: `analysis/output/exploratory/README.md`; results: `docs/RESULTS.md`.
+- The other 21 registered exploratory specs were not run and are not in m.
 
 ## Change log (after freeze only)
 
