@@ -14,8 +14,9 @@ from tfs_stats.multitest import bh, by
 import runner
 
 Q = 0.10
-HEADLINE = [('b_bar', 'b̄'), ('slope', 'slope'), ('alpha', 'alpha'), ('share', 'aligned share'), ('mean_ratio', 'overlap / random'),
-            ('t_obs', 't (observed)')]
+HEADLINE = [('b_bar', 'b̄'), ('slope', 'slope'), ('alpha', 'alpha'), ('b_pooled', 'pooled b'), ('mean_b', 'mean annual b'),
+            ('share', 'aligned share'), ('mean_ratio', 'overlap / random'), ('t_obs', 't (observed)')]
+T_KEYS = ('t_nw', 't', 't_dyadic', 'pooled_T')                              # the t each entry reports, in this order
 
 def _headline(res):
     for k, lab in HEADLINE:
@@ -35,7 +36,7 @@ def run(spec=None):
     for k, s in enumerate(ids):
         res = latest[s]['result']; lab, est = _headline(res)
         rows.append({'spec': s, 'element': latest[s]['element'], 'estimate_label': lab, 'estimate': est,
-                     't': res.get('t_nw', res.get('t', None)), 'p_one_sided': float(p[k]), 'q_bh': float(b['p_adjusted'][k]),
+                     't': next((res[k] for k in T_KEYS if k in res), None), 'p_one_sided': float(p[k]), 'q_bh': float(b['p_adjusted'][k]),
                      'reject_bh': bool(b['reject'][k]), 'q_by': float(y['p_adjusted'][k]), 'reject_by': bool(y['reject'][k]),
                      'run_time': latest[s]['time'], 'commit': latest[s]['commit'][:7]})
     f = lambda v: '' if v is None else (f'{v:.3g}' if isinstance(v, float) else str(v))
