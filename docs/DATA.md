@@ -94,12 +94,13 @@ Common output settings for all four: output format **comma-delimited text (.csv)
 |---|---|---|
 | `submissions.zip` | https://www.sec.gov/Archives/edgar/daily-index/bulkdata/submissions.zip | ~1.6 GB, regenerated nightly. SEC rejects requests without a descriptive `User-Agent` ("Name email"); stay under 10 requests/s. |
 | `F-F_Research_Data_5_Factors_2x3_daily_CSV.zip`, `F-F_Research_Data_5_Factors_2x3_CSV.zip`, `F-F_Momentum_Factor_daily_CSV.zip`, `F-F_Momentum_Factor_CSV.zip` | `https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/<file>` | Ken French data library, 1963-07 → 2026-08 at download. The library is revised periodically. |
+| `F-F_ST_Reversal_Factor_CSV.zip` | same Ken French URL pattern | Short-term reversal factor (monthly), downloaded 2 Oct 2026 (to 2026-08) for E's +STR portfolio alphas; read by `src/ff_extra.py`. |
 | `tnic3_data.zip` | https://hobergphillips.tuck.dartmouth.edu/idata/tnic3_data.zip | Hoberg–Phillips TNIC-3 network, 1988 → 2023 (~150 MB). |
 
 ```bash
 UA="${SEC_USER_AGENT:?set SEC_USER_AGENT to 'Your Name you@example.com'}"
 curl -fL -A "$UA" -o data/raw/submissions.zip https://www.sec.gov/Archives/edgar/daily-index/bulkdata/submissions.zip
-for f in F-F_Research_Data_5_Factors_2x3_daily_CSV F-F_Research_Data_5_Factors_2x3_CSV F-F_Momentum_Factor_daily_CSV F-F_Momentum_Factor_CSV; do
+for f in F-F_Research_Data_5_Factors_2x3_daily_CSV F-F_Research_Data_5_Factors_2x3_CSV F-F_Momentum_Factor_daily_CSV F-F_Momentum_Factor_CSV F-F_ST_Reversal_Factor_CSV; do
   curl -fL -o "data/raw/$f.zip" "https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/ftp/$f.zip"
 done
 curl -fL -o data/raw/tnic3_data.zip https://hobergphillips.tuck.dartmouth.edu/idata/tnic3_data.zip
