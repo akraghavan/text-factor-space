@@ -397,7 +397,7 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore2:idiosyncratic
   - id: E_x_text_only
     element: E
     family: exploratory
@@ -447,7 +447,7 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore2:portfolios
   - id: E_x_perm_stratified
     element: E
     family: exploratory
@@ -467,7 +467,7 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore2:perm_matched
   - id: E_x_stale_y3
     element: E
     family: exploratory
@@ -487,7 +487,7 @@ specs:
     period: full
     network: tnic3
     prereg: Element E
-    entry: pending
+    entry: e_explore2:hp_replication
   - id: E_x_post_sep2023
     element: E
     family: exploratory
