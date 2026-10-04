@@ -54,7 +54,7 @@ One-sided p of each spec's registered statistic; q = BH / BY adjusted p. \* adde
 | `E_x_hp_replication` | HP's TNIC-3 peers, full period | 0.354 | 4.34 | 7e-6 | 1e-5 | 4e-5 |
 | `E_x_perm_matched` | vs random peers from the true peers' return deciles | t 2.81 vs 2.70 | | **0.355** | 0.355 (no) | 1 (no) |
 
-**BH rejects 18 of 19, BY 17.** MRQAP: each year's text t (26–106) exceeds the largest relabelled t (4.6). Dyadic t exceeds the FM t because it ignores time variation in the slope. Portfolios: decile EW alpha 1.87%/month (t 4.14); every value-weighted alpha ≈ 0 (|t| < 0.6); price ≥ $5 weakens the quintile (t 1.53). HP replication: quintile EW FF3 alpha 1.42%/month (t 3.37) vs HP's 1.7% (t 3.30); raw slope 0.0163 (t 4.94) vs HP's 0.008 (t 4.36); our network on the same rows t 5.13.
+**BH rejects 18 of 19, BY 17.** MRQAP: each year's text t (26–106) exceeds the largest relabelled t (4.6). Dyadic t exceeds the FM t because it ignores time variation in the slope. Portfolios: decile EW alpha 1.87%/month (t 4.14); value-weighted alphas are insignificant (FF3 t ≤ 1.24; with UMD |t| < 0.6); price ≥ $5 weakens the EW quintile (t 1.53) but not the EW decile (1.35%/month, t 3.14). HP replication: quintile EW FF3 alpha 1.42%/month (t 3.37) vs HP's 1.7% (t 3.30); raw slope 0.0163 (t 4.94) vs HP's 0.008 (t 4.36); our network on the same rows t 5.13.
 
 **Not run** (registered, never executed, not in m; 21): B with T = 1,008; C with raw BoW, binary network, 12-month windows, pre/post FY2020, Dimson, Compustat SIC; E with similarity weights, four horizon and four visibility splits, stratified-substitution permutation, post-Sep-2023, Compustat SIC; D.
 
@@ -67,8 +67,8 @@ One-sided p of each spec's registered statistic; q = BH / BY adjusted p. \* adde
 - **TNIC-3 stops at FY2023.** It is carried forward for Jul 2025 – Jun 2026 (12 test months).
 - **Runner change after the freeze, before any registered run.** The guard compared every field with its frozen copy, including the code entry frozen as "pending", so H1 and H3 could not run. It now skips the entry field and requires a committed tree (PREREG change log; SPEC D16). No specification changed.
 - **`dirty` in `runs.log`.** It counts `runs.log` itself and untracked output folders, so it does not mean the code differed. B primary shows `dirty: true` for this reason alone; guarded runs required a clean tracked tree.
-- **E lives in small stocks.** Value-weighted alphas are zero. That is consistent with slow diffusion to less-watched firms, but it limits capacity.
-- **The matched-peer null does not reject** (p 0.355). Random peers from the true peers' return deciles predict about as well, so PEERMOM's content is the true peers' coarse return level, not which firms within each decile. Stratified substitution, the null that drops peer returns entirely, was not run.
+- **E lives in small stocks.** Value-weighted alphas are insignificant, while the EW decile survives a $5 price filter (t 3.14). So the effect sits in small, less-watched firms within equal-weighted sorts, not only in penny stocks. That fits slow diffusion, but it limits capacity.
+- **The matched-peer null does not reject** (p 0.355). It replaces each peer with a random firm from the same past-return decile. That keeps the decile composition of the true peers' returns, so by construction it keeps most of PEERMOM (correlation 0.53) and does not test whether the link itself matters. Not rejecting means only that which firm sits within a decile doesn't matter beyond the decile. The pre-listed null that does test the link, stratified substitution, was not run: it replaces each peer with a random firm from the same FF-48 industry × NYSE size tercile, keeping industry and size composition and breaking only the tie to the specific text peers.
 - **D was not built.** Q2 is unanswered.
 
 ## What it means
