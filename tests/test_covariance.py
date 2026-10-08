@@ -54,7 +54,9 @@ def test_fit_target_ab_matches_a_numerical_solver(a, b):
     ah, bh = fit_target_ab(r, g); sse = lambda v: np.sum((r - v[0] - v[1] * g) ** 2)
     num = optimize.minimize(sse, [0.1, 0.1], method='SLSQP', bounds=[(0, None), (0, None)],
                             constraints=[{'type': 'ineq', 'fun': lambda v: 0.999 - v[0] - v[1]}], options={'ftol': 1e-14})
-    assert ah >= 0 and bh >= 0 and ah + bh <= 0.999 + 1e-12 and sse([ah, bh]) <= num.fun + 1e-9
+    # SLSQP may end a hair outside a + b <= 0.999 (on Linux builds about 1e-10 over), which lowers its objective by
+    # ~1e-8; compare with a relative tolerance so an exact feasible optimum is never judged worse than that
+    assert ah >= 0 and bh >= 0 and ah + bh <= 0.999 + 1e-12 and sse([ah, bh]) <= num.fun * (1 + 1e-8)
 
 def test_ss_intensity_matches_brute_force():
     rng = np.random.default_rng(6); X = rng.normal(size=(40, 7)) @ rng.normal(size=(7, 7)); T = nested_target(np.eye(7), 0.3, 0.0)
