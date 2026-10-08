@@ -44,7 +44,7 @@ Every estimator and inference step used by the analysis lives in `tfs_stats/`, b
 
 ## Results
 
-Q1: text similarity explains residual comovement well beyond SIC (Fama–MacBeth t 24.7; holds under MRQAP, dyadic-robust errors and every robustness check). Q2: a text-based correlation target does not beat Ledoit–Wolf nonlinear shrinkage (its minimum-variance portfolio is 13% more volatile). Q3: Hoberg–Phillips text-peer momentum survives its publication (t 2.81; the stratified-substitution null rejects at p = 0.001) but sits in small stocks and the most recent month. Details, caveats and every exploratory result: [`docs/RESULTS.md`](docs/RESULTS.md).
+Q1: text similarity explains residual comovement well beyond SIC (Fama–MacBeth t 24.7; holds under MRQAP, dyadic-robust errors and every robustness check). Q2: a text-based correlation target does not beat Ledoit–Wolf nonlinear shrinkage (its minimum-variance portfolio is 13% more volatile). Q3: Hoberg–Phillips text-peer momentum survives its publication (t 2.81). It works through peers that are both text- and SIC-3-linked: text picks the right neighbours within industries (a stratified FF-48 × size null rejects at p = 0.001), rather than finding links SIC misses. It sits in small stocks and the most recent month. Details, caveats and every exploratory result: [`docs/RESULTS.md`](docs/RESULTS.md).
 
 ## Repository layout
 

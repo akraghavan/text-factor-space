@@ -46,7 +46,7 @@ _Last updated: Thu 8 Oct 2026, early morning ET_
   - C variants, b̄ 0.0078–0.0194, t 8.8–39: raw BoW, binary links, 12-month windows, pre/post FY2020, Dimson, sich, post-Sep-2023.
   - `C_shape_r2`: incremental R² 0.0018 in sample, 0.0016 out of sample.
 - **Phase 3 (E).**
-  - **Stratified-substitution null p = 0.001**: the text link itself carries the effect.
+  - **Stratified-substitution null p = 0.001**: the chosen peers matter beyond their FF-48 industry and size. The signal lives in text-and-SIC-3 peers (t 2.78; text-only 1.12), so text picks peers within industries rather than finding links SIC misses (wording of 8 Oct).
   - The effect sits in the peers' last month (Grundy–Martin: peer r(t−1) t 4.16; peer 12–2 t 0.73).
   - Visibility splits: only peers in both text and SIC-3 are significant.
   - `sich` gives t 5.07; above the NYSE 20th percentile, t 1.79.

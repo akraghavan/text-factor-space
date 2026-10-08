@@ -68,7 +68,7 @@ Each spec contributes the one-sided p in its registered direction; the placebo, 
   - Diagnostic: s̃ adds 0.0018 to the in-sample R² and 0.0016 out of sample. The top percentile of similarity averages z 0.25 against 0.005 at the median.
 - **D (0 of 4).** See above.
 - **E (14 of 21 by BH, 12 by BY).**
-  - **Stratified substitution** (each peer replaced by a random firm from its FF-48 industry × NYSE size tercile): **p = 0.001**. No draw reached t = 2.81, against a mean of 0.12. So the specific text links carry the effect, not the industry and size composition of the peer set.
+  - **Stratified substitution** (each peer replaced by a random firm from its FF-48 industry × NYSE size tercile): **p = 0.001**. No draw reached t = 2.81, against a mean of 0.12. So the chosen peers matter beyond their industry and size composition. The null holds FF-48, which is coarser than SIC-3, so this means text picks the right peers within broad industries; it does not show links that SIC misses (see the visibility splits below).
   - Rejected: similarity weights (0.25, t 3.0), nearest-5 peers (0.34, t 4.0), delisting δ = 0 / −100% (t 2.81), a three-year-old network (t 2.24), peers in both text and SIC-3 (t 2.78), post-Sep-2023 (t 2.40), `sich` (0.54, t 5.07), R(t−6, t−1) (t 2.32), the quintile EW FF5+UMD alpha (1.14%/month, t 2.89), and HP's own TNIC-3 peers on 2012–2026 (raw slope 0.016, t 4.9, against HP's 0.008, t 4.36; quintile FF3 alpha 1.42%/month, t 3.37, against HP's 1.7%, t 3.30).
   - BH only: firms above the NYSE 20th percentile (0.19, t 1.79) and idiosyncratic peer returns (t 1.81).
   - Not rejected: R(t−12, t−7) (t −0.12); the Grundy–Martin peer R(t−12, t−2) (t 0.73, while peer r(t−1) has t 4.16); text-only, SIC-only and dense-only peers (t 1.12, 0.02, 1.23); the R(t−24, t−13) placebo (two-sided p 0.15, as it should be); the past-return-matched null (p 0.36).
@@ -82,10 +82,11 @@ Each spec contributes the one-sided p in its registered direction; the placebo, 
 - **E is small-stock, short-horizon and fragile across variants.**
   - Value-weighted alphas are insignificant (|t| < 0.6 with UMD). Above the NYSE 20th percentile the slope falls to 0.19 (t 1.79).
   - The signal sits in the peers' most recent month.
+  - **It lives in peers that are both text- and SIC-3-linked** (t 2.78). Text-only peers give t 1.12, SIC-only 0.02, and dense-only (outside SIC-3 and TNIC-3) 1.23. In E, text works as a filter on industry peers, not a source of new links.
   - Under family-wise control E is fragile: 8 of 15 slope series survive a studentised Romano–Wolf that is liberal at this size (simulated FWER 18%), and 1 of 15 with raw slopes.
 - **The two permutation nulls answer different questions.**
   - The matched null (p 0.36) keeps each peer's past-return decile, so by construction it keeps most of PEERMOM (correlation 0.53). It shows that which firm sits within a decile does not matter.
-  - The stratified null (p 0.001) keeps industry and size and breaks the link. It shows the link matters.
+  - The stratified null (p 0.001) keeps FF-48 industry and size and breaks the link. It shows the chosen peers matter within broad industries. FF-48 is coarser than SIC-3, and the signal sits in text-and-SIC-3 peers, so it is not evidence of links that SIC misses.
 - **Romano–Wolf.** `arch`'s StepM does not studentise in arch 8.0.0, so the series are divided by their own Newey–West SEs before it (D28). No block length brought the simulated FWER to 6% at our sizes (C 165 × 8: 14%; E 91 × 15: 18% at block 12; about 5% at T = 1,000), so its survivors are weaker evidence than BY's.
 - **D.**
   - The T = 504 robustness configuration has p/n = 0.994, where LW (2020) nonlinear shrinkage degenerates (simulated GMV variance 12 times the oracle), so its LW-NL rows are uninformative. The primary (p/n ≈ 2) and N = 1,000 (≈ 4) configurations are unaffected.
@@ -107,8 +108,9 @@ Each spec contributes the one-sided p in its registered direction; the placebo, 
 - LW-NL already captures the large eigen-directions. A target that redistributes correlation towards text pairs adds estimation noise that the GMV weights amplify.
 - It doesn't help in the factor residuals either: FF6 residual correlations shrunk to text and to a constant correlation give the same volatility (12.12% each, t 0.09).
 
-**Q3: yes, after publication, and through the links themselves.**
+**Q3: yes, after publication, as text picking the right peers within industries.**
 - HP's text-peer momentum replicates on 2012–2026 at about their magnitude, and its post-publication slope is no smaller.
-- The stratified null shows it is the specific text links, not industry or size, that carry it.
+- The stratified null shows the chosen peers matter beyond their FF-48 industry and size. But the signal lives in peers that are both text- and SIC-3-linked (t 2.78; text-only 1.12, SIC-only 0.02, dense-only 1.23).
+- So in E, text selects the right neighbours within industries rather than finding links that SIC misses. That contrasts with Q1, where text explains comovement well beyond every SIC level.
 - But it is concentrated in small firms and in the peers' last month, short of t > 3, and fragile across variants under family-wise control.
 - Read it as a replication and extension of a diffusion effect, not a deployable signal.
