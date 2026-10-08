@@ -20,10 +20,12 @@ from tfs_stats.rmt import mp_edges, mp_sigma2_iterated, circular_shift_edge, ipr
 N_TARGET, T_WIN, DRAWS = 500, 756, 200
 OUT = ROOT / 'analysis' / 'output' / 'b_spectra'; OUT.mkdir(parents=True, exist_ok=True)
 
-def sample_at(y):
+def sample_at(y, T=T_WIN):
+    """The B sample for the 1 July y formation over the T trading days before it (default T_WIN = 756, the primary;
+    B_x_T1008 passes 1,008)."""
     t = pd.Period(f'{y}-07', 'M'); u = F.universe_at(t).sort_values('me', ascending=False)
     E, dates, cols, _ = C._load(); dw, cw, R = F.daily_wide()
-    k1 = dates.searchsorted(t.to_timestamp()); k0 = k1 - T_WIN
+    k1 = dates.searchsorted(t.to_timestamp()); k0 = k1 - T
     pos = cols.get_indexer(pd.Index(u.permno)); rp = cw.get_indexer(pd.Index(u.permno))
     ok = (pos >= 0) & (rp >= 0)
     u, pos, rp = u[ok], pos[ok], rp[ok]
