@@ -107,3 +107,25 @@ Count and list here as they are run (SPEC §10.3).
 - 1 Oct 2026: registry addition `Confirmatory_family_holm` (diagnostic: applies the Holm rule above to the logged H1 and H3 p-values; no new test).
 - 1 Oct 2026: two exploratory B specs added after the freeze (not pre-listed; counted in the exploratory BH family): `B_x_nested_sic` (dense similarity residualised on nested SIC-1..4 co-membership, the "beyond industry" version of B's share) and `B_x_ff48_share` (residualised on Fama–French 48 industry). The primary B statistic is unchanged and still reads "beyond SIC-3 co-membership".
 - 1 Oct 2026: registry addition `Exploratory_family_bh` (diagnostic: applies BH at q = 0.10 and BY to the logged one-sided p-values of the exploratory specs run, m from `python src/runner.py count`; no new test).
+- 8 Oct 2026, reopening (SPEC D19). The 2 Oct hard stop was lifted on 7 Oct. All 21 remaining pre-listed exploratory specs are run as registered (entries filled; no other field changed), Element D is built, and everything below is added after the freeze. No confirmatory or primary specification changes.
+- 8 Oct 2026: exploratory specs added after the freeze and counted in BH (D21, D24):
+  - `C_x_post_sep2023`: H1 on Oct 2023 – Mar 2026, the dense encoder's look-ahead check.
+  - `E_x_nyse20`: H3 without firms below the NYSE 20th market-cap percentile.
+  - `D_x_text_vs_constcorr`: dense target vs constant correlation, i.e. H0: b = 0.
+  - `D_x_text_vs_placebo`: dense target vs the same target with relabelled firms.
+  - BH m becomes 44.
+- 8 Oct 2026: diagnostics added (no p-values in BH): `C_shape_r2`, `E_event_time`, `D_horse_race_table`, `Exploratory_family_romano_wolf`.
+- 8 Oct 2026: readings of Element D where the paragraph above is silent (D20).
+  - **(a, b).** The "off-diagonal residual correlations" are the off-diagonal sample correlations of daily returns over the 252 trading days before the estimation window, using pairs with ≥ 200 common days. They are fitted by least squares subject to a, b ≥ 0 and a + b ≤ 0.999.
+  - **Intensity.** Schäfer–Strimmer eq. 8 on standardised returns. The constant-correlation target T(a, 0) uses the same formula, so it differs from the text target only in b.
+  - **Validated intensity.** δ on a 0.05 grid, minimising GMV variance over the last 63 days of the window, with R and the target fitted on the first 189.
+  - **Variance model.** Every estimator enters through Σ̂ = D̂^{1/2} R̂ D̂^{1/2}. LW nonlinear shrinkage is applied to standardised returns and renormalised to unit diagonal.
+  - **Clipping.** With N > T it uses the q > 1 Marchenko–Pastur edge.
+  - **Protocol.**
+    - Rebalance every 21 trading days from the first trading day of July 2012.
+    - Universe: the 500 largest firms at t−1 with all 252 past returns. Weights are held for 21 days, and a missing return earns the risk-free rate.
+    - Out-of-sample days before 2018-12-01 are development; the rest are test.
+  - **Test.** The LW (2011) delta method on (r_A, r_B, r_A², r_B²), with VAR(1)-prewhitened Quadratic-Spectral HAC and automatic bandwidth (`arch`), giving a one-sided normal p. Beside it, a studentised circular block bootstrap (block 21, 2,000 draws, seed 2026).
+  - **Robustness.** N = 1,000, and T = 504.
+- 8 Oct 2026: BH rule for specs with `predicted_sign: none` (only `E_x_placebo_24_13`). Such a spec has no registered direction, so it enters BH and BY with its two-sided p; the table names which p each spec used.
+- 8 Oct 2026: re-runs for Romano–Wolf (D25). The nine FM specs run on 1–2 Oct are re-run once so they save their monthly slope series. Each re-run must reproduce its logged estimate and t to 1e-10, and the BH table uses the latest record.

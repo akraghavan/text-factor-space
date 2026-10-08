@@ -499,6 +499,8 @@ The SPEC's inference also needs estimators that no standard library provides. Th
 
 **Job in the project.** The confirmatory family {H1, H3} is corrected by Holm at 5% (thresholds 0.025 for the smaller p, 0.05 for the larger); the exploratory family by Benjamini–Hochberg at $q = 0.10$ with Benjamini–Yekutieli as the dependence-robust check. Library call: `statsmodels.stats.multitest.multipletests` (methods `holm`, `fdr_bh`, `fdr_by`). Why Holm and not Bonferroni: same family-wise error control, uniformly more power, because after the first rejection the next p only needs $\alpha/(m-1)$.
 
+**Which p enters BH (8 Oct).** A spec with a predicted sign contributes its one-sided p in that direction. A spec registered without a sign (the t−24..t−13 placebo) contributes its two-sided p: there is no direction to test, and halving its p would favour it. `analysis/exploratory_family.family_p` applies the rule, `tests/test_exploratory_family.py` checks it, and the table names which p each spec used.
+
 ### mrqap_dsp and DyadicMeat (tfs_stats/pairs.py) {#fn-pairs}
 
 **Job in the project.** C has half a million pairs a month, but they are not half a million independent observations: pairs (i, j) and (i, k) share firm i's shocks. Fama–MacBeth handles this by using only the time series of monthly slopes. The two checks registered beside H1 handle it in the cross-section directly (`C_x_mrqap`, `C_x_dyadic`; code in `analysis/c_pairs.py`).

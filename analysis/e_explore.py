@@ -10,13 +10,14 @@ ingredient for the duration of the run and restores it:
                            (universe_at(t-36)), mapped to today's firms by PERMNO; firms absent then have no peers; the
                            SIC-3 density pi_t is applied over the pairs where both firms existed at t-36 (calibrating over
                            all of today's pairs would roughly double the density among the firms that did exist)
-Statistic: test-period Fama-MacBeth slope on PEERMOM (same controls, winsorising, z-scoring), NW(3) t, one-sided p."""
+Statistic: test-period Fama-MacBeth slope on PEERMOM (same controls, winsorising, z-scoring), NW(3) t, one-sided p.
+Each entry also saves the monthly slope series (output/e_explore/series/<spec>.json) for Romano-Wolf (D25)."""
 import sys, time, json
 from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 for p in (ROOT / 'src', ROOT / 'analysis', ROOT): sys.path.insert(0, str(p))
 import numpy as np, pandas as pd
-import formation as F, networks as N, delisting, e_h3
+import formation as F, networks as N, delisting, e_h3, series_out
 from paths import PROCESSED
 from tfs_stats.regression import nw_lags_rule, one_sided_p
 
@@ -25,26 +26,26 @@ OUT = ROOT / 'analysis' / 'output' / 'e_explore'
 def _base_panel(delta='primary'):
     F._cache.pop('m', None); F._cache['m'], _ = delisting.adjust(F.monthly(), delta=delta)
 
-def _result(name, P, d, extra=None):
-    T = d.t.nunique(); L = nw_lags_rule(T); r = e_h3.fm(d, L)
+def _result(name, P, d, extra=None, spec=None):
+    T = d.t.nunique(); L = nw_lags_rule(T); r = e_h3.fm(d, L); series_out.save(OUT, spec, name, r['periods'], r['lambdas'][:, 1])
     res = {'slope': float(r['coef'][1]), 'se_nw': float(r['se'][1]), 't_nw': float(r['tstat'][1]), 'nw_lags': L,
            'p_one_sided': float(one_sided_p(r['tstat'][1])), 'months': int(T), 'firm_months': int(len(d)), 'firm_months_before_drop': int(len(P))}
     res.update(extra or {}); OUT.mkdir(parents=True, exist_ok=True)
     (OUT / f'{name}.json').write_text(json.dumps(res, indent=1)); print(name, res)
     return res
 
-def _run_test(name, delta='primary', extra=None):
+def _run_test(name, delta='primary', extra=None, spec=None):
     _base_panel(delta); P, d = e_h3.panel(*e_h3.TEST)
-    return _result(name, P, d, extra)
+    return _result(name, P, d, extra, spec)
 
 def delist_0(spec=None):
     _base_panel(0.0); P, d = e_h3.panel(*e_h3.TEST)
     counts = {'test_firm_months_before_complete_case': int(len(P)), 'test_firm_months_after_complete_case': int(len(d)),
               'dropped_missing_by_column': {c: int(P[c].isna().sum()) for c in ['exret'] + e_h3.RHS}}
     (OUT.mkdir(parents=True, exist_ok=True), (OUT / 'test_period_counts.json').write_text(json.dumps(counts, indent=1)))
-    return _result('delist_0', P, d, counts)
+    return _result('delist_0', P, d, counts, spec)
 
-def delist_m100(spec=None): return _run_test('delist_m100', -1.0)
+def delist_m100(spec=None): return _run_test('delist_m100', -1.0, spec=spec)
 
 def _knn_peers(k):
     def peers(S, pi):
@@ -55,7 +56,7 @@ def _knn_peers(k):
 
 def nearest5(spec=None):
     orig = N.peers; N.peers = _knn_peers(5)
-    try: return _run_test('nearest5')
+    try: return _run_test('nearest5', spec=spec)
     finally: N.peers = orig
 
 def stale_y3(spec=None):
@@ -74,5 +75,5 @@ def stale_y3(spec=None):
         i, j = np.triu_indices(len(S), 1); v = S[i, j]; tau = np.quantile(v[np.isfinite(v)], 1 - pi)
         A = S > tau; np.fill_diagonal(A, False); return A
     N.bow_sim = stale; N.peers = peers_finite
-    try: return _run_test('stale_y3')
+    try: return _run_test('stale_y3', spec=spec)
     finally: N.bow_sim = orig; N.peers = orig_peers

@@ -6,7 +6,8 @@ each spec changes one ingredient:
                                                   over pairs that have it, plus a 0/1 regressor bm_missing (PREREG D14)
   pc5 / pc10            C_x_pc5 / C_x_pc10        residuals on FF6 + 5 / 10 statistical factors (SPEC §7.7), built by
                                                   build_pc(k) below; the regression is c_h1.month_moments unchanged
-Statistic: b-bar on s~ with NW(4) t (x T/(T-1)), one-sided p; EWC(12) beside it. Writes analysis/output/c_explore/.
+Statistic: b-bar on s~ with NW(4) t (x T/(T-1)), one-sided p; EWC(12) beside it. Writes analysis/output/c_explore/,
+including the monthly b_t series (series/<spec>.json) for Romano-Wolf (D25).
 
 Statistical-factor residuals, build_pc(k) (data/processed/ff6pc{k}_resid_daily.npy and ff6pc{k}_betas.parquet,
 gitignored). For each month m, on the 252 trading days before m (the same window and >= 200-return rule as the FF6
@@ -27,7 +28,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 for p in (ROOT / 'src', ROOT / 'analysis', ROOT): sys.path.insert(0, str(p))
 import numpy as np, pandas as pd
-import formation as F, c_panel as C, c_h1 as H
+import formation as F, c_panel as C, c_h1 as H, series_out
 from paths import PROCESSED
 from tfs_stats.regression import fm_from_moments, ewc, nw_lags_rule, ewc_nu_rule, one_sided_p
 from tfs_stats.rmt import pca_factors
@@ -46,7 +47,7 @@ def month_moments(t, s_col='s_dense', bm_indicator=False):
     X = np.column_stack([np.ones(len(D)), D[xc].to_numpy()]); y = D.z.to_numpy()
     return X.T @ X, X.T @ y, len(D), len(P)
 
-def _fm(name, moments, extra=None):
+def _fm(name, moments, extra=None, spec=None):
     t0 = time.time(); OUT.mkdir(parents=True, exist_ok=True)
     months = pd.period_range(H.FIRST, H.LAST, freq='M'); XtX, Xty, n, npairs = [], [], [], []
     for t in months:
@@ -54,7 +55,7 @@ def _fm(name, moments, extra=None):
         if t.month == 1: print(name, t, k, f'{time.time() - t0:.0f}s', flush=True)
     T = len(months); L = nw_lags_rule(T); nu = ewc_nu_rule(T)
     r = fm_from_moments(np.stack(XtX), np.stack(Xty), np.array(n), nw_lags=L)
-    b = r['lambdas'][:, 1]; ew = ewc(b, nu)
+    b = r['lambdas'][:, 1]; ew = ewc(b, nu); series_out.save(OUT, spec, name, months[r['periods']].astype(str), b)
     res = {'b_bar': float(r['coef'][1]), 'se_nw': float(r['se'][1]), 't_nw': float(r['tstat'][1]), 'nw_lags': L,
            'p_one_sided': float(one_sided_p(r['tstat'][1])), 't_ewc': float(ew['tstat']), 'ewc_nu': nu,
            'months': int(r['T']), 'months_skipped': int(r['n_skipped']), 'median_pairs_used': int(np.median(n)),
@@ -64,8 +65,8 @@ def _fm(name, moments, extra=None):
     (OUT / f'{name}.json').write_text(json.dumps(res, indent=1)); print(name, res)
     return res
 
-def bow_null(spec=None): return _fm('bow_null', lambda t: month_moments(t, s_col='s_bow'))
-def missing_bm_indicator(spec=None): return _fm('missing_bm_indicator', lambda t: month_moments(t, bm_indicator=True))
+def bow_null(spec=None): return _fm('bow_null', lambda t: month_moments(t, s_col='s_bow'), spec=spec)
+def missing_bm_indicator(spec=None): return _fm('missing_bm_indicator', lambda t: month_moments(t, bm_indicator=True), spec=spec)
 
 def _pc_paths(k): return PROCESSED / f'ff6pc{k}_resid_daily.npy', PROCESSED / f'ff6pc{k}_betas.parquet'
 
@@ -97,11 +98,11 @@ def build_pc(k, first='2011-01', last='2026-03'):
     np.save(res_path, E); pd.concat(rows).to_parquet(bet_path)
     return float(np.mean(shares))
 
-def _pc(k):
+def _pc(k, spec=None):
     res_path, bet_path = _pc_paths(k); share = build_pc(k)
     old = C.RES, C.BET; C.RES, C.BET = res_path, bet_path; C._cache.clear()
-    try: return _fm(f'pc{k}', H.month_moments, {'k': k, 'mean_window_var_share_of_pcs': share})
+    try: return _fm(f'pc{k}', H.month_moments, {'k': k, 'mean_window_var_share_of_pcs': share}, spec=spec)
     finally: C.RES, C.BET = old; C._cache.clear()
 
-def pc5(spec=None): return _pc(5)
-def pc10(spec=None): return _pc(10)
+def pc5(spec=None): return _pc(5, spec)
+def pc10(spec=None): return _pc(10, spec)

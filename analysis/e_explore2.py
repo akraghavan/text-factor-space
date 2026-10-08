@@ -32,7 +32,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 for p in (ROOT / 'src', ROOT / 'analysis', ROOT): sys.path.insert(0, str(p))
 import numpy as np, pandas as pd
-import formation as F, networks as N, e_signals as ES, e_h3, e_explore as EX, c_panel as C
+import formation as F, networks as N, e_signals as ES, e_h3, e_explore as EX, c_panel as C, series_out
 from paths import PROCESSED
 from ff_extra import st_reversal_monthly
 from tfs_stats.regression import ols_qr, vcov, fama_macbeth, nw_lags_rule, one_sided_p
@@ -107,7 +107,7 @@ def idiosyncratic(spec=None):
     ES.signals_at = sig
     try: P, d = e_h3.panel(*e_h3.TEST)
     finally: ES.signals_at = orig_sig; restore()
-    T = d.t.nunique(); L = nw_lags_rule(T); r = e_h3.fm(d, L)
+    T = d.t.nunique(); L = nw_lags_rule(T); r = e_h3.fm(d, L); series_out.save(OUT, spec, 'idiosyncratic', r['periods'], r['lambdas'][:, 1])
     return _save('idiosyncratic', {'slope': float(r['coef'][1]), 't_nw': float(r['tstat'][1]), 'nw_lags': L, 'p_one_sided': float(one_sided_p(r['tstat'][1])),
                                    'months': int(T), 'firm_months': int(len(d)), 'firm_months_before_drop': int(len(P)),
                                    'corr_with_total_peermom': float(P[['peermom', 'peermom_total']].corr().iloc[0, 1]), 'seconds': round(time.time() - t0)})

@@ -116,6 +116,46 @@ specs:
     prereg: Confirmatory family and multiple testing
     entry: exploratory_family:run
 
+  - id: C_shape_r2
+    element: C
+    family: diagnostic
+    hypothesis: none (SPEC §7 deliverables; added after the freeze, 8 Oct)
+    statistic: mean z by similarity percentile; incremental in-sample and out-of-sample R2 of s-tilde
+    predicted_sign: none
+    period: full
+    prereg: Element C
+    entry: c_shape:run
+
+  - id: E_event_time
+    element: E
+    family: diagnostic
+    hypothesis: none (SPEC §9 portfolio items; added after the freeze, 8 Oct)
+    statistic: quintile EW long-short at months +1..+24; turnover and break-even cost; worst months and drawdown
+    predicted_sign: none
+    period: test
+    prereg: Element E
+    entry: e_event_time:run
+
+  - id: D_horse_race_table
+    element: D
+    family: diagnostic
+    hypothesis: none (every estimator vs LW-NL with Holm; added after the freeze, 8 Oct)
+    statistic: annualised SD, turnover, leverage, max weight, bias ratio; log variance difference vs LW-NL with LW (2011) t and Holm
+    predicted_sign: none
+    period: na
+    prereg: Element D
+    entry: d_horse_race:table
+
+  - id: Exploratory_family_romano_wolf
+    element: C+E
+    family: diagnostic
+    hypothesis: none (family decision; PREREG multiple testing; added after the freeze, 8 Oct)
+    statistic: Romano-Wolf StepM over the C full-period and E test-period FM slope series (stationary bootstrap, block 4, 10,000 reps)
+    predicted_sign: none
+    period: na
+    prereg: Confirmatory family and multiple testing
+    entry: exploratory_family:romano_wolf
+
   # ---------------------------------------------------------------- exploratory: B
   - id: B_x_T1008
     element: B
@@ -125,7 +165,7 @@ specs:
     predicted_sign: +
     period: annual
     prereg: Element B
-    entry: pending
+    entry: b_explore:t1008
   - id: B_x_sic3_share
     element: B
     family: exploratory
@@ -205,7 +245,7 @@ specs:
     period: full
     network: bow_raw
     prereg: Element C
-    entry: pending
+    entry: c_explore2:bow_raw
   - id: C_x_binary_network
     element: C
     family: exploratory
@@ -215,7 +255,7 @@ specs:
     period: full
     network: dense_binary
     prereg: Element C
-    entry: pending
+    entry: c_explore2:binary_network
   - id: C_x_pc5
     element: C
     family: exploratory
@@ -245,7 +285,7 @@ specs:
     period: full
     network: dense
     prereg: Element C
-    entry: pending
+    entry: c_explore2:windows_12m
   - id: C_x_pre_fy2020
     element: C
     family: exploratory
@@ -255,7 +295,7 @@ specs:
     period: full
     network: dense
     prereg: Element C
-    entry: pending
+    entry: c_explore2:pre_fy2020
   - id: C_x_post_fy2020
     element: C
     family: exploratory
@@ -265,7 +305,7 @@ specs:
     period: full
     network: dense
     prereg: Element C
-    entry: pending
+    entry: c_explore2:post_fy2020
   - id: C_x_dimson
     element: C
     family: exploratory
@@ -275,7 +315,7 @@ specs:
     period: full
     network: dense
     prereg: Element C
-    entry: pending
+    entry: c_explore2:dimson
   - id: C_x_sich
     element: C
     family: exploratory
@@ -285,7 +325,7 @@ specs:
     period: full
     network: dense
     prereg: Element C
-    entry: pending
+    entry: c_explore2:sich
   - id: C_x_mrqap
     element: C
     family: exploratory
@@ -306,6 +346,16 @@ specs:
     network: dense
     prereg: Element C
     entry: c_pairs:dyadic
+  - id: C_x_post_sep2023
+    element: C
+    family: exploratory
+    hypothesis: H1 on Oct 2023 - Mar 2026, after the encoder's release (dense look-ahead check); added after the freeze (8 Oct)
+    statistic: b-bar NW
+    predicted_sign: +
+    period: full
+    network: dense
+    prereg: Element C
+    entry: c_explore2:post_sep2023
 
   # ---------------------------------------------------------------- exploratory: E
   - id: E_x_nearest5
@@ -347,7 +397,7 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore3:sim_weighted
   - id: E_x_h_6_1
     element: E
     family: exploratory
@@ -357,7 +407,7 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore3:h_6_1
   - id: E_x_h_12_7
     element: E
     family: exploratory
@@ -367,7 +417,7 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore3:h_12_7
   - id: E_x_grundy_martin
     element: E
     family: exploratory
@@ -377,7 +427,7 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore3:grundy_martin
   - id: E_x_placebo_24_13
     element: E
     family: exploratory
@@ -387,7 +437,7 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore3:placebo_24_13
   - id: E_x_idiosyncratic
     element: E
     family: exploratory
@@ -407,7 +457,7 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore3:text_only
   - id: E_x_sic_only
     element: E
     family: exploratory
@@ -417,7 +467,7 @@ specs:
     period: test
     network: sic3
     prereg: Element E
-    entry: pending
+    entry: e_explore3:sic_only
   - id: E_x_both
     element: E
     family: exploratory
@@ -427,7 +477,7 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore3:both
   - id: E_x_dense_only
     element: E
     family: exploratory
@@ -437,7 +487,7 @@ specs:
     period: test
     network: dense
     prereg: Element E
-    entry: pending
+    entry: e_explore3:dense_only
   - id: E_x_portfolios
     element: E
     family: exploratory
@@ -457,7 +507,7 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore3:perm_stratified
   - id: E_x_perm_matched
     element: E
     family: exploratory
@@ -497,7 +547,7 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore3:post_sep2023
   - id: E_x_sich
     element: E
     family: exploratory
@@ -507,7 +557,17 @@ specs:
     period: test
     network: bow_null
     prereg: Element E
-    entry: pending
+    entry: e_explore3:sich
+  - id: E_x_nyse20
+    element: E
+    family: exploratory
+    hypothesis: H3 without firms below the NYSE 20th market-cap percentile at t-1; added after the freeze (8 Oct)
+    statistic: test-period FM slope NW(3)
+    predicted_sign: +
+    period: test
+    network: bow_null
+    prereg: Element E
+    entry: e_explore3:nyse20
 
   # ---------------------------------------------------------------- exploratory: D (deferred; H2 left the family, D14)
   - id: D_x_text_vs_lwnl
@@ -519,4 +579,24 @@ specs:
     period: test
     network: dense
     prereg: Element D
-    entry: pending
+    entry: d_horse_race:text_vs_lwnl
+  - id: D_x_text_vs_constcorr
+    element: D
+    family: exploratory
+    hypothesis: dense text target beats the constant-correlation target T(a, 0), i.e. b > 0 adds value; added after the freeze (8 Oct)
+    statistic: log variance difference, LW (2011) HAC
+    predicted_sign: '-'
+    period: test
+    network: dense
+    prereg: Element D
+    entry: d_horse_race:text_vs_constcorr
+  - id: D_x_text_vs_placebo
+    element: D
+    family: exploratory
+    hypothesis: dense text target beats the same target with relabelled firms (content vs spectrum); added after the freeze (8 Oct)
+    statistic: log variance difference, LW (2011) HAC
+    predicted_sign: '-'
+    period: test
+    network: dense
+    prereg: Element D
+    entry: d_horse_race:text_vs_placebo
