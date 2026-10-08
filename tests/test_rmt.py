@@ -1,4 +1,4 @@
-import numpy as np
+import numpy as np, pytest
 from sklearn.covariance import LedoitWolf
 from tfs_stats.rmt import mp_edges, ipr, clip_correlation, ledoit_wolf, min_var_weights, mp_sigma2_iterated, circular_shift_edge, pca_factors
 rng=np.random.default_rng(1)
@@ -36,3 +36,9 @@ def test_pca_factors_recovers_planted_factors():
     Z = (Z - Z.mean(0)) / Z.std(0); V, F, share = pca_factors(Z, 2)
     _, s, _ = np.linalg.svd(np.linalg.lstsq(f, F, rcond=None)[0]); assert np.allclose(V.T @ V, np.eye(2)) and share.sum() > 0.6
     resid = F - f @ np.linalg.lstsq(f, F, rcond=None)[0]; assert resid.var() / F.var() < 0.05   # PCs span the true factors
+
+def test_clip_correlation_with_more_series_than_days():
+    X = rng.normal(size=(120, 300)) + 0.5 * rng.normal(size=(120, 1)); C = np.corrcoef(X, rowvar=False)   # q = 2.5, one factor
+    with pytest.raises(ValueError): clip_correlation(C, 120)
+    Cc = clip_correlation(C, 120, allow_q_gt_1=True); ev = np.linalg.eigvalsh(Cc)
+    assert np.allclose(np.diag(Cc), 1) and np.allclose(Cc, Cc.T) and ev.min() > 0 and np.isclose(np.trace(Cc), 300)

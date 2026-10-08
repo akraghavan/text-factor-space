@@ -260,6 +260,8 @@ Why the average and not zero: zeros would make the matrix singular, and a minimu
 
 **Traps.** `eigh` sorts eigenvalues in ascending order. If no eigenvalue is above the edge the answer is essentially the identity, which is correct. For residual correlation matrices the caller should pass the effective sample size, $T-K-1$.
 
+**When N > T (8 Oct, D20(e)).** D's primary configuration has $N = 500$ stocks and $T = 252$ days, so $q = N/T \approx 2 > 1$. Then $N - T + 1$ eigenvalues of the sample correlation are exactly zero, and `mp_edges` refuses $q > 1$ on purpose. `clip_correlation(C, T, allow_q_gt_1=True)` opts in: it uses $\lambda_+ = (1 + \sqrt q)^2$, counts the zero eigenvalues as bulk, and replaces the whole bulk by its mean. That mean is $(N - \sum_{\text{kept}}\lambda)/\#\text{bulk} > 0$, so the trace stays $N$ and the result is positive definite. The extra test checks exactly that at $N = 300$, $T = 120$.
+
 **Check yourself.** Why is the result positive definite, and why does the rescaling keep it so? What does clipping do to a minimum-variance portfolio built on it?
 
 **Read.** Laloux et al. (1999; 2000). Bun, Bouchaud & Potters (2017), the clipping section. Bouchaud & Potters (2009).
@@ -512,6 +514,122 @@ The SPEC's inference also needs estimators that no standard library provides. Th
 **Dyadic-robust errors (Aronow, Samii & Assenova 2015; Cameron & Miller 2014).** A sandwich whose meat counts every pair of observations that share a firm: $\sum_{p,q:\ \text{share a firm}} s_p s_q^\top$, with $s_p = x_p e_p$. Inclusion–exclusion makes it computable: $\sum_i g_i g_i^\top$ (with $g_i$ the sum of scores of firm $i$'s observations) counts each such pair once, except pairs of observations of the *same* dyad, which share two firms and are counted twice. So subtract $\sum_d h_d h_d^\top$, with $h_d$ the dyad's score sum. Firms are the clusters across all months, so a firm's persistence over time is covered as well. Finite-sample factor $G/(G-1)\cdot n/(n-k)$, critical values from $t_{G-1}$. *Test:* equals the brute-force double sum on a small panel.
 
 **Check yourself.** Why does relabelling firms, rather than shuffling pair values, keep the null realistic? Why does the dyadic SE shrink only like $1/\sqrt{G}$ (firms), not $1/\sqrt{n}$ (pairs)?
+
+## Element D: covariance.py and varcompare.py {#stats-d}
+
+Element D asks whether a covariance matrix that uses text builds lower-risk portfolios. Every estimator returns a correlation matrix $\hat R$. The horse race uses $\hat\Sigma = \hat D^{1/2}\hat R\hat D^{1/2}$ with the window's own variances, so estimators differ only in correlation structure (D20(d)). Each $\hat\Sigma$ gives unconstrained GMV weights, held for 21 days. The score is the realised variance (`analysis/d_horse_race.py`).
+
+### lw_nonlinear(X) {#fn-lw_nonlinear}
+
+**Job in the project.** D's benchmark: Ledoit & Wolf's (2020, *Annals of Statistics*) analytical nonlinear shrinkage. Among estimators that keep the sample eigenvectors, it chooses the eigenvalues optimally. "Beat LW-NL" is the bar for any structured estimator.
+
+**The idea.** Write the sample covariance as $S = U\Lambda U^\top$. Keep $U$ and ask which eigenvalue $d_i$ minimises the loss. The oracle answer is $d_i^* = u_i^\top\Sigma u_i$, which needs the unknown $\Sigma$. Random-matrix theory gives it as a function of the sample spectral density $f$ and its Hilbert transform $\mathcal H f$, evaluated at $\lambda_i$:
+$$ d_i = \frac{\lambda_i}{\big(\pi c\,\lambda_i f(\lambda_i)\big)^2 + \big(1 - c - \pi c\,\lambda_i\,\mathcal Hf(\lambda_i)\big)^2},\qquad c = p/n . $$
+Both $f$ and $\mathcal Hf$ are estimated by kernel smoothing the sample eigenvalues. The kernel is Epanechnikov, with a local bandwidth $h\lambda_j$ and $h = n^{-1/3}$ (eqs. 4.7–4.9). The Hilbert transform of that kernel has a closed form, which is where the log term comes from. When $p > n$, there are $p - n$ zero sample eigenvalues. They get one common value $d_0$ (eqs. C.4, C.5, C.8), and the nonzero ones get $\lambda_i/(\pi^2\lambda_i^2(f^2 + \mathcal H f^2))$.
+
+**Conventions.** Demean the columns and use $n - 1$ as the sample size, as the authors do. In D the input is standardised returns, and the output is rescaled to a unit diagonal, as in DCC-NL (Engle, Ledoit & Wolf 2019).
+
+**Tests (`tests/test_covariance.py`) and which ran.**
+1. On LW's heterogeneous spectrum (20% of eigenvalues at 1, 40% at 3, 40% at 10, random eigenvectors), averaged over four draws, it beats the sample covariance and LW-linear in Frobenius loss and in minimum-variance loss, at $p < n$ and at $p > n$.
+2. It keeps the sample eigenvectors and is positive definite.
+3. As $n/p \to \infty$ its eigenvalues converge to the sample ones.
+4. It matches `nonlinshrink` to 1e-8 at $p < n$ and $p > n$. That is a port of the authors' published code, carrying their equation numbers; Ledoit & Wolf ship no maintained Python package of their own.
+
+All four ran locally on 8 Oct. CI skips test 4, because `nonlinshrink` is not a project dependency.
+
+**Check yourself.** Why can no estimator that keeps $U$ beat $d^*$? What does $\mathcal H f$ do to an eigenvalue sitting at the edge of the spectrum?
+
+### nested_target, fit_target_ab, ss_intensity, shrink {#fn-text_target}
+
+**Job in the project.** The text estimator (SPEC §8), and the industry, constant-correlation and placebo estimators built the same way. The target is
+$$T(a,b) = a\mathbf 1\mathbf 1^\top + bG + (1-a-b)I .$$
+With $G$ a Gram matrix of unit vectors (dense text), a same-SIC-3 block matrix, or a raw-BoW cosine Gram, $T$ is PSD with a unit diagonal. **$b = 0$ is the constant-correlation target, so $H_0: b = 0$ is the question "does text add anything?"** (`D_x_text_vs_constcorr`).
+
+**Fitting (a, b) (D20(b)).** Least squares of the pre-window pair correlations $r_{ij}$ (the 252 days before the estimation window; pairs with ≥ 200 common days) on $g_{ij}$, subject to $a, b \ge 0$ and $a + b \le 0.999$. The objective is a convex quadratic, so the solution is the unconstrained OLS point if it is feasible, and otherwise the best point on one of the triangle's three edges. Each edge is a one-dimensional least squares, clipped. The test checks it against scipy's SLSQP.
+
+**Intensity (Schäfer & Strimmer 2005, eq. 8).** The per-entry trade-off of SPEC §8, summed over pairs:
+$$\hat\delta = \frac{\sum_{i\ne j}\widehat{\operatorname{Var}}(r_{ij})}{\sum_{i\ne j}(r_{ij}-t_{ij})^2},\qquad \widehat{\operatorname{Var}}(r_{ij}) = \frac{n}{(n-1)^3}\sum_k (w_{kij} - \bar w_{ij})^2,\quad w_{kij} = x_{ki}x_{kj}.$$
+Here $x$ are the standardised returns. The sum over $k$ of $w^2$ is $\big((X\circ X)^\top(X\circ X)\big)_{ij}$, so no $n\times N\times N$ array is built. The same formula serves every target. That is deliberate: text and constant correlation then differ only in $b$. It is not LW (2004)'s own constant-correlation intensity. A useless target inflates the denominator and pushes $\hat\delta$ towards 0 by itself. The test checks the formula against a brute-force loop.
+
+**Validated intensity (estimator `text_val`).** The Frobenius-optimal $\hat\delta$ is not GMV-optimal. So pick $\delta$ on a 0.05 grid to minimise the GMV variance over the last 63 days of the window, with $R$ and $D$ estimated on the first 189 days. Then apply that $\delta$ to the full window.
+
+**Check yourself.** Why is $T(a,b)$ positive definite whenever $a + b < 1$? Why would a text target that is "right about who is related but wrong about how much" still help?
+
+### precondition_nl(X, Tgt) {#fn-precondition}
+
+**Job in the project.** Text-preconditioned nonlinear shrinkage (LW 2017 *RFS*, eq. 16).
+
+Nonlinear shrinkage keeps whatever eigenvectors it is given. So whiten the data by the target first, $Y = Z T^{-1/2}$, then shrink $Y$'s covariance with LW-NL, and map back: $\hat R = T^{1/2}\,\mathrm{NL}(Y)\,T^{1/2}$, rescaled to a unit diagonal. The eigenvectors are now those of the data relative to the target, which is how text can inform the eigenvectors and not only the eigenvalues. With $T = I$ this is plain LW-NL.
+
+**Tests.** With $T = I$ it equals LW-NL. When the true correlation equals the target, it beats LW-NL.
+
+### factor_fit, factor_corr {#fn-factor_corr}
+
+**Job in the project.** The factor-model benchmarks.
+- **FF6.** $\Sigma = B\,\mathrm{Cov}(F)B^\top + D_e^{1/2}R_eD_e^{1/2}$, with $B$ from OLS on $[1, F]$ (`ols_qr`) and residual variances with $n - K - 1$ degrees of freedom. $R_e = I$ gives the diagonal-residual model. $R_e$ = the residual correlation shrunk to a dense target, fitted on pre-window FF6 residuals, gives `ff6_text`.
+- **PCA, k = 5.** The top-5 eigen-reconstruction of the sample correlation, with the diagonal reset to 1. That is diagonal residuals on the correlation scale.
+
+Both are returned as correlation matrices (D20(d)).
+
+**Tests.** With $n = 20{,}000$ and a planted 3-factor structure, FF6 recovers the true correlation. PCA equals its definition and is positive definite.
+
+### log_var_diff, log_var_diff_boot (tfs_stats/varcompare.py) {#fn-var_test}
+
+**Job in the project.** Every D test: is portfolio A's out-of-sample variance lower than B's? The F-test assumes independent, normal returns, and daily portfolio returns are neither: there is volatility clustering, fat tails, and A and B are about 0.95 correlated.
+
+**Ledoit & Wolf (2011).** Write $\Delta = \log\hat\sigma_A^2 - \log\hat\sigma_B^2 = f(\bar y)$, a function of the means of $y_t = (r_{At}, r_{Bt}, r_{At}^2, r_{Bt}^2)$, $f = \log(c - a^2) - \log(d - b^2)$. The delta method gives $\operatorname{SE}(\hat\Delta) = \sqrt{\nabla f^\top\Psi\nabla f/T}$, where $\Psi$ is the long-run covariance of $y$ and
+$$\nabla f = \Big(\tfrac{-2a}{c-a^2},\ \tfrac{2b}{d-b^2},\ \tfrac{1}{c-a^2},\ \tfrac{-1}{d-b^2}\Big).$$
+Estimate $\Psi$ by prewhitened HAC (Andrews & Monahan 1992):
+1. Fit a VAR(1) to $y$.
+2. Take the Quadratic-Spectral-kernel long-run covariance of its residuals (`arch.covariance.kernel.QuadraticSpectral`).
+3. Recolour with $(I - \hat A)^{-1}\cdot(I - \hat A)^{-\top}$.
+
+The bandwidth is Andrews' (1991) AR(1) plug-in, $1.3221(\hat\alpha(2)T)^{1/5}$, computed on standardised prewhitened residuals so that each moment counts equally. arch's own automatic bandwidth is the Newey–West (1994) rule, so the bandwidth is computed here and passed in. The p-value for $\Delta < 0$ is one-sided normal.
+
+**Bootstrap beside it.** A studentised circular block bootstrap, with blocks of 21 days and 2,000 draws (`arch.bootstrap.CircularBlockBootstrap`). Each resample keeps the pairs $(r_A, r_B)$ together and recomputes $\Delta^*$ and its HAC SE. Then $t^* = (\Delta^* - \hat\Delta)/\mathrm{SE}^*$ and $p = (1 + \#\{t^* \le \hat t\})/(B + 1)$.
+
+**Power (SPEC §8).** With correlation 0.95 and about 1,800 test days, SE ≈ $\sqrt{4(1-0.95^2)/1800} \approx 0.015$. The smallest detectable $\Delta$ is about 3% of variance (1.5% of volatility), more under fat tails. BBP's gaps between good estimators are smaller than that, so a null result is likely and is reported as a confidence interval.
+
+**Tests (`tests/test_varcompare.py`).**
+- Under a GARCH(1,1) null with equal variances, $\rho = 0.95$ and $T = 1{,}800$, the 5% rejection rate over 500 simulations lies in [3%, 8%].
+- A known $\Delta = \log 0.81$ is recovered, and the SE matches the iid formula $\sqrt{4(1-\rho^2)/T}$.
+- The bootstrap agrees on a clear case.
+
+### romano_wolf(series) (tfs_stats/multitest.py) {#fn-romano_wolf}
+
+**Job in the project.** Across the C and E Fama–MacBeth slope series (D25), which mean slopes are significantly positive, with the family-wise error rate controlled under any dependence between the series? BH controls the share of false discoveries. Romano–Wolf controls the chance of even one, and it gains power from the dependence between variants of the same test.
+
+**The stepdown.**
+1. Bootstrap the months jointly (stationary bootstrap, mean block 4), keeping the cross-series dependence.
+2. Take the 95th percentile of the maximum re-centred bootstrap mean across the series still in play.
+3. Reject every series whose mean exceeds it, drop them, and repeat with the rest until nothing new is rejected.
+
+**How the project computes it.** `arch.bootstrap.StepM` (built on Hansen's SPA bootstrap): benchmark loss 0, model losses $-b_t$, 10,000 replications, seed 2026, Hansen's "consistent" re-centring.
+
+**A library caveat found while testing (8 Oct).** In arch 8.0.0, `studentize=True` only labels the output. The max statistic and its critical values use the raw means, and the variances serve only the re-centring screen. So this is the non-studentised stepdown: series with larger slope variances weigh more in the maximum.
+
+Simulated FWER at a nominal 5%:
+- iid series in our two shapes (T = 165 months, 8 series; T = 91, 15 series): about 6.5%.
+- AR(1) series with $\rho = 0.2$: 8.5% and 11%, because a mean block of 4 understates that persistence. H1's slope series has lag-1 autocorrelation 0.29.
+- A hand-written studentised version did worse in the same simulations (8–11% iid).
+
+So arch's StepM is kept, as D25 specifies, and its rejections should be read as somewhat liberal. The unit test checks FWER ≤ 10% on the iid null.
+
+### The stratified-substitution null (E_x_perm_stratified) {#fn-perm_stratified}
+
+**Job in the project.** The null that tests whether the text link itself matters (SPEC §9 (a)).
+
+**How a draw works.**
+- Each counted peer $j$ of firm $i$ is replaced by a random firm from $j$'s cell at $t-1$: FF-48 industry × NYSE size tercile, among universe firms with a 12-month return, never $i$.
+- PEERMOM is recomputed and winsorised and z-scored as in H3, and the FM $t$ is recorded.
+- After 999 draws, $p = (1 + \#\{t_b \ge t_{obs}\})/1000$.
+
+The substitute is fixed within $i$'s 10-K vintage. Its position in the cell is $\lfloor u\cdot\text{size}\rfloor$, with $u$ a hash (splitmix64) of (draw, $i$'s accession, $j$'s permno). So the same link keeps the same stand-in until the vintage, the link or the cell changes, just as real peers persist.
+
+**What the null keeps and breaks.**
+- It keeps the industry and size composition of each firm's peer set, so industry momentum and size effects carried by peers stay in the null.
+- It breaks only which specific firms are linked.
+- Contrast `E_x_perm_matched`, which kept each peer's past-return decile and so retained most of PEERMOM by construction (correlation 0.53).
 
 ## Reading list {#stats-reading}
 

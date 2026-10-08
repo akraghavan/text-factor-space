@@ -61,15 +61,20 @@ def ipr(V: np.ndarray):
     if V.ndim == 1: V = V[:, None]
     return (V ** 4).sum(axis=0)
 
-def clip_correlation(C: np.ndarray, T: int):
+def clip_correlation(C: np.ndarray, T: int, allow_q_gt_1: bool = False):
     """Eigenvalue clipping (Laloux, Cizeau, Bouchaud & Potters 1999): np.linalg.eigh(C); keep eigenvalues above
     lambda_plus = mp_edges(N/T)[1]; replace every bulk eigenvalue (<= lambda_plus) by the bulk mean, which keeps the
     trace = N; rebuild V diag V'; rescale to unit diagonal D^{-1/2} C D^{-1/2}; symmetrise. No library implements it.
     Positive definite because every rebuilt eigenvalue is > 0 (the bulk mean of a PSD spectrum with positive trace).
-    For residual correlations pass the effective sample size T - K - 1. Card: docs/STATS_GUIDE.md#fn-clip_correlation"""
+    For residual correlations pass the effective sample size T - K - 1.
+    allow_q_gt_1 (D20(e), Element D with N = 500 > T = 252): opt in to q = N/T > 1, where mp_edges refuses; the edge is
+    then lambda_plus = (1 + sqrt q)^2 and the N - T + 1 zero eigenvalues count as bulk, so the bulk mean is
+    (N - sum of kept eigenvalues) / #bulk > 0 and the trace stays N. Card: docs/STATS_GUIDE.md#fn-clip_correlation"""
     C = np.asarray(C, dtype=np.float64); N = C.shape[0]
     lam, V = np.linalg.eigh(C)
-    _, hi = mp_edges(N / T)
+    q = N / T
+    if q > 1 and allow_q_gt_1: hi = (1 + np.sqrt(q)) ** 2
+    else: _, hi = mp_edges(q)
     bulk = lam <= hi
     lam2 = lam.copy()
     if bulk.any(): lam2[bulk] = lam[bulk].mean()
