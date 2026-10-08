@@ -10,7 +10,8 @@ names which p each spec used). tfs_stats.multitest.bh and .by (statsmodels multi
 Run: python src/runner.py run Exploratory_family_bh"""
 import sys, json
 from pathlib import Path
-ROOT = Path(__file__).resolve().parents[1]; sys.path.insert(0, str(ROOT)); sys.path.insert(0, str(ROOT / 'src'))
+ROOT = Path(__file__).resolve().parents[1]
+for _p in (ROOT, ROOT / 'src', ROOT / 'analysis'): sys.path.insert(0, str(_p))
 import numpy as np
 from tfs_stats.multitest import bh, by
 import runner
@@ -72,3 +73,40 @@ def run(spec=None):
 
 if __name__ == '__main__':
     run()
+
+RW_FAMILIES = {
+    'C (full period, 165 months)': ['C_x_bow_null', 'C_x_bow_raw', 'C_x_binary_network', 'C_x_missing_bm_indicator', 'C_x_pc5', 'C_x_pc10',
+                                    'C_x_dimson', 'C_x_sich'],
+    'E (test period, 91 months)': ['E_x_nearest5', 'E_x_delist_0', 'E_x_delist_m100', 'E_x_sim_weighted', 'E_x_h_6_1', 'E_x_h_12_7',
+                                   'E_x_grundy_martin', 'E_x_idiosyncratic', 'E_x_text_only', 'E_x_sic_only', 'E_x_both', 'E_x_dense_only',
+                                   'E_x_stale_y3', 'E_x_sich', 'E_x_nyse20']}
+
+def romano_wolf(spec=None):
+    """Exploratory_family_romano_wolf (diagnostic; D25): Romano-Wolf stepdown (tfs_stats.multitest.romano_wolf: arch StepM,
+    stationary bootstrap, block 4, 10,000 reps, seed 2026, size 0.05) on two families of monthly Fama-MacBeth slope series
+    saved by the entries (analysis/output/<dir>/series/<spec>.json; the headline regressor's b_t): C's full-period
+    variants and E's test-period variants. Excluded (D25): subperiods, 12-month windows, permutation nulls, portfolios, the
+    HP replication, MRQAP/dyadic, B, D and the two-sided placebo. Writes analysis/output/exploratory/romano_wolf.md/.json."""
+    from tfs_stats.multitest import romano_wolf as rw
+    import series_out
+    out, lines = {}, ['# Romano–Wolf stepdown across Fama–MacBeth slope series (D25)', '',
+                      'arch `StepM`, losses −b_t vs 0 (superior = mean slope > 0), stationary bootstrap (mean block 4), 10,000 replications, '
+                      'seed 2026, FWER 5%. In arch 8.0.0 the studentise flag does not studentise, so this is the non-studentised stepdown; '
+                      'simulated FWER ≈ 6.5% (iid) to 8.5–11% (AR(1) 0.2) at these shapes (STATS_GUIDE #fn-romano_wolf).', '']
+    for fam, ids in RW_FAMILIES.items():
+        S = {}
+        for sid in ids:
+            f = list((ROOT / 'analysis' / 'output').glob(f'*/series/{sid}.json'))
+            if len(f) != 1: raise FileNotFoundError(f'{sid}: {len(f)} series files')
+            S[sid] = series_out.load(f[0])
+        months = list(S[ids[0]])
+        if any(list(v) != months for v in S.values()): raise ValueError(f'{fam}: series cover different months')
+        r = rw({k: np.array(list(v.values())) for k, v in S.items()})
+        out[fam] = {'series': len(ids), 'months': len(months), 'superior': r['superior'], 'not_rejected': [k for k in ids if k not in r['superior']],
+                    'mean_slopes': {k: float(np.mean(list(v.values()))) for k, v in S.items()}}
+        lines += [f'## {fam}', '', f"{len(r['superior'])} of {len(ids)} mean slopes significantly positive at FWER 5%.", '',
+                  '| spec | mean slope | superior |', '|---|---|---|'] + \
+                 [f"| `{k}` | {out[fam]['mean_slopes'][k]:.5f} | {'yes' if k in r['superior'] else 'no'} |" for k in ids] + ['']
+    o = ROOT / 'analysis' / 'output' / 'exploratory'; o.mkdir(parents=True, exist_ok=True)
+    (o / 'romano_wolf.json').write_text(json.dumps(out, indent=1)); (o / 'romano_wolf.md').write_text('\n'.join(lines) + '\n'); print('\n'.join(lines))
+    return {fam: {'superior': v['superior'], 'not_rejected': v['not_rejected']} for fam, v in out.items()}
