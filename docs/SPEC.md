@@ -430,6 +430,7 @@ None as of 29 Sep.
 | D25 | Romano–Wolf | `arch.bootstrap.StepM` (losses −b_t vs 0, studentised, stationary bootstrap, block 4, 10,000 reps, seed 2026, size 0.05) on C's full-period and E's test-period FM slope series; subperiods, windows, permutations, portfolios, HP replication, MRQAP/dyadic, B, D and the two-sided placebo excluded. The nine FM specs already run are re-run once to save their series and must reproduce their logged numbers to 1e-10 |
 | D26 | Dependencies and custom code | `arch` added (QS-kernel HAC, circular block bootstrap, StepM). LW (2020) analytical nonlinear shrinkage written in `tfs_stats/covariance.py` (no maintained library), p ≤ n and p > n, tested on known spectra |
 | D27 | Not done, stated as limitations | Input–output customer/supplier momentum (no data), analyst co-coverage (no I/B/E/S), net-of-cost alphas with real spreads (break-even cost instead), the D estimators listed as not built in D20 |
+| D28 | Romano–Wolf: correct D25's implementation | 8 Oct (Abhi's go): arch 8.0.0's StepM does not studentise, so each slope series is fed as b_t / (√T · SE_NW) with its spec's own Newey–West lags, the full-sample SE held fixed across draws (Romano & Wolf 2005). The block length is the smallest of {4, 8, 12} whose simulated FWER is ≤ 6% (independent AR(1) series at the family's observed lag-1 autocorrelation and shape: C 165 × 8, E 91 × 15); if none, 12, reported as mildly liberal. Implementation correction, not a spec change |
 
 ## 14. References {#references}
 

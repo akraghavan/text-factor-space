@@ -606,20 +606,28 @@ The bandwidth is Andrews' (1991) AR(1) plug-in, $1.3221(\hat\alpha(2)T)^{1/5}$, 
 **Job in the project.** Across the C and E Fama–MacBeth slope series (D25), which mean slopes are significantly positive, with the family-wise error rate controlled under any dependence between the series? BH controls the share of false discoveries. Romano–Wolf controls the chance of even one, and it gains power from the dependence between variants of the same test.
 
 **The stepdown.**
-1. Bootstrap the months jointly (stationary bootstrap, mean block 4), keeping the cross-series dependence.
-2. Take the 95th percentile of the maximum re-centred bootstrap mean across the series still in play.
-3. Reject every series whose mean exceeds it, drop them, and repeat with the rest until nothing new is rejected.
+1. Studentise each series by its own full-sample Newey–West standard error, so every series is on the t scale (below).
+2. Bootstrap the months jointly with a stationary bootstrap, keeping the cross-series dependence.
+3. Take the 95th percentile of the maximum re-centred bootstrap mean across the series still in play.
+4. Reject every series whose mean exceeds it, drop them, and repeat with the rest until nothing new is rejected.
 
-**How the project computes it.** `arch.bootstrap.StepM` (built on Hansen's SPA bootstrap): benchmark loss 0, model losses $-b_t$, 10,000 replications, seed 2026, Hansen's "consistent" re-centring.
+**How the project computes it.** `arch.bootstrap.StepM` (built on Hansen's SPA bootstrap): benchmark loss 0, model losses $-x_t$, 10,000 replications, seed 2026, Hansen's "consistent" re-centring.
 
-**A library caveat found while testing (8 Oct).** In arch 8.0.0, `studentize=True` only labels the output. The max statistic and its critical values use the raw means, and the variances serve only the re-centring screen. So this is the non-studentised stepdown: series with larger slope variances weigh more in the maximum.
+**Studentisation (D28, 8 Oct).** In arch 8.0.0, StepM's `studentize=True` only labels the output: the max statistic and its critical values use the raw means. In C that let the unstandardised binary-link series (b̄ 0.083 against about 0.01 for the rest) set the critical value for all eight. In E it let the noisiest series (`sich`) do the same.
 
-Simulated FWER at a nominal 5%:
-- iid series in our two shapes (T = 165 months, 8 series; T = 91, 15 series): about 6.5%.
-- AR(1) series with $\rho = 0.2$: 8.5% and 11%, because a mean block of 4 understates that persistence. H1's slope series has lag-1 autocorrelation 0.29.
-- A hand-written studentised version did worse in the same simulations (8–11% iid).
+So the project studentises before StepM. It feeds $x_{t,k} = b_{t,k}/(\sqrt T\,\mathrm{SE}_{NW,k})$, whose mean is $t_k/\sqrt T$:
+- the SE is each spec's own Newey–West SE (4 lags at T = 165, 3 at T = 91), recomputed from the saved series and checked against the logged value;
+- it is held fixed across bootstrap draws, which is Romano & Wolf's (2005) studentisation with the full-sample standard error.
 
-So arch's StepM is kept, as D25 specifies, and its rejections should be read as somewhat liberal. The unit test checks FWER ≤ 10% on the iid null.
+The maximum is then over t-statistics. (A per-draw re-studentised version had worse size, 8–11% under iid nulls.)
+
+**Block length (D28).** The smallest of 4, 8 and 12 whose simulated FWER is at most 6% (`romano_wolf_size`). The simulation uses 2,000 draws of independent AR(1) series at the family's mean observed lag-1 autocorrelation and shape, with 1,000 replications each. Independent series are the hardest case, since positively dependent variants behave like fewer tests. RW_RESULTS_PLACEHOLDER
+
+**Tests (`tests/test_romano_wolf.py`).**
+- The unstudentised version holds FWER ≤ 10% on an iid null.
+- It finds a real effect.
+- Only the studentised version finds a small-scale effect sitting next to a noisy null.
+- The size simulation is reproducible.
 
 ### The stratified-substitution null (E_x_perm_stratified) {#fn-perm_stratified}
 
