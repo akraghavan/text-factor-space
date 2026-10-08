@@ -537,6 +537,12 @@ Both $f$ and $\mathcal Hf$ are estimated by kernel smoothing the sample eigenval
 
 All four ran locally on 8 Oct. CI skips test 4, because `nonlinshrink` is not a project dependency.
 
+**Where it breaks: $p \approx n$ (found 8 Oct).** As $c = p/n \to 1$, the $(1-c)$ term vanishes and the smallest sample eigenvalues approach zero, where the kernel estimates are unreliable. In a simulation with $\Sigma = I$ and $N = 500$:
+- at $c = 0.994$ the shrunk eigenvalues span 0.014–9.3 and the GMV variance is 12 times the oracle;
+- at $c = 0.96$, 0.84, 0.50 and 1.99 it is at the oracle.
+
+The `nonlinshrink` port refuses $c = 0.994$ as singular. D's robustness configuration with $N = 500$ and $T = 504$ ($c = 0.994$) is exactly this case, so its LW-NL and preconditioned rows are uninformative. The primary configuration has $c \approx 2$ and $N = 1{,}000$ has $c \approx 4$; both are fine.
+
 **Check yourself.** Why can no estimator that keeps $U$ beat $d^*$? What does $\mathcal H f$ do to an eigenvalue sitting at the edge of the spectrum?
 
 ### nested_target, fit_target_ab, ss_intensity, shrink {#fn-text_target}

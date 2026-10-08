@@ -82,7 +82,9 @@ def test_factor_corr():
     off = ~np.eye(N, dtype=bool)                                   # the definition: top-3 eigen-reconstruction, unit diagonal
     assert np.allclose(R[off], Rk[off]) and np.allclose(np.diag(R), 1) and np.linalg.eigvalsh(R).min() > 0
 
-def test_lw_nonlinear_when_p_is_close_to_n():
-    rng = np.random.default_rng(9); X = rng.normal(size=(504, 500))          # D's T = 504, N = 500 configuration: q ~ 0.99
-    E = lw_nonlinear(X); ev = np.linalg.eigvalsh(E)
-    assert np.isfinite(E).all() and ev.min() > 0 and np.isclose(np.trace(E) / 500, 1, atol=0.1)
+def test_lw_nonlinear_near_but_not_at_p_equals_n():
+    # p/n = 0.96: still at the oracle for Sigma = I (GMV variance x p ~ 1). At p/n = 0.994 the formula degenerates
+    # (GMV variance 12x the oracle; see the docstring and the card), which D's T = 504 configuration hits.
+    from tfs_stats.rmt import min_var_weights
+    rng = np.random.default_rng(9); X = rng.normal(size=(520, 500)); E = lw_nonlinear(X); w = min_var_weights(E)
+    assert np.isfinite(E).all() and np.linalg.eigvalsh(E).min() > 0 and abs(w @ w * 500 - 1) < 0.05

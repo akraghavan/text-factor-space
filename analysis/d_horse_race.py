@@ -174,7 +174,8 @@ def table(spec=None):
         for (e, period), g in sub.groupby(['estimator', 'period']):
             m = {'config': config, 'estimator': e, 'period': period, 'rebalances': len(g), 'mean_turnover': float(g.turnover.mean()),
                  'mean_gross': float(g.gross.mean()), 'mean_maxw': float(g.maxw.mean()),
-                 'mean_bias_ratio': float((g.real_ms / g.pred_var).mean()) if g.pred_var.notna().any() else np.nan}
+                 'mean_bias_ratio': float((g.real_ms / g.pred_var).mean()) if g.pred_var.notna().any() else np.nan,
+                 'median_bias_ratio': float((g.real_ms / g.pred_var).median()) if g.pred_var.notna().any() else np.nan}
             if 'b' in g and g.b.notna().any():
                 m.update({'median_a': float(g.a.median()), 'median_b': float(g.b.median()), 'share_b_zero': float((g.b <= 1e-12).mean())})
             if 'delta' in g and g.delta.notna().any(): m['median_delta'] = float(g.delta.median())
@@ -204,10 +205,16 @@ def _readme(T_, M_):
                 hr = getattr(r, 'holm_reject_5pct', np.nan); hr = '' if not isinstance(hr, (bool, np.bool_)) else ('reject' if hr else '')
                 lines.append(f'| {r.estimator} | {r.ann_sd:.2%} | {dl} | {tt} | {hr} |')
             lines.append('')
-    lines += ['## Weights and fit (per rebalance means; test period, primary)', '', '| estimator | turnover | gross leverage | max |w| | bias ratio | median a | median b | share b = 0 | median δ |', '|---|---|---|---|---|---|---|---|---|']
+    lines += ['Configuration t504 (N = 500, T = 504) has p/n = 0.994, where LW (2020) nonlinear shrinkage degenerates (simulated GMV variance 12x '
+              'the oracle when Sigma = I; STATS_GUIDE #fn-lw_nonlinear), so its lwnl and precond rows and every comparison against LW-NL in '
+              'that configuration are uninformative.', '']
+    lines += ['## Weights and fit (per rebalance; test period, primary)', '', 'Bias ratio = realised mean squared daily return over the 21 holding days / predicted daily '
+              'variance w′Σ̂w; the mean is dominated by March 2020, so the median is shown beside it.', '',
+              '| estimator | turnover | gross leverage | max |w| | bias ratio (mean) | bias ratio (median) | median a | median b | share b = 0 | median δ |',
+              '|---|---|---|---|---|---|---|---|---|---|']
     s = M_[(M_.config == 'primary') & (M_.period == 'test')]
     f = lambda v, fmt: '' if v is None or (isinstance(v, float) and np.isnan(v)) else format(v, fmt)
     for r in s.itertuples():
-        lines.append(f"| {r.estimator} | {f(r.mean_turnover, '.2f')} | {f(r.mean_gross, '.2f')} | {f(r.mean_maxw, '.3f')} | {f(r.mean_bias_ratio, '.2f')} | "
+        lines.append(f"| {r.estimator} | {f(r.mean_turnover, '.2f')} | {f(r.mean_gross, '.2f')} | {f(r.mean_maxw, '.3f')} | {f(r.mean_bias_ratio, '.2f')} | {f(r.median_bias_ratio, '.2f')} | "
                      f"{f(getattr(r, 'median_a', np.nan), '.3f')} | {f(getattr(r, 'median_b', np.nan), '.3f')} | {f(getattr(r, 'share_b_zero', np.nan), '.2f')} | {f(getattr(r, 'median_delta', np.nan), '.2f')} |")
     (OUT / 'README.md').write_text('\n'.join(lines) + '\n')
