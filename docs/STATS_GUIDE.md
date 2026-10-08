@@ -613,13 +613,13 @@ The bandwidth is Andrews' (1991) AR(1) plug-in, $1.3221(\hat\alpha(2)T)^{1/5}$, 
 
 **How the project computes it.** `arch.bootstrap.StepM` (built on Hansen's SPA bootstrap): benchmark loss 0, model losses $-x_t$, 10,000 replications, seed 2026, Hansen's "consistent" re-centring.
 
-**Studentisation (D28, 8 Oct).** In arch 8.0.0, StepM's `studentize=True` only labels the output: the max statistic and its critical values use the raw means. In C that let the unstandardised binary-link series (b̄ 0.083 against about 0.01 for the rest) set the critical value for all eight. In E it let the noisiest series (`sich`) do the same.
+**Standardisation (D28, 8 Oct).** In arch 8.0.0, StepM's `studentize=True` only labels the output: the max statistic and its critical values use the raw means. In C that let the unstandardised binary-link series (b̄ 0.083 against about 0.01 for the rest) set the critical value for all eight. In E it let the noisiest series (`sich`) do the same.
 
-So the project studentises before StepM. It feeds $x_{t,k} = b_{t,k}/(\sqrt T\,\mathrm{SE}_{NW,k})$, whose mean is $t_k/\sqrt T$:
+So the project standardises before StepM. It feeds $x_{t,k} = b_{t,k}/(\sqrt T\,\mathrm{SE}_{NW,k})$, whose mean is $t_k/\sqrt T$:
 - the SE is each spec's own Newey–West SE (4 lags at T = 165, 3 at T = 91), recomputed from the saved series and checked against the logged value;
-- it is held fixed across bootstrap draws, which is Romano & Wolf's (2005) studentisation with the full-sample standard error.
+- it is held fixed across bootstrap draws, which is Hansen's (2005) SPA convention.
 
-The maximum is then over t-statistics. (A per-draw re-studentised version had worse size, 8–11% under iid nulls.)
+Romano & Wolf's (2005) fully studentised stepdown re-estimates the SE in every bootstrap draw instead; that version had worse size here (8–11% under iid nulls). The maximum is then over t-statistics.
 
 **Block length (D28).** The smallest of 4, 8 and 12 whose simulated FWER is at most 6% (`romano_wolf_size`). The simulation uses 2,000 draws of independent AR(1) series at the family's mean observed lag-1 autocorrelation and shape, with 1,000 replications each. Independent series are the hardest case, since positively dependent variants behave like fewer tests. No block reached 6% at our sizes. Simulated FWER at blocks 4 / 8 / 12 was 14.6 / 13.8 / 14.3% for C (165 × 8, ρ = 0.36) and 11.4 / 15.5 / 17.7% for E (91 × 15, ρ = 0.06). So block 12 is used, as D28 prescribes, and **RW is liberal at those rates: 14% for C and 18% for E, against a nominal 5%.**
 

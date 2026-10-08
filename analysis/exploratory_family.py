@@ -81,19 +81,23 @@ RW_FAMILIES = {
                                    'E_x_grundy_martin', 'E_x_idiosyncratic', 'E_x_text_only', 'E_x_sic_only', 'E_x_both', 'E_x_dense_only',
                                    'E_x_stale_y3', 'E_x_sich', 'E_x_nyse20']}
 
-BLOCKS, FWER_TARGET, SIM_DRAWS, SIM_REPS = (4, 8, 12), 0.06, 2000, 1000
+BLOCKS, SIZES, FWER_NOMINAL, SIM_DRAWS, SIM_REPS = (4, 8, 12), (0.05, 0.04, 0.03, 0.02, 0.015, 0.01, 0.005), 0.05, 2000, 1000
 
 def romano_wolf(spec=None):
-    """Exploratory_family_romano_wolf (diagnostic; D25 with the D28 implementation correction): Romano-Wolf stepdown
-    (tfs_stats.multitest.romano_wolf: arch StepM, stationary bootstrap, 10,000 reps, seed 2026, FWER 5%) on two families
+    """Exploratory_family_romano_wolf (diagnostic; D25, implemented per D28 and size-calibrated per D30): Romano-Wolf
+    stepdown (tfs_stats.multitest.romano_wolf: arch StepM, stationary bootstrap, 10,000 reps, seed 2026) on two families
     of monthly Fama-MacBeth slope series saved by the entries (analysis/output/<dir>/series/<spec>.json; the headline
     regressor's b_t): C's full-period variants and E's test-period variants. Excluded (D25): subperiods, 12-month
     windows, permutation nulls, portfolios, the HP replication, MRQAP/dyadic, B, D and the two-sided placebo.
-    D28: (1) each series is studentised by its full-sample Newey-West SE with its spec's own lags (nw_lags_rule(T): 4 at
-    T = 165, 3 at T = 91), recomputed from the saved series and checked against the logged se_nw; (2) the block length
-    is the smallest of (4, 8, 12) whose simulated FWER (tfs_stats.multitest.romano_wolf_size: independent AR(1) series at
-    the family's mean observed lag-1 autocorrelation and shape, 2,000 draws, 1,000 reps each) is <= 6%; if none is, 12,
-    and RW is reported as mildly liberal at that rate. Writes analysis/output/exploratory/romano_wolf.md/.json."""
+    D28: each series is standardised by its full-sample Newey-West SE with its spec's own lags (nw_lags_rule(T): 4 at
+    T = 165, 3 at T = 91), recomputed from the saved series and checked against the logged se_nw, held fixed across
+    draws (Hansen 2005's SPA convention).
+    D30: simulated FWER (tfs_stats.multitest.romano_wolf_size: independent AR(1) series at the family's mean observed
+    lag-1 autocorrelation and shape, 2,000 draws, 1,000 reps each, the same seeds for every block and size) at nominal 5%
+    for blocks 4, 8, 12; the block with the lowest; then, at that block, the largest nominal size in
+    (0.05, 0.04, 0.03, 0.02, 0.015, 0.01, 0.005) whose simulated FWER is <= 5%. The headline is RW at that (block, size).
+    The nominal-5% run at block 12 (the D28 run) is recomputed beside it for context.
+    Writes analysis/output/exploratory/romano_wolf.md/.json."""
     from tfs_stats.multitest import romano_wolf as rw, romano_wolf_size
     from tfs_stats.regression import fm_inference, nw_lags_rule
     import series_out
@@ -101,11 +105,12 @@ def romano_wolf(spec=None):
     logged = {}
     for r in recs:
         if r.get('status') == 'ok' and r.get('family') == 'exploratory': logged[r['spec']] = r['result']
-    out, lines = {}, ['# Romano–Wolf stepdown across Fama–MacBeth slope series (D25; studentised, D28)', '',
-                      'arch `StepM` on studentised series x_t = b_t / (√T · SE_NW), SE from each spec\'s own Newey–West lags on the full sample and '
-                      'held fixed across draws (arch 8.0.0 does not studentise itself); superior = mean > 0; stationary bootstrap; 10,000 replications; '
-                      'seed 2026; FWER 5%. Block length: the smallest of 4, 8, 12 with simulated FWER ≤ 6% (independent AR(1) series at the family\'s '
-                      'mean lag-1 autocorrelation and shape; 2,000 draws).', '']
+    out, lines = {}, ['# Romano–Wolf stepdown across Fama–MacBeth slope series (D25; standardised, D28; size-calibrated, D30)', '',
+                      'arch `StepM` on standardised series x_t = b_t / (√T · SE_NW), SE from each spec\'s own Newey–West lags on the full sample and '
+                      'held fixed across draws (Hansen 2005\'s SPA convention; arch 8.0.0 does not studentise itself); superior = mean > 0; '
+                      'stationary bootstrap; 10,000 replications; seed 2026. Calibration (D30): block = the lowest simulated FWER at nominal 5% '
+                      'among 4, 8, 12; nominal size = the largest of 0.05 … 0.005 whose simulated FWER ≤ 5% at that block (independent AR(1) series '
+                      'at the family\'s mean lag-1 autocorrelation and shape; 2,000 draws).', '']
     for fi, (fam, ids) in enumerate(RW_FAMILIES.items()):
         S, se, ac = {}, {}, []
         for sid in ids:
@@ -118,21 +123,29 @@ def romano_wolf(spec=None):
         months = list(S[ids[0]])
         if any(list(v) != months for v in S.values()): raise ValueError(f'{fam}: series cover different months')
         T, k, rho, L = len(months), len(ids), float(np.mean(ac)), nw_lags_rule(len(months))
-        sims = {b: romano_wolf_size(T, k, rho, b, L, nsim=SIM_DRAWS, reps=SIM_REPS, seed=1000 * (fi + 1) + b) for b in BLOCKS}
-        ok = [b for b in BLOCKS if sims[b] <= FWER_TARGET]; block = ok[0] if ok else BLOCKS[-1]
-        r = rw({kk: np.array(list(v.values())) for kk, v in S.items()}, block=block, se=se)
+        sim = lambda b, a: romano_wolf_size(T, k, rho, b, L, nsim=SIM_DRAWS, reps=SIM_REPS, seed=1000 * (fi + 1) + b, size=a)
+        by_block = {b: sim(b, FWER_NOMINAL) for b in BLOCKS}; block = min(BLOCKS, key=lambda b: (by_block[b], b))
+        by_size = {a: (by_block[block] if a == FWER_NOMINAL else sim(block, a)) for a in SIZES}
+        ok = [a for a in SIZES if by_size[a] <= FWER_NOMINAL]; size = ok[0] if ok else SIZES[-1]
+        X = {kk: np.array(list(v.values())) for kk, v in S.items()}
+        r = rw(X, block=block, size=size, se=se); r12 = rw(X, block=12, size=0.05, se=se)
         tstat = {kk: float(np.mean(list(v.values())) / se[kk]) for kk, v in S.items()}
-        out[fam] = {'series': k, 'months': T, 'nw_lags': L, 'mean_lag1_autocorr': rho, 'simulated_fwer': {str(b): v for b, v in sims.items()},
-                    'block': block, 'fwer_at_block': sims[block], 'meets_6pct': bool(ok), 'superior': r['superior'],
-                    'not_rejected': [kk for kk in ids if kk not in r['superior']], 't': tstat}
-        lines += [f'## {fam}', '', f"Mean lag-1 autocorrelation {rho:.3f}; NW lags {L}. Simulated FWER at blocks 4 / 8 / 12: "
-                  + ' / '.join(f'{sims[b]:.3f}' for b in BLOCKS) + f". Block used: {block} (simulated FWER {sims[block]:.3f}"
-                  + ('' if ok else '; no block reaches 6%, so RW is mildly liberal at this rate') + ').', '',
-                  f"{len(r['superior'])} of {k} mean slopes significantly positive at FWER 5%.", '',
-                  '| spec | t (NW) | superior |', '|---|---|---|'] + \
-                 [f"| `{kk}` | {tstat[kk]:.2f} | {'yes' if kk in r['superior'] else 'no'} |" for kk in ids] + ['']
+        out[fam] = {'series': k, 'months': T, 'nw_lags': L, 'mean_lag1_autocorr': rho,
+                    'simulated_fwer_by_block_at_5pct': {str(b): v for b, v in by_block.items()}, 'block': block,
+                    'simulated_fwer_by_size': {str(a): v for a, v in by_size.items()}, 'size': size, 'fwer_at_size': by_size[size],
+                    'size_reaches_5pct': bool(ok), 'superior': r['superior'], 'not_rejected': [kk for kk in ids if kk not in r['superior']],
+                    'context_d28_block12_size05': {'superior': r12['superior'], 'simulated_fwer': by_block[12]}, 't': tstat}
+        lines += [f'## {fam}', '', f"Mean lag-1 autocorrelation {rho:.3f}; NW lags {L}.",
+                  f"Simulated FWER at nominal 5%, blocks 4 / 8 / 12: " + ' / '.join(f'{by_block[b]:.3f}' for b in BLOCKS) + f" → block {block}.",
+                  f"At block {block}, simulated FWER by nominal size " + ', '.join(f'{a}: {by_size[a]:.3f}' for a in SIZES)
+                  + f" → **size {size}** (simulated FWER {by_size[size]:.3f}" + ('' if ok else '; no size reaches 5%, so RW is liberal at this rate') + ').', '',
+                  f"**{len(r['superior'])} of {k} mean slopes significantly positive at simulated FWER ≤ 5%.** Context: at nominal 5% and block 12 "
+                  f"(the D28 run; liberal, simulated FWER {by_block[12]:.3f}), {len(r12['superior'])} of {k}.", '',
+                  '| spec | t (NW) | superior (calibrated) | superior (nominal 5%, block 12) |', '|---|---|---|---|'] + \
+                 [f"| `{kk}` | {tstat[kk]:.2f} | {'yes' if kk in r['superior'] else 'no'} | {'yes' if kk in r12['superior'] else 'no'} |" for kk in ids] + ['']
         print(fam, {k_: v for k_, v in out[fam].items() if k_ != 't'}, flush=True)
     o = ROOT / 'analysis' / 'output' / 'exploratory'; o.mkdir(parents=True, exist_ok=True)
     (o / 'romano_wolf.json').write_text(json.dumps(out, indent=1)); (o / 'romano_wolf.md').write_text('\n'.join(lines) + '\n'); print('\n'.join(lines))
-    return {fam: {'block': v['block'], 'fwer_at_block': v['fwer_at_block'], 'superior': v['superior'], 'not_rejected': v['not_rejected']}
+    return {fam: {'block': v['block'], 'size': v['size'], 'fwer_at_size': v['fwer_at_size'], 'superior': v['superior'],
+                  'not_rejected': v['not_rejected'], 'superior_nominal5_block12': v['context_d28_block12_size05']['superior']}
             for fam, v in out.items()}

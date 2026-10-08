@@ -39,12 +39,14 @@ def romano_wolf(series, size: float = 0.05, block: int = 4, reps: int = 10_000, 
     arch.bootstrap.StepM (Romano & Wolf 2005 stepdown built on Hansen's SPA bootstrap): benchmark loss 0, model losses
     -x_t (so "superior" = mean > 0), stationary bootstrap of the common months with mean block length `block`, `reps`
     replications, seed fixed, Hansen's "consistent" re-centring.
-    Studentisation (D28). In arch 8.0.0 StepM's studentize flag only labels the output: the max statistic and its
-    bootstrap critical values use the raw means. So the series are studentised before they reach StepM: with
+    Standardisation (D28). In arch 8.0.0 StepM's studentize flag only labels the output: the max statistic and its
+    bootstrap critical values use the raw means. So the series are standardised before they reach StepM: with
     se = {name: full-sample Newey-West SE of the mean slope, from each spec's own lags}, x_t = b_t / (sqrt(T) se), whose
-    mean is t / sqrt(T). The SE is held fixed across bootstrap draws (Romano & Wolf 2005, studentisation with the full-
-    sample standard error), so the max is taken over t-statistics and a series with a large scale cannot set the
-    critical value for the rest. se=None keeps the raw means (D25 as first run).
+    mean is t / sqrt(T). The SE is held fixed across bootstrap draws, which is Hansen's (2005) SPA convention; Romano &
+    Wolf's (2005) fully studentised stepdown re-estimates the SE in every draw, which had worse size here (8-11% under
+    iid nulls). The max is taken over t-statistics, so a series with a large scale cannot set the critical value for the
+    rest. se=None keeps the raw means (D25 as first run). The block and the nominal size are calibrated by
+    romano_wolf_size (D30).
     Every series must cover the same months. series: {name: 1-d array}.
     Returns dict(superior: names in input order, size, block, reps, studentised)."""
     import pandas as pd
