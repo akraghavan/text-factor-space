@@ -1,4 +1,4 @@
-# Text-Implied Factor Space
+# Quantifying How 10-K Business Similarity Explains Factor-Adjusted Return Comovement
 
 Every US public company describes its products and markets in Item 1 of its annual 10-K. Firms that describe similar products compete for the same customers and face the same demand shocks, so the text should define an economic neighbourhood that fixed, coarse industry codes capture only partly. This project measures that neighbourhood from about 56,000 firm-year 10-Ks (2011–2026) and tests what it is worth for returns. It replicates the text-based industries and text-based industry momentum of Hoberg and Phillips and extends them in three ways: dense sentence embeddings compared head to head with their bag-of-words vectors, an out-of-sample test of text-peer momentum after its 2018 publication, and text similarity used as a structured prior for covariance estimation.
 

@@ -1,4 +1,4 @@
-# Text-Implied Factor Space — Project Specification (v1)
+# Quantifying How 10-K Business Similarity Explains Factor-Adjusted Return Comovement: Project Specification (v1)
 
 Single source of truth for the project. Each element follows one pattern: **what it is → what it gives us → data → procedure → parameters → validation → pitfalls → interview probes → deliverables.** The interview mapping, schedule and pitch live in the private plan (`docs/private/PLAN.md`, not committed). Every factual claim below was checked against the primary source by one of five research dossiers (26 Sep 2026) and a critic pass; anything still unverified is marked ⚠️.
 
