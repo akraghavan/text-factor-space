@@ -41,19 +41,20 @@ H3 beside it: the development period gives 0.175 (t 3.22), and test minus develo
 | `D_x_text_vs_lwnl`: dense text target vs LW-NL | **+0.251** | [+0.180, +0.322] | 6.93 | ≈ 1 | 1.00 |
 | `D_x_text_vs_constcorr`\*: b > 0 vs b = 0 | +0.039 | [+0.008, +0.070] | 2.48 | 0.99 | 1.00 |
 | `D_x_text_vs_placebo`\*: real G vs relabelled G | +0.039 | [+0.008, +0.070] | 2.49 | 0.99 | 1.00 |
+| `D_x_ff6text_vs_ff6cc`\*: FF6 residuals shrunk to text vs to constant correlation | +0.001 | [−0.023, +0.025] | 0.09 | 0.54 | 0.56 |
 
 Annualised out-of-sample SD of each GMV portfolio, test period. The t is against LW-NL; † marks estimators not significantly different from LW-NL after Holm.
 
-| | 1/N | LW identity | const. corr. | RMT clip | **LW-NL** | SIC-3 target | **dense text** | raw-BoW text | text, validated δ | text-preconditioned NL | FF6 | FF6 + text residuals | PCA-5 | placebo |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| N = 500 | 20.9% | 13.3% | 13.6% | 13.0% | **12.25%** | 13.8% | **13.9%** | 13.6% | 13.4% | 13.3% | 14.7% | 12.12%† (t −1.7) | 12.9%† | 13.6% |
-| N = 1,000 | 22.9% | 11.0%† | 11.8% | 11.1%† | **10.76%** | 11.8% | **11.8%** | 11.9% | 11.8% | 11.6% | 13.3% | 10.47%† (t −1.5) | 11.5%† | 11.8% |
+| | 1/N | LW identity | const. corr. | RMT clip | **LW-NL** | SIC-3 target | **dense text** | raw-BoW text | text, validated δ | text-preconditioned NL | FF6 | FF6 + text residuals | FF6 + const.-corr. residuals | PCA-5 | placebo |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| N = 500 | 20.9% | 13.3% | 13.6% | 13.0% | **12.25%** | 13.8% | **13.9%** | 13.6% | 13.4% | 13.3% | 14.7% | 12.12%† (t −1.7) | 12.12%† (t −1.5) | 12.9%† | 13.6% |
+| N = 1,000 | 22.9% | 11.0%† | 11.8% | 11.1%† | **10.76%** | 11.8% | **11.8%** | 11.9% | 11.8% | 11.6% | 13.3% | 10.47%† (t −1.5) | 10.50%† (t −1.1) | 11.5%† | 11.8% |
 
-The fitted text loading b̂ is positive at every rebalance (median 0.27, intensity δ ≈ 0.20). Even so, the GMV portfolio built on it is 13% more volatile than LW-NL's, and 2% more than the constant-correlation target's. The development period (Jul 2012 – Nov 2018) gives the same ranking: LW-NL 7.8%, text 8.7%. The one estimator below LW-NL in every period is FF6 with a residual correlation shrunk to a text target, significantly so in development (t −3.3). But its diagonal-residual FF6 counterpart is far worse (14.7%), and no residual constant-correlation version was run, so the gain cannot be attributed to text.
+The fitted text loading b̂ is positive at every rebalance (median 0.27, intensity δ ≈ 0.20). Even so, the GMV portfolio built on it is 13% more volatile than LW-NL's, and 2% more than the constant-correlation target's. The development period (Jul 2012 – Nov 2018) gives the same ranking: LW-NL 7.8%, text 8.7%. The only estimators below LW-NL are FF6 with a shrunk residual correlation, and the target doesn't matter. Text-shrunk and constant-correlation-shrunk residuals give 12.12% each (D29: Δ +0.001, 95% CI ±0.024, t 0.09), against 14.7% with diagonal residuals. The gain over LW-NL (significant in development, t −3.3 and −4.6; not in test, t −1.7 and −1.5) comes from the factors plus shrinking the residual correlations, not from text.
 
-## Exploratory results: m = 44; BH (q = 0.10) rejects 34, BY 32
+## Exploratory results: m = 45; BH (q = 0.10) rejects 34, BY 32
 
-Each spec contributes the one-sided p in its registered direction; the placebo, with no predicted sign, contributes its two-sided p. 38 specs were in the frozen registry; 6 were added after the freeze, 2 on 1 Oct and 4 on 8 Oct (PREREG change log).
+Each spec contributes the one-sided p in its registered direction; the placebo, with no predicted sign, contributes its two-sided p. 38 specs were in the frozen registry; 7 were added after the freeze, 2 on 1 Oct and 5 on 8 Oct (PREREG change log).
 
 - **B (6 of 6 rejected).**
   - Aligned share: SIC-3 itself 99.3%; raw dense 100%; dense net of SIC-3 with T = 1,008, 92.8%.
@@ -65,7 +66,7 @@ Each spec contributes the one-sided p in its registered direction; the placebo, 
   - Sample splits: 12-month windows; pre- and post-FY2020 (0.0112, 0.0132, difference t 1.8); and post-Sep-2023, after the encoder's release (0.0128, t 8.8).
   - Inference: MRQAP-DSP, where every year's t of 26–106 exceeds the largest relabelled t of 4.6; and dyadic-robust errors (t 37.6, 2,161 firm clusters).
   - Diagnostic: s̃ adds 0.0018 to the in-sample R² and 0.0016 out of sample. The top percentile of similarity averages z 0.25 against 0.005 at the median.
-- **D (0 of 3).** See above.
+- **D (0 of 4).** See above.
 - **E (14 of 21 by BH, 12 by BY).**
   - **Stratified substitution** (each peer replaced by a random firm from its FF-48 industry × NYSE size tercile): **p = 0.001**. No draw reached t = 2.81, against a mean of 0.12. So the specific text links carry the effect, not the industry and size composition of the peer set.
   - Rejected: similarity weights (0.25, t 3.0), nearest-5 peers (0.34, t 4.0), delisting δ = 0 / −100% (t 2.81), a three-year-old network (t 2.24), peers in both text and SIC-3 (t 2.78), post-Sep-2023 (t 2.40), `sich` (0.54, t 5.07), R(t−6, t−1) (t 2.32), the quintile EW FF5+UMD alpha (1.14%/month, t 2.89), and HP's own TNIC-3 peers on 2012–2026 (raw slope 0.016, t 4.9, against HP's 0.008, t 4.36; quintile FF3 alpha 1.42%/month, t 3.37, against HP's 1.7%, t 3.30).
@@ -90,7 +91,7 @@ Each spec contributes the one-sided p in its registered direction; the placebo, 
   - The T = 504 robustness configuration has p/n = 0.994, where LW (2020) nonlinear shrinkage degenerates (simulated GMV variance 12 times the oracle), so its LW-NL rows are uninformative. The primary (p/n ≈ 2) and N = 1,000 (≈ 4) configurations are unaffected.
   - Mean bias ratios are dominated by March 2020; the medians are 3.0 for LW-NL and 6.9 for text, the usual GMV optimisation bias.
   - Not built (D20): a single-index target (FF6 subsumes it), RIE (same class as LW-NL), a TNIC target (not PSD; ends FY2023), a GICS/Barra model (no point-in-time GICS), long-only GMV, and factor-neutral or random-portfolio bias tests.
-- **Process.** The runner's guard was changed after the freeze, before any registered run (it skips the `entry` field and requires a committed tree); no specification changed. `runs.log`'s `dirty` flag counts `runs.log` and untracked outputs, so it does not mean the code differed from the commit. Six exploratory specs added after the freeze are counted in m. The nine FM specs re-run for Romano–Wolf reproduced their logged numbers exactly.
+- **Process.** The runner's guard was changed after the freeze, before any registered run (it skips the `entry` field and requires a committed tree); no specification changed. `runs.log`'s `dirty` flag counts `runs.log` and untracked outputs, so it does not mean the code differed from the commit. Seven exploratory specs added after the freeze are counted in m. The nine FM specs re-run for Romano–Wolf reproduced their logged numbers exactly.
 - **Not done (D27):** input–output customer/supplier momentum (no data), analyst co-coverage (no I/B/E/S), and net-of-cost alphas with real spreads (a break-even cost is given instead).
 
 ## What it means
@@ -104,7 +105,7 @@ Each spec contributes the one-sided p in its registered direction; the placebo, 
 **Q2: no, at least not as a correlation target.**
 - Text knows who co-moves (Q1), but shrinking towards it makes the minimum-variance portfolio about 13% *more* volatile than nonlinear shrinkage (95% CI +9% to +17% in volatility), and slightly worse than a constant correlation.
 - LW-NL already captures the large eigen-directions. A target that redistributes correlation towards text pairs adds estimation noise that the GMV weights amplify.
-- The only hint of value is text structure in the FF6 residuals, and the design here cannot attribute that to text.
+- It doesn't help in the factor residuals either: FF6 residual correlations shrunk to text and to a constant correlation give the same volatility (12.12% each, t 0.09).
 
 **Q3: yes, after publication, and through the links themselves.**
 - HP's text-peer momentum replicates on 2012–2026 at about their magnitude, and its post-publication slope is no smaller.

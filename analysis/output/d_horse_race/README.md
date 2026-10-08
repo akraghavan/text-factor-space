@@ -18,6 +18,7 @@ Annualised out-of-sample SD of the unconstrained GMV portfolio (21-day rebalanci
 | precond | 13.30% | +0.1640 | 4.26 | reject |
 | ff6 | 14.68% | +0.3615 | 6.25 | reject |
 | ff6_text | 12.12% | -0.0212 | -1.69 |  |
+| ff6_cc | 12.12% | -0.0223 | -1.52 |  |
 | pca5 | 12.92% | +0.1057 | 1.41 |  |
 | placebo | 13.62% | +0.2118 | 6.53 | reject |
 
@@ -37,6 +38,7 @@ Annualised out-of-sample SD of the unconstrained GMV portfolio (21-day rebalanci
 | precond | 8.33% | +0.1346 | 8.16 | reject |
 | ff6 | 9.59% | +0.4157 | 8.87 | reject |
 | ff6_text | 7.61% | -0.0456 | -3.27 | reject |
+| ff6_cc | 7.58% | -0.0532 | -4.63 | reject |
 | pca5 | 8.19% | +0.1008 | 2.78 | reject |
 | placebo | 8.58% | +0.1933 | 8.26 | reject |
 
@@ -56,6 +58,7 @@ Annualised out-of-sample SD of the unconstrained GMV portfolio (21-day rebalanci
 | precond | 11.25% | +0.1565 | 5.35 | reject |
 | ff6 | 12.56% | +0.3763 | 8.42 | reject |
 | ff6_text | 10.26% | -0.0274 | -2.79 | reject |
+| ff6_cc | 10.25% | -0.0302 | -2.74 | reject |
 | pca5 | 10.96% | +0.1044 | 1.85 |  |
 | placebo | 11.54% | +0.2075 | 8.23 | reject |
 
@@ -75,6 +78,7 @@ Annualised out-of-sample SD of the unconstrained GMV portfolio (21-day rebalanci
 | precond | 11.62% | +0.1536 | 4.39 | reject |
 | ff6 | 13.29% | +0.4219 | 2.74 | reject |
 | ff6_text | 10.47% | -0.0541 | -1.48 |  |
+| ff6_cc | 10.50% | -0.0488 | -1.12 |  |
 | pca5 | 11.50% | +0.1320 | 0.86 |  |
 | placebo | 11.77% | +0.1792 | 4.00 | reject |
 
@@ -94,6 +98,7 @@ Annualised out-of-sample SD of the unconstrained GMV portfolio (21-day rebalanci
 | precond | 7.35% | +0.1412 | 7.66 | reject |
 | ff6 | 9.01% | +0.5482 | 10.45 | reject |
 | ff6_text | 6.69% | -0.0475 | -3.44 | reject |
+| ff6_cc | 6.65% | -0.0579 | -4.32 | reject |
 | pca5 | 7.38% | +0.1482 | 4.72 | reject |
 | placebo | 7.30% | +0.1264 | 5.99 | reject |
 
@@ -113,6 +118,7 @@ Annualised out-of-sample SD of the unconstrained GMV portfolio (21-day rebalanci
 | precond | 9.86% | +0.1505 | 5.72 | reject |
 | ff6 | 11.49% | +0.4572 | 3.98 | reject |
 | ff6_text | 8.91% | -0.0522 | -1.90 |  |
+| ff6_cc | 8.91% | -0.0510 | -1.59 |  |
 | pca5 | 9.79% | +0.1366 | 1.20 |  |
 | placebo | 9.93% | +0.1658 | 4.81 | reject |
 
@@ -133,6 +139,7 @@ Annualised out-of-sample SD of the unconstrained GMV portfolio (21-day rebalanci
 | precond | 41.12% | +1.4245 | 11.09 | reject |
 | ff6 | 16.20% | -0.4381 | -6.72 | reject |
 | ff6_text | 12.14% | -1.0150 | -16.64 | reject |
+| ff6_cc | 12.16% | -1.0124 | -16.15 | reject |
 | pca5 | 14.31% | -0.6857 | -8.26 | reject |
 | placebo | 13.66% | -0.7787 | -10.08 | reject |
 
@@ -153,6 +160,7 @@ Annualised out-of-sample SD of the unconstrained GMV portfolio (21-day rebalanci
 | precond | 25.56% | +1.3961 | 16.57 | reject |
 | ff6 | 10.96% | -0.2963 | -5.01 | reject |
 | ff6_text | 8.24% | -0.8669 | -13.99 | reject |
+| ff6_cc | 8.22% | -0.8717 | -14.00 | reject |
 | pca5 | 9.27% | -0.6318 | -11.31 | reject |
 | placebo | 9.64% | -0.5543 | -7.99 | reject |
 
@@ -173,6 +181,7 @@ Annualised out-of-sample SD of the unconstrained GMV portfolio (21-day rebalanci
 | precond | 35.08% | +1.4183 | 13.96 | reject |
 | ff6 | 14.12% | -0.4011 | -7.61 | reject |
 | ff6_text | 10.59% | -0.9770 | -19.42 | reject |
+| ff6_cc | 10.59% | -0.9763 | -18.99 | reject |
 | pca5 | 12.34% | -0.6717 | -10.25 | reject |
 | placebo | 12.05% | -0.7194 | -11.18 | reject |
 
@@ -189,6 +198,7 @@ Bias ratio = realised mean squared daily return over the 21 holding days / predi
 | constcorr | 3.27 | 6.19 | 0.165 | 11.77 | 6.19 | 0.289 | 0.000 | 1.00 | 0.19 |
 | ew | 0.05 | 1.00 | 0.002 |  |  |  |  |  |  |
 | ff6 | 0.93 | 2.97 | 0.060 | 16.55 | 8.84 |  |  |  |  |
+| ff6_cc | 2.09 | 4.68 | 0.117 | 6.79 | 3.52 | 0.017 | 0.000 | 1.00 | 0.42 |
 | ff6_text | 2.16 | 4.81 | 0.121 | 6.73 | 3.57 | 0.018 | 0.207 | 0.00 | 0.45 |
 | industry | 3.44 | 6.43 | 0.168 | 12.62 | 6.63 | 0.285 | 0.155 | 0.00 | 0.20 |
 | lw_identity | 3.55 | 6.35 | 0.147 | 21.40 | 10.20 |  |  |  |  |

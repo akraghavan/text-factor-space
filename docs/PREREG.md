@@ -93,13 +93,13 @@ The delisting-returns question (option a), every item previously marked [PROPOSE
 
 Count and list here as they are run (SPEC §10.3).
 
-**m = 44** (1–8 Oct 2026; `python src/runner.py count`): every registered exploratory spec, all through `src/runner.py`. 38 were in the frozen registry; 6 were added after the freeze (\*: 2 on 1 Oct, 4 on 8 Oct; change log below).
+**m = 45** (1–8 Oct 2026; `python src/runner.py count`): every registered exploratory spec, all through `src/runner.py`. 38 were in the frozen registry; 7 were added after the freeze (\*: 2 on 1 Oct, 5 on 8 Oct; change log below).
 - **B (6):** `B_x_sic3_share`, `B_x_raw_dense_share`, `B_x_subspace_overlap`, `B_x_T1008`, `B_x_nested_sic`\*, `B_x_ff48_share`\*.
 - **C (14):**
   - variants: `C_x_bow_null`, `C_x_bow_raw`, `C_x_binary_network`, `C_x_missing_bm_indicator`, `C_x_pc5`, `C_x_pc10`, `C_x_dimson`, `C_x_sich`;
   - sample splits: `C_x_12m_windows`, `C_x_pre_fy2020`, `C_x_post_fy2020`, `C_x_post_sep2023`\*;
   - inference: `C_x_mrqap`, `C_x_dyadic`.
-- **D (3):** `D_x_text_vs_lwnl`, `D_x_text_vs_constcorr`\*, `D_x_text_vs_placebo`\*.
+- **D (4):** `D_x_text_vs_lwnl`, `D_x_text_vs_constcorr`\*, `D_x_text_vs_placebo`\*, `D_x_ff6text_vs_ff6cc`\* (D29).
 - **E (21):**
   - delisting and peer sets: `E_x_delist_0`, `E_x_delist_m100`, `E_x_nearest5`, `E_x_sim_weighted`;
   - horizons: `E_x_h_6_1`, `E_x_h_12_7`, `E_x_grundy_martin`, `E_x_placebo_24_13`, `E_x_idiosyncratic`;
@@ -109,7 +109,7 @@ Count and list here as they are run (SPEC §10.3).
   - subsamples and codes: `E_x_post_sep2023`, `E_x_sich`, `E_x_nyse20`\*.
 
 **Results.**
-- **BH (q = 0.10)** rejects 34 of 44; **BY** rejects 32. Not rejected: the three D tests, and E's R(t−12, t−7), Grundy–Martin peer 12–2, the t−24..t−13 placebo (two-sided), text-only, SIC-only, dense-only and the matched-peer null. BY also drops `E_x_idiosyncratic` and `E_x_nyse20`. Table: `analysis/output/exploratory/README.md`.
+- **BH (q = 0.10)** rejects 34 of 45; **BY** rejects 32. Not rejected: the four D tests, and E's R(t−12, t−7), Grundy–Martin peer 12–2, the t−24..t−13 placebo (two-sided), text-only, SIC-only, dense-only and the matched-peer null. BY also drops `E_x_idiosyncratic` and `E_x_nyse20`. Table: `analysis/output/exploratory/README.md`.
 - **Romano–Wolf** (`Exploratory_family_romano_wolf`, studentised per D28, block 12): all 8 of C's full-period slope series survive, and 8 of E's 15 test-period series. Simulated FWER at block 12 is 14% (C) and 18% (E), so it is liberal at these sizes. The first, raw-slope run gave E 1 of 15. Output: `analysis/output/exploratory/romano_wolf.md`. Output: `analysis/output/exploratory/romano_wolf.md`.
 
 Results are in `docs/RESULTS.md`. No registered spec remains unrun.
