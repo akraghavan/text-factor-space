@@ -110,7 +110,7 @@ Count and list here as they are run (SPEC §10.3).
 
 **Results.**
 - **BH (q = 0.10)** rejects 34 of 45; **BY** rejects 32. Not rejected: the four D tests, and E's R(t−12, t−7), Grundy–Martin peer 12–2, the t−24..t−13 placebo (two-sided), text-only, SIC-only, dense-only and the matched-peer null. BY also drops `E_x_idiosyncratic` and `E_x_nyse20`. Table: `analysis/output/exploratory/README.md`.
-- **Romano–Wolf** (`Exploratory_family_romano_wolf`, studentised per D28, block 12): all 8 of C's full-period slope series survive, and 8 of E's 15 test-period series. Simulated FWER at block 12 is 14% (C) and 18% (E), so it is liberal at these sizes. The first, raw-slope run gave E 1 of 15. Output: `analysis/output/exploratory/romano_wolf.md`. Output: `analysis/output/exploratory/romano_wolf.md`.
+- **Romano–Wolf** (`Exploratory_family_romano_wolf`, standardised per D28, size-calibrated per D30): C at block 8 and nominal size 0.01 (simulated FWER 3.7%): 8 of 8 survive. E at block 4 and size 0.015 (simulated FWER 4.6%): 3 of 15 survive, namely `E_x_nearest5`, `E_x_sim_weighted` and `E_x_sich`. Context: at nominal 5% and block 12, E had 8 of 15 (liberal, simulated FWER 18%); the raw-slope run had 1 of 15. Output: `analysis/output/exploratory/romano_wolf.md`. Output: `analysis/output/exploratory/romano_wolf.md`.
 
 Results are in `docs/RESULTS.md`. No registered spec remains unrun.
 

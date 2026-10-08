@@ -628,7 +628,15 @@ The excess is a small-sample property of taking a maximum over many t-statistics
 - 15 iid series fall from 10% at T = 91 to 4.5% at T = 1,000;
 - C's shape falls from 10.5% at T = 165 to 8.3% at T = 1,000.
 
-Read RW survivors here as weaker evidence than BY. For E the answer depends on the implementation: 8 of 15 survive studentised, 1 of 15 with raw means (the 8 Oct first run).
+**Size calibration (D30), the headline.** D28's fallback ("keep 12") is replaced:
+1. Per family, take the block with the lowest simulated FWER at nominal 5% (C: 8, E: 4).
+2. At that block, take the largest nominal size whose simulated FWER is at most 5% (same 2,000-draw simulation, same seeds):
+   - **C:** 13.8 / 11.3 / 9.3 / 6.5 / 5.1 / 3.7 / 2.2% at sizes 0.05 / 0.04 / 0.03 / 0.02 / 0.015 / 0.01 / 0.005, so **size 0.01** (3.7%);
+   - **E:** 11.4 / 9.6 / 7.6 / 5.7 / 4.6 / 3.7 / 2.2%, so **size 0.015** (4.6%).
+
+At those settings **C keeps 8 of 8 and E 3 of 15**: nearest-5, similarity-weighted and `sich`, every E series with t ≥ 3. The headline (t 2.81) and the text-and-SIC-3 split (t 2.78) do not survive.
+
+For context, nominal 5% at block 12 (D28, liberal) gave E 8 of 15, and raw means gave 1 of 15. The independent-series simulation is conservative for our positively correlated variants (median pairwise correlation of the E series about 0.3), so the calibrated sizes err on the strict side.
 
 **Tests (`tests/test_romano_wolf.py`).**
 - The unstudentised version holds FWER ≤ 10% on an iid null.

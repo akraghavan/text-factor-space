@@ -72,7 +72,10 @@ Each spec contributes the one-sided p in its registered direction; the placebo, 
   - Rejected: similarity weights (0.25, t 3.0), nearest-5 peers (0.34, t 4.0), delisting δ = 0 / −100% (t 2.81), a three-year-old network (t 2.24), peers in both text and SIC-3 (t 2.78), post-Sep-2023 (t 2.40), `sich` (0.54, t 5.07), R(t−6, t−1) (t 2.32), the quintile EW FF5+UMD alpha (1.14%/month, t 2.89), and HP's own TNIC-3 peers on 2012–2026 (raw slope 0.016, t 4.9, against HP's 0.008, t 4.36; quintile FF3 alpha 1.42%/month, t 3.37, against HP's 1.7%, t 3.30).
   - BH only: firms above the NYSE 20th percentile (0.19, t 1.79) and idiosyncratic peer returns (t 1.81).
   - Not rejected: R(t−12, t−7) (t −0.12); the Grundy–Martin peer R(t−12, t−2) (t 0.73, while peer r(t−1) has t 4.16); text-only, SIC-only and dense-only peers (t 1.12, 0.02, 1.23); the R(t−24, t−13) placebo (two-sided p 0.15, as it should be); the past-return-matched null (p 0.36).
-- **Romano–Wolf** (studentised, D28; FWER 5%, stationary bootstrap of months, block 12): all 8 C slope series survive, and 8 of the 15 E test-period series (nearest-5, delisting δ 0 and −100%, similarity weights, R(t−6, t−1), both-text-and-SIC-3, three-year-old network, `sich`; every E series with t ≥ 2.24). At our sample sizes the procedure is liberal, with simulated FWER 14% (C) and 18% (E). With raw rather than studentised slopes the E count was 1 of 15.
+- **Romano–Wolf**, size-calibrated so the simulated FWER is ≤ 5% (D30). Each series is standardised by its own NW SE.
+  - C (block 8, nominal size 0.01, simulated FWER 3.7%): all 8 slope series survive.
+  - E (block 4, size 0.015, simulated FWER 4.6%): 3 of 15 survive, namely nearest-5, similarity weights and `sich` (every E series with t ≥ 3). The headline E spec (t 2.81) and the text-and-SIC-3 split (t 2.78) do not.
+  - Context: at nominal 5% (block 12, simulated FWER 18%) E had 8 of 15; with raw slopes, 1 of 15.
 - **Event time (diagnostic).** The quintile long-short earns +4.0% over months 1–12 and gives back 10.0% over months 13–24. Turnover is 0.56 a month, the break-even round-trip cost 2.0% of value traded, and the maximum drawdown −30% (April 2020: −19%).
 
 ## Caveats
@@ -83,11 +86,14 @@ Each spec contributes the one-sided p in its registered direction; the placebo, 
   - Value-weighted alphas are insignificant (|t| < 0.6 with UMD). Above the NYSE 20th percentile the slope falls to 0.19 (t 1.79).
   - The signal sits in the peers' most recent month.
   - **It lives in peers that are both text- and SIC-3-linked** (t 2.78). Text-only peers give t 1.12, SIC-only 0.02, and dense-only (outside SIC-3 and TNIC-3) 1.23. In E, text works as a filter on industry peers, not a source of new links.
-  - Under family-wise control E is fragile: 8 of 15 slope series survive a studentised Romano–Wolf that is liberal at this size (simulated FWER 18%), and 1 of 15 with raw slopes.
+  - Under family-wise control E is fragile. In the size-calibrated Romano–Wolf (simulated FWER ≤ 5%), 3 of 15 slope series survive, and the headline is not among them.
 - **The two permutation nulls answer different questions.**
   - The matched null (p 0.36) keeps each peer's past-return decile, so by construction it keeps most of PEERMOM (correlation 0.53). It shows that which firm sits within a decile does not matter.
   - The stratified null (p 0.001) keeps FF-48 industry and size and breaks the link. It shows the chosen peers matter within broad industries. FF-48 is coarser than SIC-3, and the signal sits in text-and-SIC-3 peers, so it is not evidence of links that SIC misses.
-- **Romano–Wolf.** `arch`'s StepM does not studentise in arch 8.0.0, so the series are divided by their own Newey–West SEs before it (D28). No block length brought the simulated FWER to 6% at our sizes (C 165 × 8: 14%; E 91 × 15: 18% at block 12; about 5% at T = 1,000), so its survivors are weaker evidence than BY's.
+- **Romano–Wolf.**
+  - `arch`'s StepM does not studentise in arch 8.0.0, so the series are divided by their own Newey–West SEs before it (D28), with the SE fixed across draws as in Hansen's (2005) SPA.
+  - At nominal 5% that is liberal at our sizes (simulated FWER 14% for C, 18% for E; about 5% at T = 1,000).
+  - So the nominal size is calibrated down to a simulated FWER ≤ 5% (D30: C 0.01, E 0.015). The simulation uses independent series, which is conservative for our correlated variants.
 - **D.**
   - The T = 504 robustness configuration has p/n = 0.994, where LW (2020) nonlinear shrinkage degenerates (simulated GMV variance 12 times the oracle), so its LW-NL rows are uninformative. The primary (p/n ≈ 2) and N = 1,000 (≈ 4) configurations are unaffected.
   - Mean bias ratios are dominated by March 2020; the medians are 3.0 for LW-NL and 6.9 for text, the usual GMV optimisation bias.
