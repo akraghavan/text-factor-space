@@ -1,0 +1,67 @@
+{
+ "C (full period, 165 months)": {
+  "series": 8,
+  "months": 165,
+  "superior": [
+   "C_x_bow_null",
+   "C_x_bow_raw",
+   "C_x_binary_network",
+   "C_x_missing_bm_indicator",
+   "C_x_pc5",
+   "C_x_pc10",
+   "C_x_dimson",
+   "C_x_sich"
+  ],
+  "not_rejected": [],
+  "mean_slopes": {
+   "C_x_bow_null": 0.01785090418697381,
+   "C_x_bow_raw": 0.019346369939269373,
+   "C_x_binary_network": 0.08291800081218177,
+   "C_x_missing_bm_indicator": 0.011850901402680525,
+   "C_x_pc5": 0.009565413521891162,
+   "C_x_pc10": 0.0078035674043754905,
+   "C_x_dimson": 0.011561109979850064,
+   "C_x_sich": 0.011043794761459462
+  }
+ },
+ "E (test period, 91 months)": {
+  "series": 15,
+  "months": 91,
+  "superior": [
+   "E_x_sich"
+  ],
+  "not_rejected": [
+   "E_x_nearest5",
+   "E_x_delist_0",
+   "E_x_delist_m100",
+   "E_x_sim_weighted",
+   "E_x_h_6_1",
+   "E_x_h_12_7",
+   "E_x_grundy_martin",
+   "E_x_idiosyncratic",
+   "E_x_text_only",
+   "E_x_sic_only",
+   "E_x_both",
+   "E_x_dense_only",
+   "E_x_stale_y3",
+   "E_x_nyse20"
+  ],
+  "mean_slopes": {
+   "E_x_nearest5": 0.0033833767715430417,
+   "E_x_delist_0": 0.002612841457090254,
+   "E_x_delist_m100": 0.0026187893893897998,
+   "E_x_sim_weighted": 0.0024956542629897363,
+   "E_x_h_6_1": 0.0028202165482480147,
+   "E_x_h_12_7": -0.00016900820388886866,
+   "E_x_grundy_martin": 0.000736543817201596,
+   "E_x_idiosyncratic": 0.0016285493120903895,
+   "E_x_text_only": 0.0010524759593390659,
+   "E_x_sic_only": 5.149093745047096e-05,
+   "E_x_both": 0.002506708342292765,
+   "E_x_dense_only": 0.0014615581041864608,
+   "E_x_stale_y3": 0.0020784639654534815,
+   "E_x_sich": 0.005395473584343523,
+   "E_x_nyse20": 0.0018508399198087142
+  }
+ }
+}

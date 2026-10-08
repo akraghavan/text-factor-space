@@ -176,21 +176,25 @@ Annualised out-of-sample SD of the unconstrained GMV portfolio (21-day rebalanci
 | pca5 | 12.34% | -0.6717 | -10.25 | reject |
 | placebo | 12.05% | -0.7194 | -11.18 | reject |
 
-## Weights and fit (per rebalance means; test period, primary)
+Configuration t504 (N = 500, T = 504) has p/n = 0.994, where LW (2020) nonlinear shrinkage degenerates (simulated GMV variance 12x the oracle when Sigma = I; STATS_GUIDE #fn-lw_nonlinear), so its lwnl and precond rows and every comparison against LW-NL in that configuration are uninformative.
 
-| estimator | turnover | gross leverage | max |w| | bias ratio | median a | median b | share b = 0 | median δ |
-|---|---|---|---|---|---|---|---|---|
-| bow_raw | 3.64 | 6.73 | 0.168 | 13.04 | 0.211 | 0.735 | 0.00 | 0.20 |
-| clip | 1.48 | 4.00 | 0.105 | 6.78 |  |  |  |  |
-| constcorr | 3.27 | 6.19 | 0.165 | 11.77 | 0.289 | 0.000 | 1.00 | 0.19 |
-| ew | 0.05 | 1.00 | 0.002 |  |  |  |  |  |
-| ff6 | 0.93 | 2.97 | 0.060 | 16.55 |  |  |  |  |
-| ff6_text | 2.16 | 4.81 | 0.121 | 6.73 | 0.018 | 0.207 | 0.00 | 0.45 |
-| industry | 3.44 | 6.43 | 0.168 | 12.62 | 0.285 | 0.155 | 0.00 | 0.20 |
-| lw_identity | 3.55 | 6.35 | 0.147 | 21.40 |  |  |  |  |
-| lwnl | 1.91 | 4.40 | 0.124 | 5.96 |  |  |  |  |
-| pca5 | 1.36 | 3.87 | 0.087 | 8.34 |  |  |  |  |
-| placebo | 3.27 | 6.19 | 0.165 | 11.77 | 0.289 | 0.000 | 0.59 | 0.19 |
-| precond | 2.29 | 5.19 | 0.154 | 6.28 |  |  |  |  |
-| text | 3.68 | 6.80 | 0.172 | 14.01 | 0.290 | 0.267 | 0.00 | 0.20 |
-| text_val | 2.55 | 4.92 | 0.145 | 7.62 |  |  |  | 0.55 |
+## Weights and fit (per rebalance; test period, primary)
+
+Bias ratio = realised mean squared daily return over the 21 holding days / predicted daily variance w′Σ̂w; the mean is dominated by March 2020, so the median is shown beside it.
+
+| estimator | turnover | gross leverage | max |w| | bias ratio (mean) | bias ratio (median) | median a | median b | share b = 0 | median δ |
+|---|---|---|---|---|---|---|---|---|---|
+| bow_raw | 3.64 | 6.73 | 0.168 | 13.04 | 6.83 | 0.211 | 0.735 | 0.00 | 0.20 |
+| clip | 1.48 | 4.00 | 0.105 | 6.78 | 3.87 |  |  |  |  |
+| constcorr | 3.27 | 6.19 | 0.165 | 11.77 | 6.19 | 0.289 | 0.000 | 1.00 | 0.19 |
+| ew | 0.05 | 1.00 | 0.002 |  |  |  |  |  |  |
+| ff6 | 0.93 | 2.97 | 0.060 | 16.55 | 8.84 |  |  |  |  |
+| ff6_text | 2.16 | 4.81 | 0.121 | 6.73 | 3.57 | 0.018 | 0.207 | 0.00 | 0.45 |
+| industry | 3.44 | 6.43 | 0.168 | 12.62 | 6.63 | 0.285 | 0.155 | 0.00 | 0.20 |
+| lw_identity | 3.55 | 6.35 | 0.147 | 21.40 | 10.20 |  |  |  |  |
+| lwnl | 1.91 | 4.40 | 0.124 | 5.96 | 2.99 |  |  |  |  |
+| pca5 | 1.36 | 3.87 | 0.087 | 8.34 | 4.66 |  |  |  |  |
+| placebo | 3.27 | 6.19 | 0.165 | 11.77 | 6.18 | 0.289 | 0.000 | 0.59 | 0.19 |
+| precond | 2.29 | 5.19 | 0.154 | 6.28 | 3.03 |  |  |  |  |
+| text | 3.68 | 6.80 | 0.172 | 14.01 | 6.89 | 0.290 | 0.267 | 0.00 | 0.20 |
+| text_val | 2.55 | 4.92 | 0.145 | 7.62 | 3.79 |  |  |  | 0.55 |
