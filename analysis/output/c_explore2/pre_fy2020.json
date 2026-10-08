@@ -1,0 +1,18 @@
+{
+ "b_bar": 0.011212758124670102,
+ "se_nw": 0.0005560220729864258,
+ "t_nw": 20.166030575811043,
+ "nw_lags": 4,
+ "p_one_sided": 9.732460440017417e-91,
+ "t_ewc": 17.720573035923472,
+ "ewc_nu": 8,
+ "months": 101,
+ "first": "2012-07",
+ "last": "2020-11",
+ "months_skipped": 0,
+ "median_pairs_used": 448878,
+ "share_pairs_used": 0.8956126027017116,
+ "max_cond_XtX": 147629.98953817802,
+ "months_mixed_dropped": 12,
+ "seconds": 82
+}

@@ -44,14 +44,16 @@ def lw_nonlinear(X, demean: bool = True):
               Hf~0 = (1/pi) [3/(10 h^2) + 3/(4 sqrt5 h) (1 - 1/(5 h^2)) log((1 + sqrt5 h)/(1 - sqrt5 h))] mean(1/lambda) (C.5, C.8);
               the nonzero ones d_i = lambda_i / (pi^2 lambda_i^2 (f~_i^2 + Hf~_i^2))   (C.4).
     Returns U diag(d) U'. demean=False skips the demeaning and keeps n (data already centred). Needs n >= 12
-    (sqrt5 h < 1). Checked against the authors' published algorithm as ported in `nonlinshrink` (tests/test_covariance.py).
+    (sqrt5 h < 1). The min(p, n) eigenvalues used must be numerically positive (relative to the trace, > 1e-12): when p is
+    close to n the smallest is legitimately tiny (D's N = 500, T = 504 has q ~ 0.99), so the guard only catches zeros.
+    Checked against the authors' published algorithm as ported in `nonlinshrink` (tests/test_covariance.py).
     Card: docs/STATS_GUIDE.md#fn-lw_nonlinear"""
     X = np.asarray(X, dtype=np.float64); n, p = X.shape
     if demean: X = X - X.mean(0); n = n - 1
     if n < 12: raise ValueError('lw_nonlinear needs an effective sample size n >= 12')
     lam, U = np.linalg.eigh(X.T @ X / n)
     lz = lam[max(0, p - n):]
-    if np.any(lz / lz.sum() < 1e-8): raise ValueError('singular sample covariance among the nonzero eigenvalues')
+    if np.any(lz / lz.sum() < 1e-12): raise ValueError('a numerically zero eigenvalue among the min(p, n) nonzero ones')   # p ~ n is fine
     h = n ** (-1 / 3); H = h * lz[None, :]; x = (lz[:, None] - lz[None, :]) / H; s5 = np.sqrt(5.0)
     ft = (3 / (4 * s5)) * np.mean(np.maximum(1 - x ** 2 / 5, 0) / H, axis=1)
     with np.errstate(divide='ignore', invalid='ignore'):

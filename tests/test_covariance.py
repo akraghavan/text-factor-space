@@ -81,3 +81,8 @@ def test_factor_corr():
     R = factor_corr(X, k=3); lam, V = np.linalg.eigh(np.corrcoef(X, rowvar=False)); Rk = (V[:, -3:] * lam[-3:]) @ V[:, -3:].T
     off = ~np.eye(N, dtype=bool)                                   # the definition: top-3 eigen-reconstruction, unit diagonal
     assert np.allclose(R[off], Rk[off]) and np.allclose(np.diag(R), 1) and np.linalg.eigvalsh(R).min() > 0
+
+def test_lw_nonlinear_when_p_is_close_to_n():
+    rng = np.random.default_rng(9); X = rng.normal(size=(504, 500))          # D's T = 504, N = 500 configuration: q ~ 0.99
+    E = lw_nonlinear(X); ev = np.linalg.eigvalsh(E)
+    assert np.isfinite(E).all() and ev.min() > 0 and np.isclose(np.trace(E) / 500, 1, atol=0.1)

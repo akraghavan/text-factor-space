@@ -1,0 +1,15 @@
+{
+ "mean_r2_full": 0.06050087758727208,
+ "mean_r2_without_s": 0.0587154449394227,
+ "incremental_r2_in_sample": 0.0017854326478493824,
+ "r2_oos_full": 0.05500599068611112,
+ "r2_oos_without_s": 0.05337622814826537,
+ "delta_r2_oos": 0.001629762537845747,
+ "oos_months": 153,
+ "mean_z_bottom_pct": -0.006103028275936298,
+ "mean_z_median_bins_50_51": 0.005048030513438018,
+ "mean_z_top_pct": 0.2503538370781511,
+ "mean_z_top_pct_not_same_sic3": 0.20888686540868093,
+ "months": 165,
+ "seconds": 176
+}
