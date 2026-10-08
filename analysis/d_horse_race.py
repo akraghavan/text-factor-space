@@ -35,12 +35,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 for p in (ROOT / 'src', ROOT / 'analysis', ROOT): sys.path.insert(0, str(p))
 import numpy as np, pandas as pd
-from sklearn.covariance import LedoitWolf
 import d_panel as DP
 from paths import PROCESSED
 from tfs_stats.covariance import (lw_nonlinear, nested_target, fit_target_ab, ss_intensity, shrink, precondition_nl, factor_fit,
                                   factor_corr, to_corr, standardise)
-from tfs_stats.rmt import clip_correlation, min_var_weights
+from tfs_stats.rmt import clip_correlation, min_var_weights, ledoit_wolf
 from tfs_stats.varcompare import log_var_diff, log_var_diff_boot
 from tfs_stats.multitest import holm
 
@@ -82,7 +81,7 @@ def estimate_all(inp, T):
     X, Xfit, F, Ffit = inp['X'], inp['Xfit'], inp['F'], inp['Ffit']; n, Nn = X.shape; Z = standardise(X)
     Rs = Z.T @ Z / (n - 1); Rfit = DP.pair_corr(Xfit); out = {'ew': (None, {})}
     if Nn < n: out['sample'] = (Rs, {})
-    out['lw_identity'] = (to_corr(LedoitWolf().fit(Z).covariance_), {})
+    out['lw_identity'] = (to_corr(ledoit_wolf(Z)), {})                       # sklearn LedoitWolf via tfs_stats
     Tc, a, b = _target(Rfit, None); d, _ = ss_intensity(X, Tc); out['constcorr'] = (shrink(Rs, Tc, d), {'a': a, 'b': b, 'delta': d})
     out['clip'] = (clip_correlation(Rs, n, allow_q_gt_1=True), {})
     out['lwnl'] = (to_corr(lw_nonlinear(Z)), {})
