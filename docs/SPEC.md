@@ -1,6 +1,6 @@
 # Text-Implied Factor Space — Project Specification (v1)
 
-Single source of truth for the project. The live hub renders this file; coding sessions read it through the project rules. Each element follows one pattern: **what it is → what it gives us → data → procedure → parameters → validation → pitfalls → interview probes → deliverables.** The interview mapping, schedule and pitch live in the private plan (`docs/private/PLAN.md`, not committed). Every factual claim below was checked against the primary source by one of five research dossiers (26 Sep 2026) and a critic pass; anything still unverified is marked ⚠️.
+Single source of truth for the project. Each element follows one pattern: **what it is → what it gives us → data → procedure → parameters → validation → pitfalls → interview probes → deliverables.** The interview mapping, schedule and pitch live in the private plan (`docs/private/PLAN.md`, not committed). Every factual claim below was checked against the primary source by one of five research dossiers (26 Sep 2026) and a critic pass; anything still unverified is marked ⚠️.
 
 ## 1. Thesis and what "done" means {#thesis}
 
@@ -53,7 +53,7 @@ Two WRDS rules govern how this project may use CRSP and Compustat. Both were che
 | "Users are not permitted to script or otherwise automate … the running of queries to download data from the website. Automation is permitted on the WRDS Cloud server." | WRDS Terms of Use §1 | **Cleared.** Scripted web queries are acceptable with a definitive limit; the clause targets continuous scraping. How this project runs them (D15, 29 Sep): one query at a time, each submitted for a stated data need, no tight status polling, never a loop that resubmits; no numeric daily or monthly quota. Every submission is logged in `docs/WRDS_QUERIES.md` before it counts as done. |
 | Redistribution: "you may not reproduce, distribute, modify, adapt, create derivative works of … the Proprietary Material" | WRDS Terms of Use §2 | **Binding, unchanged.** The public repo holds code, docs and non-invertible aggregates only (see below). |
 
-The operating rules for the assistant sessions are rules 0 and 1 in the project rules. Until 27 Sep this section recorded the question as open (decision D0) and the assistant paused all WRDS-data work; the pulls made before then, submitted by the assistant through the WRDS web interface with Abhi's approval, are logged in `docs/WRDS_QUERIES.md`.
+Until 27 Sep this section recorded the question as open (decision D0) and all WRDS-data work paused; the pulls made before then, submitted through the WRDS web interface with Abhi's approval, are logged in `docs/WRDS_QUERIES.md`.
 
 Everything SEC-derived (10-K text, embeddings, filing dates) is public: "Information presented on sec.gov is considered public information and may be copied or further distributed". Ken French factors are public with attribution. Hoberg–Phillips data carry no posted terms; cite them.
 
@@ -368,24 +368,23 @@ text-factor-space/
 ├── practice/     OLS by hand, batch and streaming (Abhi's exercises)
 ├── tests/        checked against statsmodels / scikit-learn; unimplemented = skipped
 ├── analysis/     element scripts → tables and figures
-├── hub/          builds the hub from docs/SPEC.md
 └── data/         gitignored
 ```
 
 | Part | Written by |
 |---|---|
-| Pipeline, parsing, plotting, hub, tests | AI assistant |
-| `tfs_stats/` | The assistant, on standard libraries (D13); Abhi explains every function |
+| Pipeline, parsing, plotting, tests | AI-assisted |
+| `tfs_stats/` | AI-assisted, on standard libraries (D13); Abhi explains every function |
 | `practice/` | **Abhi**, by hand (tutored) |
-| `analysis/` | Abhi drives; The assistant assists (WRDS use cleared, §2); every estimator comes from `tfs_stats/` |
+| `analysis/` | Abhi drives, AI-assisted (WRDS use cleared, §2); every estimator comes from `tfs_stats/` |
 
-**Sync model.** Long jobs (EDGAR scraping, embeddings on the Mac's GPU, panel builds) run on the Mac under a local session, which owns `git pull --rebase` and `git push`. A cloud session plans, reviews and keeps the status hub current; it writes into `~/Downloads/text-factor-space` and commits with a `` prefix. The two sessions exchange requests and progress reports through a gitignored `notes/` folder, and context passes through the project rules, `docs/SPEC.md` and `docs/STATUS.md`.
+**Workflow.** Long jobs (EDGAR scraping, embeddings on the Mac's GPU, panel builds) run on the Mac; only code, documents and non-invertible aggregates are committed.
 
 ## 12. Risks and limitations {#risks}
 
 | Risk | Effect | Mitigation |
 |---|---|---|
-| WRDS licence and query terms | Redistribution would breach the licence; an uncapped query loop would breach the Terms of Use | The assistant use cleared 27 Sep (§2); `data/` gitignored, aggregates only; query cap and log in `docs/WRDS_QUERIES.md` |
+| WRDS licence and query terms | Redistribution would breach the licence; an uncapped query loop would breach the Terms of Use | AI-tool use cleared 27 Sep (§2); `data/` gitignored, aggregates only; query cap and log in `docs/WRDS_QUERIES.md` |
 | Low power post-2018 (E) and small gaps between estimators (D) | Nulls likely | Power analysis stated up front; confidence intervals; pre/post differences |
 | Current-only CIK | ~8% of filings unmapped, possibly non-random | Report coverage by size/industry; EDGAR `formerNames` matching as fallback |
 | Item 1 extraction failures (~9%) | Skews away from banks, small firms, incorporation-by-reference filers | Coverage report; EX-13 fallback; inverse-probability weights |

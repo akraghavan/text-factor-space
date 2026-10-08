@@ -1,6 +1,6 @@
 # H1 (Element C): text similarity and residual comovement — confirmatory
 
-Spec `C_H1_dense_bbar`, PREREG frozen at d1df5c7, run through `src/runner.py`.
+Spec `C_H1_dense_bbar`, PREREG frozen at 01cb5cc, run through `src/runner.py`.
 
 **b̄ (dense s̃) = 0.0119** per SD of similarity, NW(4) SE 0.0005, **t = 24.66**, one-sided p = 1.47e-134. Beside it: EWC(12) t = 21.74 (one-sided p from t_12 = 2.63e-11); lag-1 autocorrelation of b_t = 0.29.
 

@@ -24,14 +24,14 @@ _Last updated: Thu 8 Oct 2026, early morning ET_
 - Nothing. **No open items.** The project is complete; every registered spec has been run.
 
 ## Finished 7–8 Oct 2026 (hard stop lifted; `notes/finish_plan.md`, decisions D19–D27)
-- **Phase 0 (e7dd82c).**
+- **Phase 0 (c53c620).**
   - SPEC §13 D19–D27 added, plus the §1 scope line and the §12 time row.
   - PREREG change log: 8 Oct entries.
   - specs.yaml: 21 entries filled and 8 specs added (44 exploratory, 11 diagnostic, 0 pending).
   - BH rule: two-sided p for specs with no predicted sign (with a test).
   - Every FM entry saves its monthly slope series; `arch` added to the requirements.
 - **Phase 1.** The nine FM specs re-run for Romano–Wolf reproduce their logged estimate and t exactly (difference 0.0).
-- **Estimator layer (eec8d8f, 1a4d2e8).**
+- **Estimator layer (981407a, 5900cd7).**
   - `tfs_stats/covariance.py`:
     - LW (2020) analytical nonlinear shrinkage, which matches the `nonlinshrink` port of the authors' code to 1e-8;
     - text, industry and constant-correlation targets;
@@ -62,7 +62,7 @@ _Last updated: Thu 8 Oct 2026, early morning ET_
 - **D29 (8 Oct, Abhi's go).** New estimator `ff6_cc` and test `D_x_ff6text_vs_ff6cc`. FF6 + text-shrunk residuals vs FF6 + constant-correlation-shrunk residuals: 12.122% vs 12.115%, Δ +0.0011 (CI −0.023 to +0.025, t 0.09, one-sided p 0.54, bootstrap p 0.56). Text adds nothing in the residuals; the gain over LW-NL comes from the factors plus residual shrinkage. m = 45: BH 34, BY 32.
 - **D30 (8 Oct, Abhi's go).** Size-calibrated Romano–Wolf. C: block 8, size 0.01, simulated FWER 3.7%, 8/8 survive. E: block 4, size 0.015, simulated FWER 4.6%, 3/15 survive (nearest5, sim_weighted, sich; every E series with t ≥ 3). This is now the headline RW count; nominal 5% (E 8/15) and raw (E 1/15) are context. Wording: the fixed full-sample SE is Hansen's (2005) SPA convention, and the runs are "liberal", not "mildly liberal".
 - **Phase 6.** Updated: RESULTS rewritten for Q1–Q3; README (mapping 88.7%, D methods, results pointer); PREREG run log; STATS_GUIDE cards (D estimators, the variance test, Romano–Wolf, the stratified null, clipping for q > 1, the BH sign rule); DATA.md (sich); project rules layout; the private PITCH (left for Abhi to review).
-- **Deviations from the plan** (all in the closing the cloud session entry):
+- **Deviations from the plan** (all in the closing review entry):
   1. arch 8.0.0's StepM does not studentise despite the flag. It is kept as D25 says, with its simulated FWER documented.
   2. The Andrews bandwidth is computed here because arch's automatic one is Newey–West (1994).
   3. LW-NL's zero-eigenvalue guard was relaxed to 1e-12 so T = 504 could run. That configuration then proved degenerate for LW-NL and is reported as such.
@@ -71,7 +71,7 @@ _Last updated: Thu 8 Oct 2026, early morning ET_
   6. LW identity now goes through `tfs_stats` (project rule 3).
 
 
-## Registered results (1 Oct 2026; PREREG frozen at d1df5c7; all run through `src/runner.py`, logged in `runs.log`)
+## Registered results (1 Oct 2026; PREREG frozen at 01cb5cc; all run through `src/runner.py`, logged in `runs.log`)
 - **H1 (C, `C_H1_dense_bbar`): supported.** b̄ = 0.0119 per SD of dense similarity (Fisher-z units), NW(4) t = 24.66, one-sided p = 1.5e-134; EWC(12) t = 21.74; lag-1 autocorrelation of b_t 0.29. 165 months, median 442,270 pairs a month (88.4% of pairs). For scale: same SIC-4 adds 0.064, z_lag slope 0.42. `analysis/output/c_h1/`.
 - **H3 (E, `E_H3_bow_peermom_test`): supported.** Test period Dec 2018 – Jun 2026 (T = 91): PEERMOM 0.262%/month per SD, NW(3) t = 2.81, one-sided p = 0.0025; NW(2) t 2.78; EWC(8) t 2.98; below the Harvey–Liu–Zhu t > 3 hurdle. Development 0.175 (t 3.22), full sample 0.222 (t 4.00); test − dev +0.087 (t 0.80): no decay. TNIC momentum 0.297 (t 2.51) alongside. `analysis/output/e_h3/`.
 - **Holm {H1, H3} at 5%: both nulls rejected** (thresholds 0.025, 0.05). `analysis/output/confirmatory/`.
@@ -79,15 +79,15 @@ _Last updated: Thu 8 Oct 2026, early morning ET_
 
 ## Write-up (2 Oct 2026)
 - **`docs/RESULTS.md`** (about 2 pages): question and data; one method paragraph each for A, B, C and E; the registered table (H1, H3, Holm, B primary); the exploratory table with BH and BY q-values (m = 19) and the 21 specs not run; the caveats Abhi listed plus two from tier 2 (E lives in small stocks; the matched-peer null does not reject); and what the results mean.
-- PREREG "Exploratory specifications run" log filled (m = 19). the reviewer's 16:37 entry is marked done.
+- PREREG "Exploratory specifications run" log filled (m = 19). The reviewer's 16:37 entry is marked done.
 - `docs/private/PITCH.md` written (private; résumé bullet plus a 313-word spoken pitch).
 - Hard stop on new project work (2 Oct); lifted 7 Oct (D19), see above.
 
 ## Exploratory results, tier 2 (2 Oct 2026; Abhi's go; all through `src/runner.py`) and the final BH/BY
-- **C, the two H1 "reported beside" items** (code 42f90a5; new `tfs_stats/pairs.py`, guide card `#fn-pairs`, tests 3):
+- **C, the two H1 "reported beside" items** (code 656569c; new `tfs_stats/pairs.py`, guide card `#fn-pairs`, tests 3):
   - `C_x_mrqap` (MRQAP-DSP; annual Jul–Jun cross-sections 2012/13–2024/25; 999 relabellings): every year's text t (26–106) exceeds the largest relabelled t in any year (4.6), so the pooled p sits at its 1/1000 floor.
   - `C_x_dyadic` (pooled OLS with month FE, dyadic-robust SE, 2,161 firm clusters, 72.8M pair-months): b = 0.0122, t = 37.6. This is larger than the FM t of 24.7, because dyadic SEs ignore month-to-month variation in the slope; FM is the binding test.
-- **E** (code fa5af5f; `analysis/output/e_explore2/`):
+- **E** (code 6a3abf9; `analysis/output/e_explore2/`):
   - `E_x_portfolios`: quintile EW, price ≥ $1, FF5+UMD alpha 1.14%/month (t 2.89; UMD loading 0.66); decile EW 1.87% (t 4.14). **Value-weighted alphas are ≈ 0** (|t| < 0.6), and price ≥ $5 weakens the quintile (t 1.53). A small-stock effect.
   - `E_x_idiosyncratic`: 0.163 (t 1.81).
   - `E_x_hp_replication` (full period, common sample): TNIC-3 raw slope 0.0163 (t 4.94) vs HP's 0.008 (t 4.36); quintile EW FF3 alpha 1.42% (t 3.37) vs HP's 1.7% (t 3.30). Ours on the same rows: t 5.13, alpha 1.24% (t 3.52).
@@ -97,18 +97,18 @@ _Last updated: Thu 8 Oct 2026, early morning ET_
 - Not run (stay in `specs.yaml` as pending; not in m): the other 21 exploratory specs, D included.
 
 ## Exploratory results, tier 1 (1 Oct 2026; all through `src/runner.py`; m = 13 so far)
-- **B** (code 7a2237b; `analysis/output/b_explore/`). Aligned share of the 267 above-edge modes, p < 0.05 each:
+- **B** (code 8003fe6; `analysis/output/b_explore/`). Aligned share of the 267 above-edge modes, p < 0.05 each:
   - `B_x_nested_sic`: 241/267 = 90.3% (binomial p 6.5e-279). Dense similarity residualised on nested SIC-1..4, so this is the **"beyond industry"** number; the primary 95.5% means "beyond SIC-3".
   - `B_x_ff48_share` 90.6%; `B_x_sic3_share` 99.3%; `B_x_raw_dense_share` 100%.
   - `B_x_subspace_overlap`: mean overlap 0.272 vs K/N 0.0445 (6.2×); 12/12 formations p < 0.05; Fisher p 3.6e-23.
-- **C** (code b61d251; `analysis/output/c_explore/`). b̄ per SD of similarity, NW(4) t and EWC(12) t:
+- **C** (code e9277d8; `analysis/output/c_explore/`). b̄ per SD of similarity, NW(4) t and EWC(12) t:
   - `C_x_bow_null`: 0.0179 (t 24.6; EWC 20.2).
   - `C_x_missing_bm_indicator`: 0.0119 (t 25.4; 95.6% of pairs used; indicator t 1.09).
   - `C_x_pc5`: 0.0096 (t 24.1).
   - `C_x_pc10`: 0.0078 (t 19.6).
   - About 35% of the dense effect is absorbed by 10 statistical factors; the rest is not unmodelled macro betas.
   - PC residuals: new `tfs_stats.rmt.pca_factors` (guide card `#fn-pca_factors`), loadings from the 252-day window only, built to `data/processed/ff6pc{5,10}_*` in about 30 s each.
-- **E** (code 1fa1d1a; `analysis/output/e_explore/`). Test-period slope (%/month per SD), NW(3) t:
+- **E** (code 8158d5e; `analysis/output/e_explore/`). Test-period slope (%/month per SD), NW(3) t:
   - `E_x_delist_0`: 0.261 (t 2.81). `E_x_delist_m100`: 0.262 (t 2.81). Imputation touches only 4 test firm-months (3 in the regression sample).
   - `E_x_nearest5`: 0.338 (t 4.00; 239,942 firm-months).
   - `E_x_stale_y3`: 0.208 (t 2.24).
@@ -118,8 +118,8 @@ _Last updated: Thu 8 Oct 2026, early morning ET_
 
 ## PREREG frozen (30 Sep 2026, 20:03 ET, Abhi's go)
 - **Runner guard fixed after the freeze (1 Oct, before any registered run):** the guard compared the whole spec with its frozen copy, but the confirmatory entries were frozen as `entry: pending` (the code could only be written afterwards), so H1/H3 could never run. It now compares every field except `entry` (hypothesis, statistic, sign, period, network, family, element stay locked) and additionally refuses guarded runs from a tree with any uncommitted tracked change, so every registered result is tied to a code commit. No specification changed. Tests: 8 runner tests.
-- `docs/PREREG.md` frozen at commit `d1df5c795b83d7e1f3d04a23a31fe0174b6aa047`; tag `prereg-v1` marks the freeze-record commit. Primary specifications no longer change; new variants are exploratory (change log). Confirmatory family {H1 (C, dense b̄, NW(4)), H3 (E, BoW-null PEERMOM test period, NW(3))}, Holm 0.025 / 0.05. `python src/runner.py check` reports frozen = True.
-- Last pre-freeze change (d1df5c7): the delisting line names performance-related = CIZ GDR, the (1 + MthRet)(1 + δ) − 1 form, no re-adding of present DelRets, and the 7 non-performance E firm-months left as is.
+- `docs/PREREG.md` frozen at commit `01cb5cc4bab2fe05c7b16690bac4015e17a499f6`; tag `prereg-v1` marks the freeze-record commit. Primary specifications no longer change; new variants are exploratory (change log). Confirmatory family {H1 (C, dense b̄, NW(4)), H3 (E, BoW-null PEERMOM test period, NW(3))}, Holm 0.025 / 0.05. `python src/runner.py check` reports frozen = True.
+- Last pre-freeze change (01cb5cc): the delisting line names performance-related = CIZ GDR, the (1 + MthRet)(1 + δ) − 1 form, no re-adding of present DelRets, and the 7 non-performance E firm-months left as is.
 
 ## Done 30 Sep: SPEC §3 delisting imputation (PREREG D14 item 1) and a panel fix it exposed
 - **Delisting file** (WRDS query 11726815): 9,146 PERMNOs; DelRet missing for 298 (DelRetMissType DG/DM/DP), 212 of them performance-related (action GDR).
@@ -129,16 +129,16 @@ _Last updated: Thu 8 Oct 2026, early morning ET_
 - **Panel fix (SPEC §3: universe at formation only):** in the delisting month CIZ blanks ShareType/SecurityType/ConditionalType, so `build_panel`'s monthly universe filter was dropping 87% of delisting-month returns (3,146 of 3,620 in 2012–2026), DelRets included: a survivorship bias in E. `build_panel` now keeps each firm's exit month (`universe.add_exit_months`, `in_universe = False`; 4,306 rows); `universe_at`, Element A and B/M use `in_universe` rows only, so universe membership is unchanged. E dev rerun (diagnostic): +671 firm-months with a dependent return (163,941 → 164,612); PEERMOM 0.172 → 0.175 %/month per SD, NW(3) t 3.23 → 3.22.
 
 ## Done 29 Sep
-- **D14 applied to `docs/PREREG.md` (still DRAFT; fdcdeb9):** every [PROPOSED]/[OPEN] item and the six 28 Sep flags written into the specs; family {H1, H3} with Holm 0.025 / 0.05; D exploratory; disclosure paragraph updated to list what has been computed since 28 Sep (C construction checks, B spectra, E dev period) and what has not (b̄, alignment share, any test-period return, any D variance). SPEC §3 industry-code row aligned (CRSP `siccd` primary, `sich` robustness).
-- **`specs.yaml` + `src/runner.py` (SPEC §10.1; dbca50a):** 45 registered specs (2 confirmatory, 1 primary, 38 exploratory, 4 diagnostic); the runner refuses unregistered ids and guarded specs before the freeze / with uncommitted changes / edited after the freeze, and logs every attempt to `runs.log` (committed). Tests: 36 pass. Confirmatory entries stay `pending` until the freeze.
-- Pulled 170fec1 (D14 SPEC rows; D15: no numeric WRDS quota; queries one at a time, each for a stated need, never in a loop, all logged).
+- **D14 applied to `docs/PREREG.md` (still DRAFT; 394ff39):** every [PROPOSED]/[OPEN] item and the six 28 Sep flags written into the specs; family {H1, H3} with Holm 0.025 / 0.05; D exploratory; disclosure paragraph updated to list what has been computed since 28 Sep (C construction checks, B spectra, E dev period) and what has not (b̄, alignment share, any test-period return, any D variance). SPEC §3 industry-code row aligned (CRSP `siccd` primary, `sich` robustness).
+- **`specs.yaml` + `src/runner.py` (SPEC §10.1; 9ee4002):** 45 registered specs (2 confirmatory, 1 primary, 38 exploratory, 4 diagnostic); the runner refuses unregistered ids and guarded specs before the freeze / with uncommitted changes / edited after the freeze, and logs every attempt to `runs.log` (committed). Tests: 36 pass. Confirmatory entries stay `pending` until the freeze.
+- Pulled 7e08dc6 (D14 SPEC rows; D15: no numeric WRDS quota; queries one at a time, each for a stated need, never in a loop, all logged).
 
 ## Done 28 Sep (D13: estimators on standard libraries)
-- **`tfs_stats/` written on standard libraries** (f3c5fc8, 5065c3a): `ols_qr` (numpy QR + SciPy triangular solve, many series at once, rank check); `vcov` (statsmodels sandwich; unchanged conventions); `fama_macbeth` = per-period `ols_qr` + `fm_inference` (NW × T/(T−1) at every lag, which is linearmodels' FamaMacBeth convention, tested at L = 0 and 3); `fm_from_moments` (per-month X'X, X'y → Cholesky slopes, for C at scale); `ewc` (LLSW 2018; AR(1) T = 165 coverage 94.7% vs NW(4) 89.2%); `rmt`: `mp_edges` (raises for q > 1), `mp_sigma2_iterated` (returns Laloux's one-step value with `converged=False` on a runaway), `circular_shift_edge`, `ipr`, `clip_correlation`, `ledoit_wolf` (sklearn), `min_var_weights`. Tests: **30 pass, 0 skipped**. Guide cards added: `#fn-ewc`, `#fn-fm_moments`, MP-card companions; FM convention marked settled.
-- **`practice/`** (326a733): OLS-by-hand stubs (`ols_1d_no_intercept`, `back_substitute`, `ols_qr_by_hand`, `StreamingOLS`, `RLS`) and tests; not collected by CI; tutor only.
-- **C panel** (56d8185): `formation.residuals` vectorised (one QR per window); `src/c_panel.py` builds an out-of-sample FF6 residual panel (betas on the 252 days before each month, ≥ 200 obs; 2011-01 → 2026-03 in 7 s) and `c_month(t)` adds z (within-month Fisher z, ≥ 15 days), z_lag (months t−12..t−1, ≥ 126 days) and |Δβ_k|. Checks on 2014-07, 2020-01, 2025-07 (`analysis/output/c_panel/`): SD(ρ) 0.24 (Antón–Polk ~0.25), same-SIC-3 mean z 0.14–0.27 vs ~0.01, corr(z, z_lag) ≈ 0.2, all-column coverage 86–89% of pairs. **No z–text statistic computed (b̄ is primary).**
-- **B inputs and spectra** (5065c3a; `analysis/output/b_spectra/`): 1 July 2014–2025, N = 500, T = 756, rolling-beta residuals: empirical edge 3.32–3.35 (MP 3.29); 20–25 residual eigenvalues above it; median IPR × N 3.0–3.7 (random 3); the σ² iteration runs away every year. Top residual modes are long-short sector-like modes, not leaked factor exposure (R² on FF6 0.01–0.15). **No alignment share computed.**
-- **E development period only** (ac30f3c; `analysis/output/e_dev/`): CRSP monthly truncated at Nov 2018 before any computation. 77 months, 163,941 firm-months. With all controls incl. TNIC momentum: PEERMOM 0.172%/month per SD, NW(3) t 3.23, EWC(7) t 4.75 (tuning period, not evidence for H3). Runtime 91 s.
+- **`tfs_stats/` written on standard libraries** (18a8c3b, 9809e2f): `ols_qr` (numpy QR + SciPy triangular solve, many series at once, rank check); `vcov` (statsmodels sandwich; unchanged conventions); `fama_macbeth` = per-period `ols_qr` + `fm_inference` (NW × T/(T−1) at every lag, which is linearmodels' FamaMacBeth convention, tested at L = 0 and 3); `fm_from_moments` (per-month X'X, X'y → Cholesky slopes, for C at scale); `ewc` (LLSW 2018; AR(1) T = 165 coverage 94.7% vs NW(4) 89.2%); `rmt`: `mp_edges` (raises for q > 1), `mp_sigma2_iterated` (returns Laloux's one-step value with `converged=False` on a runaway), `circular_shift_edge`, `ipr`, `clip_correlation`, `ledoit_wolf` (sklearn), `min_var_weights`. Tests: **30 pass, 0 skipped**. Guide cards added: `#fn-ewc`, `#fn-fm_moments`, MP-card companions; FM convention marked settled.
+- **`practice/`** (fd7d025): OLS-by-hand stubs (`ols_1d_no_intercept`, `back_substitute`, `ols_qr_by_hand`, `StreamingOLS`, `RLS`) and tests; not collected by CI; tutor only.
+- **C panel** (98b0cbe): `formation.residuals` vectorised (one QR per window); `src/c_panel.py` builds an out-of-sample FF6 residual panel (betas on the 252 days before each month, ≥ 200 obs; 2011-01 → 2026-03 in 7 s) and `c_month(t)` adds z (within-month Fisher z, ≥ 15 days), z_lag (months t−12..t−1, ≥ 126 days) and |Δβ_k|. Checks on 2014-07, 2020-01, 2025-07 (`analysis/output/c_panel/`): SD(ρ) 0.24 (Antón–Polk ~0.25), same-SIC-3 mean z 0.14–0.27 vs ~0.01, corr(z, z_lag) ≈ 0.2, all-column coverage 86–89% of pairs. **No z–text statistic computed (b̄ is primary).**
+- **B inputs and spectra** (9809e2f; `analysis/output/b_spectra/`): 1 July 2014–2025, N = 500, T = 756, rolling-beta residuals: empirical edge 3.32–3.35 (MP 3.29); 20–25 residual eigenvalues above it; median IPR × N 3.0–3.7 (random 3); the σ² iteration runs away every year. Top residual modes are long-short sector-like modes, not leaked factor exposure (R² on FF6 0.01–0.15). **No alignment share computed.**
+- **E development period only** (73df2f1; `analysis/output/e_dev/`): CRSP monthly truncated at Nov 2018 before any computation. 77 months, 163,941 firm-months. With all controls incl. TNIC momentum: PEERMOM 0.172%/month per SD, NW(3) t 3.23, EWC(7) t 4.75 (tuning period, not evidence for H3). Runtime 91 s.
 - **PREREG draft: 6 review flags** (section "Flags raised while building"): B starts 2014 (not 2013); B uses rolling betas (draft wording said in-window); C pairs with missing B/M ~10%; z_lag ≥ 126 days; peer returns ≥ 8/12 months; ~25% of firms have no text peer at SIC-3 density.
 
 ## D12 done (27 Sep, 20:15 ET)

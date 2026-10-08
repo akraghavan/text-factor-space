@@ -1,6 +1,6 @@
 # Results: do 10-K business descriptions define economic neighbours?
 
-_Abhinav Raghavan, 8 Oct 2026._ The pre-registration was frozen at `d1df5c7` (30 Sep) before any registered statistic was computed. Every number below is a `src/runner.py` record in `runs.log`, tied to a commit. Full tables are in `analysis/output/`; the exploratory family is in `analysis/output/exploratory/README.md` and the horse race in `analysis/output/d_horse_race/README.md`.
+_Abhinav Raghavan, 8 Oct 2026._ The pre-registration was frozen at `01cb5cc` (30 Sep) before any registered statistic was computed. Every number below is a `src/runner.py` record in `runs.log`, tied to a commit. Full tables are in `analysis/output/`; the exploratory family is in `analysis/output/exploratory/README.md` and the horse race in `analysis/output/d_horse_race/README.md`.
 
 ## Question, data and sample
 

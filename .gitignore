@@ -18,13 +18,8 @@ __pycache__/
 .DS_Store
 .env
 
-# generated
-hub/hub.html
-hub/dbsync/
-
-# private: personal plan and live status (hub only)
+# private: personal plan
 docs/private/
-hub/private/
 
 
 # analysis outputs with firm-level licensed data (TNIC peers, CRSP SIC marks) stay local

@@ -1,6 +1,6 @@
 # H3 (Element E): text-peer momentum out of sample — confirmatory
 
-Spec `E_H3_bow_peermom_test`, PREREG frozen at d1df5c7, run through `src/runner.py`.
+Spec `E_H3_bow_peermom_test`, PREREG frozen at 01cb5cc, run through `src/runner.py`.
 
 **Test period (Dec 2018 – Jun 2026, T = 91): PEERMOM slope = 0.262%/month per SD, NW(3) t = 2.81, one-sided p = 0.00248.** Beside it: NW(2) t = 2.78; EWC(8) t = 2.98 (one-sided p from t_8 = 0.00877); Harvey–Liu–Zhu t > 3: no.
 

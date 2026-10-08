@@ -1,8 +1,8 @@
 # Pre-registration
 
-**Frozen at commit:** `d1df5c795b83d7e1f3d04a23a31fe0174b6aa047` on 2026-09-30, 20:03 ET (Abhi's go)
+**Frozen at commit:** `01cb5cc4bab2fe05c7b16690bac4015e17a499f6` on 2026-09-30, 20:03 ET (Abhi's go)
 The hash is the commit whose PREREG.md and specs.yaml are frozen; the freeze commit itself only records it, removes the draft box and ticks the checklist. `src/runner.py` checks every confirmatory and primary spec against specs.yaml at this hash.
-**Text layer:** git tag `text-layer-v1` = commit `34d722ce383e5e55c0cb01099e542818c11e78f8` (27 Sep 2026). No extractor, vocabulary, masking or SPAC-rule change after it.
+**Text layer:** git tag `text-layer-v1` = commit `a6b43b2b4454916bb222eb010abee726f309a84c` (27 Sep 2026). No extractor, vocabulary, masking or SPAC-rule change after it.
 
 Protocol (SPEC §10): every reported statistic is a registered spec in `specs.yaml`, executed only through `src/runner.py` and logged in `runs.log`; the Benjamini–Hochberg count comes from that log (`python src/runner.py count`). Freeze this file before running any confirmatory test (H1, H3) and before looking at any test-period result in Element D or E. After the freeze the primary specifications below do not change; every other specification, variant or subsample is reported as **exploratory**, counted in the log at the bottom, and corrected across with Benjamini–Hochberg (q = 0.10; Benjamini–Yekutieli as a check). Changes after the freeze go in the change log, never in place.
 
@@ -116,7 +116,7 @@ Results are in `docs/RESULTS.md`. No registered spec remains unrun.
 
 ## Change log (after freeze only)
 
-- 1 Oct 2026, before any registered run (46f1f40): `src/runner.py` compares each guarded spec with its frozen copy in every field except `entry`, which was frozen as `pending` because the code could only be written after the freeze; guarded runs also require a fully committed tree. No specification changed.
+- 1 Oct 2026, before any registered run (b132a3a): `src/runner.py` compares each guarded spec with its frozen copy in every field except `entry`, which was frozen as `pending` because the code could only be written after the freeze; guarded runs also require a fully committed tree. No specification changed.
 - 1 Oct 2026: registry addition `Confirmatory_family_holm` (diagnostic: applies the Holm rule above to the logged H1 and H3 p-values; no new test).
 - 1 Oct 2026: two exploratory B specs added after the freeze (not pre-listed; counted in the exploratory BH family): `B_x_nested_sic` (dense similarity residualised on nested SIC-1..4 co-membership, the "beyond industry" version of B's share) and `B_x_ff48_share` (residualised on Fama–French 48 industry). The primary B statistic is unchanged and still reads "beyond SIC-3 co-membership".
 - 1 Oct 2026: registry addition `Exploratory_family_bh` (diagnostic: applies BH at q = 0.10 and BY to the logged one-sided p-values of the exploratory specs run, m from `python src/runner.py count`; no new test).

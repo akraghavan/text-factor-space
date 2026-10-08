@@ -1,4 +1,4 @@
-"""H1 (confirmatory; specs.yaml C_H1_dense_bbar; PREREG Element C, frozen at d1df5c7). Run only via
+"""H1 (confirmatory; specs.yaml C_H1_dense_bbar; PREREG Element C, frozen at 01cb5cc). Run only via
     python src/runner.py run C_H1_dense_bbar
 Each formation month t = Jul 2012 .. Mar 2026: the 1,000 largest universe firms at t-1 and their 499,500 pairs
 (src/c_panel.c_month). Monthly cross-sectional OLS of z_ij,t (Fisher z of the within-month FF6 residual correlation)
@@ -48,7 +48,7 @@ def run(spec=None):
     md = lambda df: '\n'.join(['| | ' + ' | '.join(df.columns) + ' |', '|---|' + '---|' * df.shape[1]] +
                               [f'| {i} | ' + ' | '.join(str(v) for v in row) + ' |' for i, row in zip(df.index, df.itertuples(index=False))])
     txt = ['# H1 (Element C): text similarity and residual comovement — confirmatory', '',
-           'Spec `C_H1_dense_bbar`, PREREG frozen at d1df5c7, run through `src/runner.py`.', '',
+           'Spec `C_H1_dense_bbar`, PREREG frozen at 01cb5cc, run through `src/runner.py`.', '',
            f"**b̄ (dense s̃) = {res['b_bar']:.4f}** per SD of similarity, NW({L}) SE {res['se_nw']:.4f}, **t = {res['t_nw']:.2f}**, "
            f"one-sided p = {res['p_one_sided']:.2e}. Beside it: EWC({nu}) t = {res['t_ewc']:.2f} (one-sided p from t_{nu} = {res['p_ewc_one_sided']:.2e}); "
            f"lag-1 autocorrelation of b_t = {res['b_autocorr_lag1']:.2f}.", '',

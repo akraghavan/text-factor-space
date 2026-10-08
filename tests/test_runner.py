@@ -61,9 +61,9 @@ def test_pending_entry_refused(repo, monkeypatch):
 def test_real_registry_valid():
     d, specs, conf = runner.load_registry(Path(__file__).resolve().parents[1] / 'specs.yaml')
     assert sorted(conf) == ['C_H1_dense_bbar', 'E_H3_bow_peermom_test']
-    # after the freeze only `entry` may differ from the frozen registry (d1df5c7)
+    # after the freeze only `entry` may differ from the frozen registry (01cb5cc)
     import subprocess, yaml
-    old = subprocess.run(['git', 'show', 'd1df5c795b83d7e1f3d04a23a31fe0174b6aa047:specs.yaml'], capture_output=True, text=True,
+    old = subprocess.run(['git', 'show', '01cb5cc4bab2fe05c7b16690bac4015e17a499f6:specs.yaml'], capture_output=True, text=True,
                          cwd=Path(__file__).resolve().parents[1])
     if old.returncode == 0:
         frozen = {s['id']: s for s in yaml.safe_load(old.stdout)['specs']}

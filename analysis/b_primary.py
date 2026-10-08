@@ -1,4 +1,4 @@
-"""B primary statistic (specs.yaml B_primary_alignment_share; PREREG Element B, frozen at d1df5c7). Run only via
+"""B primary statistic (specs.yaml B_primary_alignment_share; PREREG Element B, frozen at 01cb5cc). Run only via
     python src/runner.py run B_primary_alignment_share
 Per annual formation 1 July 2014..2025: the B sample of analysis/b_spectra.sample_at (500 largest universe firms with
 complete returns and rolling-beta FF6 residuals over T = 756 days; pairs with return correlation > 0.95 thinned by
@@ -42,7 +42,7 @@ def run(spec=None):
     pt = pd.DataFrame(per)
     md = lambda df: '\n'.join(['| ' + ' | '.join(df.columns) + ' |', '|' + '---|' * df.shape[1]] + ['| ' + ' | '.join(str(v) for v in r) + ' |' for r in df.itertuples(index=False)])
     txt = ['# B primary: residual modes aligned with text beyond industry', '',
-           'Spec `B_primary_alignment_share`, PREREG frozen at d1df5c7, run through `src/runner.py`.', '',
+           'Spec `B_primary_alignment_share`, PREREG frozen at 01cb5cc, run through `src/runner.py`.', '',
            f"**{k} of {n} above-edge residual modes ({res['share']:.1%}) have beyond-industry dense alignment with p < 0.05; "
            f"one-sided binomial p vs 5% = {res['binomial_p_one_sided']:.3g}. Decision (share > 5% and p < 0.05): "
            f"{'text structure beyond industry' if res['decision_text_beyond_industry'] else 'not shown'}.**", '',

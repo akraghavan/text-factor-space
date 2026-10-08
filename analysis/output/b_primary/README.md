@@ -1,6 +1,6 @@
 # B primary: residual modes aligned with text beyond industry
 
-Spec `B_primary_alignment_share`, PREREG frozen at d1df5c7, run through `src/runner.py`.
+Spec `B_primary_alignment_share`, PREREG frozen at 01cb5cc, run through `src/runner.py`.
 
 **255 of 267 above-edge residual modes (95.5%) have beyond-industry dense alignment with p < 0.05; one-sided binomial p vs 5% = 0. Decision (share > 5% and p < 0.05): text structure beyond industry.**
 

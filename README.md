@@ -55,7 +55,6 @@ tests/        tests for tfs_stats against statsmodels / scikit-learn
 analysis/     element scripts producing tables and figures
 notebooks/    exploration only
 docs/         SPEC (design), DATA (reproduction), PREREG, STATUS, RESULTS
-hub/          builds a status page from docs/SPEC.md
 data/         not in the repo: raw/, interim/, processed/
 ```
 

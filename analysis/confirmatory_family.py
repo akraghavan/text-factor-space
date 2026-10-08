@@ -1,4 +1,4 @@
-"""Holm decision for the confirmatory family {H1, H3} (PREREG "Confirmatory family", frozen at d1df5c7). Reads the latest
+"""Holm decision for the confirmatory family {H1, H3} (PREREG "Confirmatory family", frozen at 01cb5cc). Reads the latest
 status-'ok' runner record of each confirmatory spec from runs.log (nothing is re-estimated) and applies
 tfs_stats.multitest.holm at alpha = 0.05 (thresholds 0.025 for the smaller p, 0.05 for the larger).
 Writes analysis/output/confirmatory/README.md; returns the decisions. Run: python src/runner.py run Confirmatory_family_holm"""

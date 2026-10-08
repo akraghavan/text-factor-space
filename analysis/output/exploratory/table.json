@@ -12,7 +12,7 @@
   "q_by": 0.0,
   "reject_by": true,
   "run_time": "2026-10-08T03:56:56+00:00",
-  "commit": "111f5ba"
+  "commit": "2f695d1"
  },
  {
   "spec": "B_x_ff48_share",
@@ -27,7 +27,7 @@
   "q_by": 1.451775051602484e-279,
   "reject_by": true,
   "run_time": "2026-10-01T20:58:49+00:00",
-  "commit": "7a2237b"
+  "commit": "8003fe6"
  },
  {
   "spec": "B_x_nested_sic",
@@ -42,7 +42,7 @@
   "q_by": 2.1400227970217298e-277,
   "reject_by": true,
   "run_time": "2026-10-01T20:58:10+00:00",
-  "commit": "7a2237b"
+  "commit": "8003fe6"
  },
  {
   "spec": "B_x_raw_dense_share",
@@ -57,7 +57,7 @@
   "q_by": 0.0,
   "reject_by": true,
   "run_time": "2026-10-01T20:56:53+00:00",
-  "commit": "7a2237b"
+  "commit": "8003fe6"
  },
  {
   "spec": "B_x_sic3_share",
@@ -72,7 +72,7 @@
   "q_by": 0.0,
   "reject_by": true,
   "run_time": "2026-10-01T20:56:13+00:00",
-  "commit": "7a2237b"
+  "commit": "8003fe6"
  },
  {
   "spec": "B_x_subspace_overlap",
@@ -87,7 +87,7 @@
   "q_by": 4.2137686176213927e-22,
   "reject_by": true,
   "run_time": "2026-10-01T20:57:31+00:00",
-  "commit": "7a2237b"
+  "commit": "8003fe6"
  },
  {
   "spec": "C_x_12m_windows",
@@ -102,7 +102,7 @@
   "q_by": 3.1855888369544585e-09,
   "reject_by": true,
   "run_time": "2026-10-08T04:02:48+00:00",
-  "commit": "111f5ba"
+  "commit": "2f695d1"
  },
  {
   "spec": "C_x_binary_network",
@@ -117,7 +117,7 @@
   "q_by": 0.0,
   "reject_by": true,
   "run_time": "2026-10-08T03:59:59+00:00",
-  "commit": "111f5ba"
+  "commit": "2f695d1"
  },
  {
   "spec": "C_x_bow_null",
@@ -132,7 +132,7 @@
   "q_by": 4.396990143824973e-133,
   "reject_by": true,
   "run_time": "2026-10-08T03:35:04+00:00",
-  "commit": "e7dd82c"
+  "commit": "c53c620"
  },
  {
   "spec": "C_x_bow_raw",
@@ -147,7 +147,7 @@
   "q_by": 3.5030059492026434e-131,
   "reject_by": true,
   "run_time": "2026-10-08T03:57:38+00:00",
-  "commit": "111f5ba"
+  "commit": "2f695d1"
  },
  {
   "spec": "C_x_dimson",
@@ -162,7 +162,7 @@
   "q_by": 1.4740921943914992e-128,
   "reject_by": true,
   "run_time": "2026-10-08T04:06:45+00:00",
-  "commit": "ed17036"
+  "commit": "b97b0e3"
  },
  {
   "spec": "C_x_dyadic",
@@ -177,7 +177,7 @@
   "q_by": 2.925026954734148e-237,
   "reject_by": true,
   "run_time": "2026-10-02T07:27:07+00:00",
-  "commit": "42f90a5"
+  "commit": "656569c"
  },
  {
   "spec": "C_x_missing_bm_indicator",
@@ -192,7 +192,7 @@
   "q_by": 2.980988574811054e-141,
   "reject_by": true,
   "run_time": "2026-10-08T03:37:24+00:00",
-  "commit": "e7dd82c"
+  "commit": "c53c620"
  },
  {
   "spec": "C_x_mrqap",
@@ -207,7 +207,7 @@
   "q_by": 0.008240527716658728,
   "reject_by": true,
   "run_time": "2026-10-02T07:25:50+00:00",
-  "commit": "42f90a5"
+  "commit": "656569c"
  },
  {
   "spec": "C_x_pc10",
@@ -222,7 +222,7 @@
   "q_by": 1.6403069309899459e-84,
   "reject_by": true,
   "run_time": "2026-10-08T03:42:01+00:00",
-  "commit": "e7dd82c"
+  "commit": "c53c620"
  },
  {
   "spec": "C_x_pc5",
@@ -237,7 +237,7 @@
   "q_by": 9.044807856657301e-128,
   "reject_by": true,
   "run_time": "2026-10-08T03:39:39+00:00",
-  "commit": "e7dd82c"
+  "commit": "c53c620"
  },
  {
   "spec": "C_x_post_fy2020",
@@ -252,7 +252,7 @@
   "q_by": 1.5289365264916386e-44,
   "reject_by": true,
   "run_time": "2026-10-08T04:04:41+00:00",
-  "commit": "ed17036"
+  "commit": "b97b0e3"
  },
  {
   "spec": "C_x_post_sep2023",
@@ -267,7 +267,7 @@
   "q_by": 1.0867642587007317e-17,
   "reject_by": true,
   "run_time": "2026-10-08T04:11:07+00:00",
-  "commit": "ed17036"
+  "commit": "b97b0e3"
  },
  {
   "spec": "C_x_pre_fy2020",
@@ -282,7 +282,7 @@
   "q_by": 1.3748676001242536e-89,
   "reject_by": true,
   "run_time": "2026-10-08T04:03:15+00:00",
-  "commit": "111f5ba"
+  "commit": "2f695d1"
  },
  {
   "spec": "C_x_sich",
@@ -297,7 +297,7 @@
   "q_by": 5.562165087585191e-128,
   "reject_by": true,
   "run_time": "2026-10-08T04:08:58+00:00",
-  "commit": "ed17036"
+  "commit": "b97b0e3"
  },
  {
   "spec": "D_x_ff6text_vs_ff6cc",
@@ -312,7 +312,7 @@
   "q_by": 1.0,
   "reject_by": false,
   "run_time": "2026-10-08T17:59:47+00:00",
-  "commit": "11cd0fe"
+  "commit": "13d859f"
  },
  {
   "spec": "D_x_text_vs_constcorr",
@@ -327,7 +327,7 @@
   "q_by": 1.0,
   "reject_by": false,
   "run_time": "2026-10-08T05:15:31+00:00",
-  "commit": "1a4d2e8"
+  "commit": "5900cd7"
  },
  {
   "spec": "D_x_text_vs_lwnl",
@@ -342,7 +342,7 @@
   "q_by": 1.0,
   "reject_by": false,
   "run_time": "2026-10-08T05:14:10+00:00",
-  "commit": "1a4d2e8"
+  "commit": "5900cd7"
  },
  {
   "spec": "D_x_text_vs_placebo",
@@ -357,7 +357,7 @@
   "q_by": 1.0,
   "reject_by": false,
   "run_time": "2026-10-08T05:15:45+00:00",
-  "commit": "1a4d2e8"
+  "commit": "5900cd7"
  },
  {
   "spec": "E_x_both",
@@ -372,7 +372,7 @@
   "q_by": 0.01879398707406221,
   "reject_by": true,
   "run_time": "2026-10-08T04:58:17+00:00",
-  "commit": "157e578"
+  "commit": "4830b9d"
  },
  {
   "spec": "E_x_delist_0",
@@ -387,7 +387,7 @@
   "q_by": 0.01764861596949219,
   "reject_by": true,
   "run_time": "2026-10-08T03:44:20+00:00",
-  "commit": "e7dd82c"
+  "commit": "c53c620"
  },
  {
   "spec": "E_x_delist_m100",
@@ -402,7 +402,7 @@
   "q_by": 0.01764861596949219,
   "reject_by": true,
   "run_time": "2026-10-08T03:46:30+00:00",
-  "commit": "e7dd82c"
+  "commit": "c53c620"
  },
  {
   "spec": "E_x_dense_only",
@@ -417,7 +417,7 @@
   "q_by": 0.6180684660923131,
   "reject_by": false,
   "run_time": "2026-10-08T05:00:53+00:00",
-  "commit": "157e578"
+  "commit": "4830b9d"
  },
  {
   "spec": "E_x_grundy_martin",
@@ -432,7 +432,7 @@
   "q_by": 1.0,
   "reject_by": false,
   "run_time": "2026-10-08T04:47:47+00:00",
-  "commit": "157e578"
+  "commit": "4830b9d"
  },
  {
   "spec": "E_x_h_12_7",
@@ -447,7 +447,7 @@
   "q_by": 1.0,
   "reject_by": false,
   "run_time": "2026-10-08T04:45:10+00:00",
-  "commit": "157e578"
+  "commit": "4830b9d"
  },
  {
   "spec": "E_x_h_6_1",
@@ -462,7 +462,7 @@
   "q_by": 0.06498450524990526,
   "reject_by": true,
   "run_time": "2026-10-08T04:42:40+00:00",
-  "commit": "157e578"
+  "commit": "4830b9d"
  },
  {
   "spec": "E_x_hp_replication",
@@ -477,7 +477,7 @@
   "q_by": 6.798975093981012e-05,
   "reject_by": true,
   "run_time": "2026-10-02T07:34:55+00:00",
-  "commit": "fa5af5f"
+  "commit": "6a3abf9"
  },
  {
   "spec": "E_x_idiosyncratic",
@@ -492,7 +492,7 @@
   "q_by": 0.20917995061966344,
   "reject_by": false,
   "run_time": "2026-10-08T03:53:04+00:00",
-  "commit": "e7dd82c"
+  "commit": "c53c620"
  },
  {
   "spec": "E_x_nearest5",
@@ -507,7 +507,7 @@
   "q_by": 0.0002815693696424165,
   "reject_by": true,
   "run_time": "2026-10-08T03:48:39+00:00",
-  "commit": "e7dd82c"
+  "commit": "c53c620"
  },
  {
   "spec": "E_x_nyse20",
@@ -522,7 +522,7 @@
   "q_by": 0.2127584918393944,
   "reject_by": false,
   "run_time": "2026-10-08T05:06:32+00:00",
-  "commit": "157e578"
+  "commit": "4830b9d"
  },
  {
   "spec": "E_x_perm_matched",
@@ -537,7 +537,7 @@
   "q_by": 1.0,
   "reject_by": false,
   "run_time": "2026-10-02T07:38:31+00:00",
-  "commit": "fa5af5f"
+  "commit": "6a3abf9"
  },
  {
   "spec": "E_x_perm_stratified",
@@ -552,7 +552,7 @@
   "q_by": 0.008240527716658728,
   "reject_by": true,
   "run_time": "2026-10-08T04:15:25+00:00",
-  "commit": "a79b128"
+  "commit": "b5e3b9c"
  },
  {
   "spec": "E_x_placebo_24_13",
@@ -567,7 +567,7 @@
   "q_by": 0.7830443197025995,
   "reject_by": false,
   "run_time": "2026-10-08T04:50:35+00:00",
-  "commit": "157e578"
+  "commit": "4830b9d"
  },
  {
   "spec": "E_x_portfolios",
@@ -582,7 +582,7 @@
   "q_by": 0.014800004536827546,
   "reject_by": true,
   "run_time": "2026-10-02T07:30:08+00:00",
-  "commit": "fa5af5f"
+  "commit": "6a3abf9"
  },
  {
   "spec": "E_x_post_sep2023",
@@ -597,7 +597,7 @@
   "q_by": 0.05476920714076378,
   "reject_by": true,
   "run_time": "2026-10-08T05:03:32+00:00",
-  "commit": "157e578"
+  "commit": "4830b9d"
  },
  {
   "spec": "E_x_sic_only",
@@ -612,7 +612,7 @@
   "q_by": 1.0,
   "reject_by": false,
   "run_time": "2026-10-08T04:55:39+00:00",
-  "commit": "157e578"
+  "commit": "4830b9d"
  },
  {
   "spec": "E_x_sich",
@@ -627,7 +627,7 @@
   "q_by": 1.991019554592392e-06,
   "reject_by": true,
   "run_time": "2026-10-08T05:04:24+00:00",
-  "commit": "157e578"
+  "commit": "4830b9d"
  },
  {
   "spec": "E_x_sim_weighted",
@@ -642,7 +642,7 @@
   "q_by": 0.010771346446307398,
   "reject_by": true,
   "run_time": "2026-10-08T04:40:01+00:00",
-  "commit": "157e578"
+  "commit": "4830b9d"
  },
  {
   "spec": "E_x_stale_y3",
@@ -657,7 +657,7 @@
   "q_by": 0.07755507987953444,
   "reject_by": true,
   "run_time": "2026-10-08T03:50:55+00:00",
-  "commit": "e7dd82c"
+  "commit": "c53c620"
  },
  {
   "spec": "E_x_text_only",
@@ -672,6 +672,6 @@
   "q_by": 0.719678400735624,
   "reject_by": false,
   "run_time": "2026-10-08T04:53:09+00:00",
-  "commit": "157e578"
+  "commit": "4830b9d"
  }
 ]

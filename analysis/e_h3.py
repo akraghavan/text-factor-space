@@ -1,4 +1,4 @@
-"""H3 (confirmatory; specs.yaml E_H3_bow_peermom_test; PREREG Element E, frozen at d1df5c7). Run only via
+"""H3 (confirmatory; specs.yaml E_H3_bow_peermom_test; PREREG Element E, frozen at 01cb5cc). Run only via
     python src/runner.py run E_H3_bow_peermom_test
 Monthly formation t; src/e_signals.signals_at(t) (peers: BoW nouns, null-corrected, SIC-3 density; price >= $1; >= 1
 peer); monthly returns with the SPEC §3 delisting imputation (src/delisting.adjust, exchange-specific delta) and
@@ -60,7 +60,7 @@ def run(spec=None):
     md = lambda df: '\n'.join(['| | ' + ' | '.join(df.columns) + ' |', '|---|' + '---|' * df.shape[1]] +
                               [f'| {i} | ' + ' | '.join(str(v) for v in row) + ' |' for i, row in zip(df.index, df.itertuples(index=False))])
     txt = ['# H3 (Element E): text-peer momentum out of sample — confirmatory', '',
-           'Spec `E_H3_bow_peermom_test`, PREREG frozen at d1df5c7, run through `src/runner.py`.', '',
+           'Spec `E_H3_bow_peermom_test`, PREREG frozen at 01cb5cc, run through `src/runner.py`.', '',
            f"**Test period (Dec 2018 – Jun 2026, T = {Tt}): PEERMOM slope = {res['slope_test'] * 100:.3f}%/month per SD, NW({L}) t = {res['t_nw']:.2f}, "
            f"one-sided p = {res['p_one_sided']:.3g}.** Beside it: NW(2) t = {res['t_nw2']:.2f}; EWC({nu}) t = {res['t_ewc']:.2f} "
            f"(one-sided p from t_{nu} = {res['p_ewc_one_sided']:.3g}); Harvey–Liu–Zhu t > 3: {'yes' if res['hlz_t_gt_3'] else 'no'}.", '',
