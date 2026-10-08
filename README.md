@@ -42,6 +42,10 @@ Element A builds and validates the text representations used by all three. The f
 
 Every estimator and inference step used by the analysis lives in `tfs_stats/`, built on statsmodels, linearmodels and scikit-learn where standard implementations exist, and tested against them (or against simulations with known answers where no library version exists). Primary specifications are pre-registered in [`docs/PREREG.md`](docs/PREREG.md) before the out-of-sample tests are run.
 
+## Results
+
+Q1: text similarity explains residual comovement well beyond SIC (Fama–MacBeth t 24.7; holds under MRQAP, dyadic-robust errors and every robustness check). Q2: a text-based correlation target does not beat Ledoit–Wolf nonlinear shrinkage (its minimum-variance portfolio is 13% more volatile). Q3: Hoberg–Phillips text-peer momentum survives its publication (t 2.81; the stratified-substitution null rejects at p = 0.001) but sits in small stocks and the most recent month. Details, caveats and every exploratory result: [`docs/RESULTS.md`](docs/RESULTS.md).
+
 ## Repository layout
 
 ```
@@ -82,7 +86,7 @@ Wharton Research Data Services (WRDS) was used in preparing this project. This s
 
 ## Status
 
-Work in progress. Current state, next steps and blockers: [`docs/STATUS.md`](docs/STATUS.md).
+Complete (8 Oct 2026): every pre-registered and exploratory specification has been run through `src/runner.py`. History and decisions: [`docs/STATUS.md`](docs/STATUS.md), [`docs/SPEC.md`](docs/SPEC.md) §13.
 
 ## Licence and author
 

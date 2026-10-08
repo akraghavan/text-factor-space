@@ -1,6 +1,6 @@
 # Status
 
-_Last updated: Fri 2 Oct 2026, early morning ET_
+_Last updated: Thu 8 Oct 2026, early morning ET_
 
 ## Done
 - Spec v1 (`docs/SPEC.md`): every element checked against primary sources by five research dossiers and a critic pass.
@@ -21,7 +21,52 @@ _Last updated: Fri 2 Oct 2026, early morning ET_
 - **Element A validated (`analysis/a_text_layer.py`, `analysis/output/a_text_layer/`):** 1 July formations 2012–2026, 3,222–3,870 firms. Same-SIC-3 AUC: dense 0.864, BoW nouns 0.861, BoW 0.853 (0.873/0.870/0.862 excluding SIC 6799 blank-check firms). At SIC-3 density, 31–38% of text edges are same-SIC-3 pairs. TNIC-3 agreement (edge Jaccard): BoW nouns 0.616, BoW 0.606, dense 0.339, SIC-3 0.276; AUC for TNIC pairs 0.94–0.97. Same-firm year-on-year similarity median 0.90–0.93. π rises 2.1% → 3.3% (biotech growth). BoW has a strong length/hub effect (corr of log length with mean similarity +0.93); dense −0.23.
 
 ## Running
-- Nothing.
+- Nothing. **No open items.** The project is complete; every registered spec has been run.
+
+## Finished 7–8 Oct 2026 (hard stop lifted; `notes/finish_plan.md`, decisions D19–D27)
+- **Phase 0 (e7dd82c).**
+  - SPEC §13 D19–D27 added, plus the §1 scope line and the §12 time row.
+  - PREREG change log: 8 Oct entries.
+  - specs.yaml: 21 entries filled and 8 specs added (44 exploratory, 11 diagnostic, 0 pending).
+  - BH rule: two-sided p for specs with no predicted sign (with a test).
+  - Every FM entry saves its monthly slope series; `arch` added to the requirements.
+- **Phase 1.** The nine FM specs re-run for Romano–Wolf reproduce their logged estimate and t exactly (difference 0.0).
+- **Estimator layer (eec8d8f, 1a4d2e8).**
+  - `tfs_stats/covariance.py`:
+    - LW (2020) analytical nonlinear shrinkage, which matches the `nonlinshrink` port of the authors' code to 1e-8;
+    - text, industry and constant-correlation targets;
+    - Schäfer–Strimmer intensity;
+    - preconditioning;
+    - factor models.
+  - `tfs_stats/varcompare.py`: the LW (2011) test with prewhitened QS HAC and an Andrews bandwidth, plus a block bootstrap.
+  - `multitest.romano_wolf` (arch StepM) and clipping for q > 1.
+  - 75 tests pass; the guide cards are in.
+- **Phase 2 (B, C).** All positive and significant:
+  - `B_x_T1008`: 92.8% of modes aligned.
+  - C variants, b̄ 0.0078–0.0194, t 8.8–39: raw BoW, binary links, 12-month windows, pre/post FY2020, Dimson, sich, post-Sep-2023.
+  - `C_shape_r2`: incremental R² 0.0018 in sample, 0.0016 out of sample.
+- **Phase 3 (E).**
+  - **Stratified-substitution null p = 0.001**: the text link itself carries the effect.
+  - The effect sits in the peers' last month (Grundy–Martin: peer r(t−1) t 4.16; peer 12–2 t 0.73).
+  - Visibility splits: only peers in both text and SIC-3 are significant.
+  - `sich` gives t 5.07; above the NYSE 20th percentile, t 1.79.
+  - Event time: break-even round-trip cost 2.0% of value traded; months 13–24 reverse (−10%).
+- **Phase 4 (D).**
+  - The dense text target **loses** to LW-NL: Δ log variance +0.251 (t 6.93; 13.89% vs 12.25% annualised SD).
+  - It is slightly worse than constant correlation (+0.039, t 2.48) and than the placebo (+0.039).
+  - FF6 with text-shrunk residual correlations edges LW-NL (12.12%, t −1.69, not significant after Holm).
+  - The development sanity check passed (LW-NL 7.79%, text 8.70%, 1/N 13.11%).
+  - The N = 500, T = 504 configuration hits LW-NL's p ≈ n degeneracy, so it is uninformative for LW-NL; this is documented.
+- **Phase 5.** m = 44: BH rejects 34, BY 32. Romano–Wolf: C 8/8 survive, E 1/15 (`E_x_sich`).
+- **Phase 6.** Updated: RESULTS rewritten for Q1–Q3; README (mapping 88.7%, D methods, results pointer); PREREG run log; STATS_GUIDE cards (D estimators, the variance test, Romano–Wolf, the stratified null, clipping for q > 1, the BH sign rule); DATA.md (sich); project rules layout; the private PITCH (left for Abhi to review).
+- **Deviations from the plan** (all in the closing the cloud session entry):
+  1. arch 8.0.0's StepM does not studentise despite the flag. It is kept as D25 says, with its simulated FWER documented.
+  2. The Andrews bandwidth is computed here because arch's automatic one is Newey–West (1994).
+  3. LW-NL's zero-eigenvalue guard was relaxed to 1e-12 so T = 504 could run. That configuration then proved degenerate for LW-NL and is reported as such.
+  4. The post-FY2020 months start in Dec 2021 rather than the Mar 2022 the plan guessed (52 months).
+  5. The T = 504 configuration starts in Feb 2013, not about July 2013.
+  6. LW identity now goes through `tfs_stats` (project rule 3).
+
 
 ## Registered results (1 Oct 2026; PREREG frozen at d1df5c7; all run through `src/runner.py`, logged in `runs.log`)
 - **H1 (C, `C_H1_dense_bbar`): supported.** b̄ = 0.0119 per SD of dense similarity (Fisher-z units), NW(4) t = 24.66, one-sided p = 1.5e-134; EWC(12) t = 21.74; lag-1 autocorrelation of b_t 0.29. 165 months, median 442,270 pairs a month (88.4% of pairs). For scale: same SIC-4 adds 0.064, z_lag slope 0.42. `analysis/output/c_h1/`.
@@ -33,7 +78,7 @@ _Last updated: Fri 2 Oct 2026, early morning ET_
 - **`docs/RESULTS.md`** (about 2 pages): question and data; one method paragraph each for A, B, C and E; the registered table (H1, H3, Holm, B primary); the exploratory table with BH and BY q-values (m = 19) and the 21 specs not run; the caveats Abhi listed plus two from tier 2 (E lives in small stocks; the matched-peer null does not reject); and what the results mean.
 - PREREG "Exploratory specifications run" log filled (m = 19). the reviewer's 16:37 entry is marked done.
 - `docs/private/PITCH.md` written (private; résumé bullet plus a 313-word spoken pitch).
-- **Hard stop on new project work.** Interview prep from 3 Oct. Open items for after Fall Break: the 21 exploratory specs not run (stratified-substitution null first: it is the one that tests whether the peer link matters at all) and Element D.
+- Hard stop on new project work (2 Oct); lifted 7 Oct (D19), see above.
 
 ## Exploratory results, tier 2 (2 Oct 2026; Abhi's go; all through `src/runner.py`) and the final BH/BY
 - **C, the two H1 "reported beside" items** (code 42f90a5; new `tfs_stats/pairs.py`, guide card `#fn-pairs`, tests 3):
