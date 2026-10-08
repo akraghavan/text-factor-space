@@ -600,3 +600,13 @@ specs:
     network: dense
     prereg: Element D
     entry: d_horse_race:text_vs_placebo
+  - id: D_x_ff6text_vs_ff6cc
+    element: D
+    family: exploratory
+    hypothesis: FF6 + residual correlation shrunk to the dense text target beats FF6 + residual correlation shrunk to the constant-correlation target (text in the factor residuals); added after the freeze (8 Oct, D29)
+    statistic: log variance difference, LW (2011) HAC
+    predicted_sign: '-'
+    period: test
+    network: dense
+    prereg: Element D
+    entry: d_horse_race:ff6text_vs_ff6cc

@@ -431,6 +431,7 @@ None as of 29 Sep.
 | D26 | Dependencies and custom code | `arch` added (QS-kernel HAC, circular block bootstrap, StepM). LW (2020) analytical nonlinear shrinkage written in `tfs_stats/covariance.py` (no maintained library), p ≤ n and p > n, tested on known spectra |
 | D27 | Not done, stated as limitations | Input–output customer/supplier momentum (no data), analyst co-coverage (no I/B/E/S), net-of-cost alphas with real spreads (break-even cost instead), the D estimators listed as not built in D20 |
 | D28 | Romano–Wolf: correct D25's implementation | 8 Oct (Abhi's go): arch 8.0.0's StepM does not studentise, so each slope series is fed as b_t / (√T · SE_NW) with its spec's own Newey–West lags, the full-sample SE held fixed across draws (Romano & Wolf 2005). The block length is the smallest of {4, 8, 12} whose simulated FWER is ≤ 6% (independent AR(1) series at the family's observed lag-1 autocorrelation and shape: C 165 × 8, E 91 × 15); if none, 12, reported as mildly liberal. Implementation correction, not a spec change |
+| D29 | Control for FF6 + text-shrunk residuals | 8 Oct (Abhi's go): new estimator `ff6_cc`, identical to `ff6_text` except the FF6 residual correlation is shrunk to T(a, 0) with the same Schäfer–Strimmer intensity; new post-freeze exploratory test `D_x_ff6text_vs_ff6cc` (predicted −, test period, LW 2011 with the block bootstrap beside it), counted in BH (m = 45). It says whether text adds anything once the factors are removed, where Q1 found it |
 
 ## 14. References {#references}
 

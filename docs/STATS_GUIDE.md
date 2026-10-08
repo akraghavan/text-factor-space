@@ -572,7 +572,7 @@ Nonlinear shrinkage keeps whatever eigenvectors it is given. So whiten the data 
 ### factor_fit, factor_corr {#fn-factor_corr}
 
 **Job in the project.** The factor-model benchmarks.
-- **FF6.** $\Sigma = B\,\mathrm{Cov}(F)B^\top + D_e^{1/2}R_eD_e^{1/2}$, with $B$ from OLS on $[1, F]$ (`ols_qr`) and residual variances with $n - K - 1$ degrees of freedom. $R_e = I$ gives the diagonal-residual model. $R_e$ = the residual correlation shrunk to a dense target, fitted on pre-window FF6 residuals, gives `ff6_text`.
+- **FF6.** $\Sigma = B\,\mathrm{Cov}(F)B^\top + D_e^{1/2}R_eD_e^{1/2}$, with $B$ from OLS on $[1, F]$ (`ols_qr`) and residual variances with $n - K - 1$ degrees of freedom. $R_e = I$ gives the diagonal-residual model. $R_e$ = the residual correlation shrunk to a dense target, fitted on pre-window FF6 residuals, gives `ff6_text`. Shrinking the same residual correlation towards the constant-correlation target $T(a, 0)$ instead, with the same intensity formula, gives `ff6_cc` (D29). That is the control: `D_x_ff6text_vs_ff6cc` asks whether text adds anything once the factors are removed.
 - **PCA, k = 5.** The top-5 eigen-reconstruction of the sample correlation, with the diagonal reset to 1. That is diagonal residuals on the correlation scale.
 
 Both are returned as correlation matrices (D20(d)).

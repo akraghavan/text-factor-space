@@ -17,6 +17,8 @@ Estimators (D20(a); tfs_stats.covariance unless stated):
   precond      text-preconditioned nonlinear shrinkage with the fitted dense target (LW 2017 eq. 16)
   ff6          FF6 factor model, diagonal residuals
   ff6_text     FF6 factor model + residual correlation shrunk to a dense target fitted on pre-window FF6 residuals
+  ff6_cc       the same with the residual correlation shrunk to the constant-correlation target T(a, 0) instead (D29,
+               added after the freeze): the control that tells whether text adds anything once the factors are removed
   pca5         5-factor PCA model, diagonal residuals
   placebo      T(a, b) with G replaced by P G P' (P a random permutation, seed = rebalance index), (a, b) refitted
 (a, b): constrained LS of the pre-window pair correlations (>= 200 common days) on g_ij (D20(b)); delta:
@@ -25,7 +27,8 @@ Configurations: primary N = 500, T = 252; robustness N = 1,000, T = 252 and N = 
 once and cached in data/processed/d_oos_<config>_<code hash>.parquet (daily returns) and d_reb_<...>.parquet
 (per-rebalance predicted variance, weights summaries, fitted a, b, delta), gitignored; the hash covers the code that
 produces them, so a code change forces a rebuild.
-Entries: text_vs_lwnl (D_x_text_vs_lwnl, pre-listed), text_vs_constcorr and text_vs_placebo (D21, post-freeze), each a
+Entries: text_vs_lwnl (D_x_text_vs_lwnl, pre-listed), text_vs_constcorr and text_vs_placebo (D21, post-freeze) and
+ff6text_vs_ff6cc (D29, post-freeze: text vs constant correlation in the FF6 residuals), each a
 test-period Delta log variance with the LW (2011) HAC t (tfs_stats.varcompare), one-sided p for Delta < 0, and the
 studentised circular block bootstrap p beside it; table (D_horse_race_table, diagnostic): every estimator against LW-NL
 in development, test and full periods for each configuration, Holm across estimators, and the metrics of D20(i).
@@ -46,7 +49,7 @@ from tfs_stats.multitest import holm
 OUT = ROOT / 'analysis' / 'output' / 'd_horse_race'
 CONFIGS = {'primary': (500, 252), 'n1000': (1000, 252), 't504': (500, 504)}
 ESTIMATORS = ['ew', 'sample', 'lw_identity', 'constcorr', 'clip', 'lwnl', 'industry', 'text', 'bow_raw', 'text_val', 'precond',
-              'ff6', 'ff6_text', 'pca5', 'placebo']
+              'ff6', 'ff6_text', 'ff6_cc', 'pca5', 'placebo']
 GRID = np.round(np.arange(0, 1.0001, 0.05), 2); VAL = 63
 
 def _code_hash():
@@ -91,9 +94,11 @@ def estimate_all(inp, T):
     dv = _validated_delta(X, Ttext); out['text_val'] = (shrink(Rs, Ttext, dv), {'delta': dv})
     out['precond'] = (precondition_nl(X, Ttext), {})
     out['ff6'] = (factor_corr(X, F), {})
-    _, Efit, _ = _fit_resid(Xfit, Ffit); Te, a, b = _target(DP.pair_corr(Efit), inp['G_dense'])
+    _, Efit, _ = _fit_resid(Xfit, Ffit); Refit = DP.pair_corr(Efit); Te, a, b = _target(Refit, inp['G_dense'])
     _, E, _ = factor_fit(X, F); d, Re = ss_intensity(E, Te)
     out['ff6_text'] = (factor_corr(X, F, resid_corr=shrink(Re, Te, d)), {'a': a, 'b': b, 'delta': d})
+    Tc, a, b = _target(Refit, None); d, _ = ss_intensity(E, Tc)                # D29: same residuals, constant-correlation target
+    out['ff6_cc'] = (factor_corr(X, F, resid_corr=shrink(Re, Tc, d)), {'a': a, 'b': b, 'delta': d})
     out['pca5'] = (factor_corr(X, k=5), {})
     P = np.random.default_rng(inp['m']).permutation(Nn); Tp, a, b = _target(Rfit, inp['G_dense'][np.ix_(P, P)])   # seed = rebalance index
     d, _ = ss_intensity(X, Tp); out['placebo'] = (shrink(Rs, Tp, d), {'a': a, 'b': b, 'delta': d})
@@ -155,6 +160,7 @@ def _test(name_a, name_b, spec, out_name):
 def text_vs_lwnl(spec=None): return _test('text', 'lwnl', spec, 'text_vs_lwnl')
 def text_vs_constcorr(spec=None): return _test('text', 'constcorr', spec, 'text_vs_constcorr')
 def text_vs_placebo(spec=None): return _test('text', 'placebo', spec, 'text_vs_placebo')
+def ff6text_vs_ff6cc(spec=None): return _test('ff6_text', 'ff6_cc', spec, 'ff6text_vs_ff6cc')   # D29
 
 def table(spec=None):
     t0 = time.time(); OUT.mkdir(parents=True, exist_ok=True); rows, metr = [], []
