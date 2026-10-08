@@ -122,7 +122,7 @@ Byte-for-byte reproduction of the public files needs the same download date (Sep
 
 Compustat stores only each company's *current* CIK, so firms whose CIK changed are dropped rather than mislinked. With the v1 universe, 54,602 of 61,589 indexed 10-Ks map (88.7%) and 54,254 firm-years remain after one per PERMNO per report year (3,378–4,046 per filing year 2012–2026). The index is a superset built with the v0 universe, so its REIT filings now simply fail to map; v0 mapped 92.3% (56,495 firm-years).
 
-**Point in time.** A 10-K's text is usable from the trading day after its filing date and for at most 15 months; Compustat fundamentals 6 months after fiscal year end; industry from CRSP `siccd` as of the month (GICS is a current snapshot, robustness only); universe membership and size from the prior month-end.
+**Point in time.** A 10-K's text is usable from the trading day after its filing date and for at most 15 months; Compustat fundamentals 6 months after fiscal year end; industry from CRSP `siccd` as of the month (GICS is a current snapshot, robustness only); universe membership and size from the prior month-end. Compustat historical `sich` (already in `ccm_funda`; no new query) is the robustness industry code for `C_x_sich` and `E_x_sich` (`src/industry.py`): the fiscal year ending in calendar year y − 1, used from July y, primary links, falling back to `siccd` where missing (about 2% of firms).
 
 ## 4. Pipeline order
 

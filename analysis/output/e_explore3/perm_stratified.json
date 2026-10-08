@@ -1,0 +1,13 @@
+{
+ "t_obs": 2.8092657654378175,
+ "p_one_sided": 0.001,
+ "mean_t_perm": 0.1201663616371119,
+ "sd_t_perm": 0.8083549894976977,
+ "p95_t_perm": 1.4081922744457038,
+ "n_perm": 999,
+ "nw_lags": 3,
+ "mean_corr_random_vs_true_peermom": 0.2810059603315075,
+ "firm_months": 185920,
+ "slots_per_draw": 25515816,
+ "seconds": 1474
+}

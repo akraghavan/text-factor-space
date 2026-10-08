@@ -25,14 +25,19 @@ Element A builds and validates the text representations used by all three. The f
 
 **Data are not included in this repository and are licensed separately.** CRSP and Compustat come from WRDS under an institutional licence and may not be redistributed; the EDGAR, Ken French and Hoberg–Phillips files are public and belong to their providers. [`docs/DATA.md`](docs/DATA.md) lists every WRDS query and download needed to rebuild `data/`.
 
-**Universe.** US-incorporated operating common stock (`ShareType = NS`, `SecuritySubType = COM`, `USIncFlg = Y`, `IssuerType ∈ {ACOR, CORP}`, `ConditionalType ∈ {RW, NW}`; the CIZ equivalent of legacy share codes 10/11) on NYSE, NYSE American or Nasdaq: about 3,750–4,600 firms per year. Each 10-K is mapped CIK → gvkey → PERMNO using the primary CCM link valid on the filing date. Compustat keeps only a firm's current CIK, so firms whose CIK changed are dropped rather than mislinked (92.3% of 10-Ks map).
+**Universe.** US-incorporated operating common stock (`ShareType = NS`, `SecuritySubType = COM`, `USIncFlg = Y`, `IssuerType ∈ {ACOR, CORP}`, `ConditionalType ∈ {RW, NW}`; the CIZ equivalent of legacy share codes 10/11) on NYSE, NYSE American or Nasdaq: about 3,750–4,600 firms per year. Each 10-K is mapped CIK → gvkey → PERMNO using the primary CCM link valid on the filing date. Compustat keeps only a firm's current CIK, so firms whose CIK changed are dropped rather than mislinked (88.7% of 10-Ks map: 54,602 of 61,589; an earlier 92.3% was the pre-REIT-fix v0 universe).
 
 ## Methods
 
 - **A. Text layer.** Hoberg–Phillips-style binary bag-of-words vectors and centred `bge-small-en-v1.5` embeddings; every network calibrated to the pair density of 3-digit SIC; validated against historical SIC and TNIC-3.
 - **B. Factor space.** Eigenvalues of the FF5 + momentum residual correlation matrix (rolling betas) against the Marchenko–Pastur edge and a circular-shift null; inverse participation ratios; alignment of each mode with the text network under a label-permutation null.
 - **C. Pair test.** Monthly Fama–MacBeth regressions of next-period Fisher-z residual correlation on text similarity, controlling for lagged correlation, historical SIC and Antón–Polk pair characteristics; MRQAP and dyadic-robust inference, since pairs sharing a firm are not independent.
-- **D. Covariance horse race.** A nested target a·11ᵀ + b·G + (1−a−b)·I, so text adds value only if b ≠ 0; out-of-sample minimum-variance volatility against Ledoit–Wolf (linear and nonlinear), RMT clipping, factor and PCA models, and a same-spectrum placebo.
+- **D. Covariance horse race.** Fifteen correlation estimators, each turned into an unconstrained minimum-variance portfolio of the 500 largest firms, re-estimated on 252 days and rebalanced every 21 trading days from July 2012 (1,000 firms and 504-day windows as robustness):
+  - baselines: 1/N, Ledoit–Wolf (identity), constant correlation, RMT clipping, and Ledoit–Wolf (2020) analytical nonlinear shrinkage, the benchmark;
+  - factor models: FF6 and 5-factor PCA;
+  - targets a·11ᵀ + b·G + (1−a−b)·I with G from SIC-3 industry, raw bag-of-words or dense text, so text adds value only if b ≠ 0; plus a validated-intensity version, text-preconditioned nonlinear shrinkage, FF6 with text-shrunk residual correlations, and a same-spectrum placebo with relabelled firms.
+
+  Each is scored by out-of-sample volatility with the Ledoit–Wolf (2011) prewhitened-HAC test and a circular block bootstrap.
 - **E. Signal.** Hoberg–Phillips text-peer 12-month momentum on a sample that starts where theirs ended; Fama–MacBeth with Newey–West and EWC errors, quintile/decile portfolios with FF5 + momentum + reversal alphas, a stratified peer-substitution null, and a pre/post-publication split with a power analysis stated in advance.
 
 Every estimator and inference step used by the analysis lives in `tfs_stats/`, built on statsmodels, linearmodels and scikit-learn where standard implementations exist, and tested against them (or against simulations with known answers where no library version exists). Primary specifications are pre-registered in [`docs/PREREG.md`](docs/PREREG.md) before the out-of-sample tests are run.
