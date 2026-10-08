@@ -621,7 +621,14 @@ So the project studentises before StepM. It feeds $x_{t,k} = b_{t,k}/(\sqrt T\,\
 
 The maximum is then over t-statistics. (A per-draw re-studentised version had worse size, 8–11% under iid nulls.)
 
-**Block length (D28).** The smallest of 4, 8 and 12 whose simulated FWER is at most 6% (`romano_wolf_size`). The simulation uses 2,000 draws of independent AR(1) series at the family's mean observed lag-1 autocorrelation and shape, with 1,000 replications each. Independent series are the hardest case, since positively dependent variants behave like fewer tests. RW_RESULTS_PLACEHOLDER
+**Block length (D28).** The smallest of 4, 8 and 12 whose simulated FWER is at most 6% (`romano_wolf_size`). The simulation uses 2,000 draws of independent AR(1) series at the family's mean observed lag-1 autocorrelation and shape, with 1,000 replications each. Independent series are the hardest case, since positively dependent variants behave like fewer tests. No block reached 6% at our sizes. Simulated FWER at blocks 4 / 8 / 12 was 14.6 / 13.8 / 14.3% for C (165 × 8, ρ = 0.36) and 11.4 / 15.5 / 17.7% for E (91 × 15, ρ = 0.06). So block 12 is used, as D28 prescribes, and **RW is liberal at those rates: 14% for C and 18% for E, against a nominal 5%.**
+
+The excess is a small-sample property of taking a maximum over many t-statistics with a fixed SE, not an implementation error:
+- a single series at T = 91 rejects 5.4% of the time;
+- 15 iid series fall from 10% at T = 91 to 4.5% at T = 1,000;
+- C's shape falls from 10.5% at T = 165 to 8.3% at T = 1,000.
+
+Read RW survivors here as weaker evidence than BY. For E the answer depends on the implementation: 8 of 15 survive studentised, 1 of 15 with raw means (the 8 Oct first run).
 
 **Tests (`tests/test_romano_wolf.py`).**
 - The unstudentised version holds FWER ≤ 10% on an iid null.

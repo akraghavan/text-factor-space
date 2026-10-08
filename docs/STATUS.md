@@ -57,7 +57,8 @@ _Last updated: Thu 8 Oct 2026, early morning ET_
   - FF6 with text-shrunk residual correlations edges LW-NL (12.12%, t −1.69, not significant after Holm).
   - The development sanity check passed (LW-NL 7.79%, text 8.70%, 1/N 13.11%).
   - The N = 500, T = 504 configuration hits LW-NL's p ≈ n degeneracy, so it is uninformative for LW-NL; this is documented.
-- **Phase 5.** m = 44: BH rejects 34, BY 32. Romano–Wolf: C 8/8 survive, E 1/15 (`E_x_sich`).
+- **Phase 5.** m = 44: BH rejects 34, BY 32. Romano–Wolf, raw slopes: C 8/8, E 1/15.
+- **D28 (8 Oct, Abhi's go).** Romano–Wolf studentised by each spec's NW SE. No block reaches simulated FWER ≤ 6% (C 14%, E 18% at block 12; about 5% at T = 1,000), so block 12 is used and reported as liberal. Survivors: C 8/8, E 8/15 (every E series with t ≥ 2.24).
 - **Phase 6.** Updated: RESULTS rewritten for Q1–Q3; README (mapping 88.7%, D methods, results pointer); PREREG run log; STATS_GUIDE cards (D estimators, the variance test, Romano–Wolf, the stratified null, clipping for q > 1, the BH sign rule); DATA.md (sich); project rules layout; the private PITCH (left for Abhi to review).
 - **Deviations from the plan** (all in the closing the cloud session entry):
   1. arch 8.0.0's StepM does not studentise despite the flag. It is kept as D25 says, with its simulated FWER documented.

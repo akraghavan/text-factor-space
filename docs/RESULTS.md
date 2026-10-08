@@ -71,7 +71,7 @@ Each spec contributes the one-sided p in its registered direction; the placebo, 
   - Rejected: similarity weights (0.25, t 3.0), nearest-5 peers (0.34, t 4.0), delisting δ = 0 / −100% (t 2.81), a three-year-old network (t 2.24), peers in both text and SIC-3 (t 2.78), post-Sep-2023 (t 2.40), `sich` (0.54, t 5.07), R(t−6, t−1) (t 2.32), the quintile EW FF5+UMD alpha (1.14%/month, t 2.89), and HP's own TNIC-3 peers on 2012–2026 (raw slope 0.016, t 4.9, against HP's 0.008, t 4.36; quintile FF3 alpha 1.42%/month, t 3.37, against HP's 1.7%, t 3.30).
   - BH only: firms above the NYSE 20th percentile (0.19, t 1.79) and idiosyncratic peer returns (t 1.81).
   - Not rejected: R(t−12, t−7) (t −0.12); the Grundy–Martin peer R(t−12, t−2) (t 0.73, while peer r(t−1) has t 4.16); text-only, SIC-only and dense-only peers (t 1.12, 0.02, 1.23); the R(t−24, t−13) placebo (two-sided p 0.15, as it should be); the past-return-matched null (p 0.36).
-- **Romano–Wolf** (FWER 5%, block bootstrap of months): all 8 C slope series survive; of the 15 E test-period series, only `E_x_sich`.
+- **Romano–Wolf** (studentised, D28; FWER 5%, stationary bootstrap of months, block 12): all 8 C slope series survive, and 8 of the 15 E test-period series (nearest-5, delisting δ 0 and −100%, similarity weights, R(t−6, t−1), both-text-and-SIC-3, three-year-old network, `sich`; every E series with t ≥ 2.24). At our sample sizes the procedure is liberal, with simulated FWER 14% (C) and 18% (E). With raw rather than studentised slopes the E count was 1 of 15.
 - **Event time (diagnostic).** The quintile long-short earns +4.0% over months 1–12 and gives back 10.0% over months 13–24. Turnover is 0.56 a month, the break-even round-trip cost 2.0% of value traded, and the maximum drawdown −30% (April 2020: −19%).
 
 ## Caveats
@@ -81,11 +81,11 @@ Each spec contributes the one-sided p in its registered direction; the placebo, 
 - **E is small-stock, short-horizon and fragile across variants.**
   - Value-weighted alphas are insignificant (|t| < 0.6 with UMD). Above the NYSE 20th percentile the slope falls to 0.19 (t 1.79).
   - The signal sits in the peers' most recent month.
-  - Within E, only 1 of 15 slope series survives Romano–Wolf.
+  - Under family-wise control E is fragile: 8 of 15 slope series survive a studentised Romano–Wolf that is liberal at this size (simulated FWER 18%), and 1 of 15 with raw slopes.
 - **The two permutation nulls answer different questions.**
   - The matched null (p 0.36) keeps each peer's past-return decile, so by construction it keeps most of PEERMOM (correlation 0.53). It shows that which firm sits within a decile does not matter.
   - The stratified null (p 0.001) keeps industry and size and breaks the link. It shows the link matters.
-- **Romano–Wolf** uses `arch`'s StepM, whose `studentize` option does not studentise in arch 8.0.0. Its simulated FWER is 6.5% (iid) to 8.5–11% (persistent series) at a nominal 5%, so its rejections are slightly liberal.
+- **Romano–Wolf.** `arch`'s StepM does not studentise in arch 8.0.0, so the series are divided by their own Newey–West SEs before it (D28). No block length brought the simulated FWER to 6% at our sizes (C 165 × 8: 14%; E 91 × 15: 18% at block 12; about 5% at T = 1,000), so its survivors are weaker evidence than BY's.
 - **D.**
   - The T = 504 robustness configuration has p/n = 0.994, where LW (2020) nonlinear shrinkage degenerates (simulated GMV variance 12 times the oracle), so its LW-NL rows are uninformative. The primary (p/n ≈ 2) and N = 1,000 (≈ 4) configurations are unaffected.
   - Mean bias ratios are dominated by March 2020; the medians are 3.0 for LW-NL and 6.9 for text, the usual GMV optimisation bias.
